@@ -1,0 +1,23 @@
+[
+  {
+    "id": "board-study",
+    "slug": "ai-study",
+    "name": "AI学习交流区",
+    "description": "分享学习路径、课程笔记、模型实践和入门经验。",
+    "enabled": true
+  },
+  {
+    "id": "board-announcement",
+    "slug": "association-news",
+    "name": "协会公告&活动区",
+    "description": "协会公告、活动通知、招新消息和线下沙龙安排。",
+    "enabled": true
+  },
+  {
+    "id": "board-qa",
+    "slug": "tech-qa",
+    "name": "技术问答求助区",
+    "description": "环境配置排坑、项目难题求助和经验答疑沉淀。",
+    "enabled": true
+  }
+]
