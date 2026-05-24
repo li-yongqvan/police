@@ -1,0 +1,234 @@
+# Requirements: AI智联论坛 MVP
+
+**Defined:** 2026-05-21
+**Core Value:** 让AI学习者能快速找到技术同伴、交流心得、获取资源，同时通过中台实现论坛全流程可控可管可分析。
+
+## v1 Requirements
+
+### Authentication
+
+- [ ] **AUTH-01**: 用户可通过邀请码注册账号（注册时设置用户名+密码，无需手机号）
+- [ ] **AUTH-02**: 用户可通过用户名+密码登录
+- [ ] **AUTH-03**: 用户可查看和编辑个人资料（头像、昵称、签名、等级展示）
+- [ ] **AUTH-04**: 用户可上传和更换头像
+- [ ] **AUTH-05**: 用户登录后会话保持有效
+
+### User Levels
+
+- [ ] **LEVEL-01**: 用户注册后默认为Level 0（游客），仅可浏览帖子
+- [ ] **LEVEL-02**: Level 1（初级会员）可发帖、评论
+- [ ] **LEVEL-03**: Level 2（中级会员）可发帖、评论、上传图片/附件
+- [ ] **LEVEL-04**: Level 3（高级会员）可发帖、评论、上传附件、设置精华帖（需管理员角色配合）
+- [ ] **LEVEL-05**: Level 4+ 权限逐级递增，由中台配置各等级操作权限
+- [ ] **LEVEL-06**: 发帖/评论/上传附件等操作根据用户等级进行权限校验
+
+### Boards
+
+- [ ] **BOARD-01**: 系统初始化三大核心板块（AI学习交流区、协会公告&活动区、技术问答求助区）
+- [ ] **BOARD-02**: 用户可浏览板块列表
+- [ ] **BOARD-03**: 管理员可在中台新增/编辑/删除板块
+
+### Posts
+
+- [ ] **POST-01**: 用户可创建图文帖子
+- [ ] **POST-02**: 用户可编辑自己的帖子
+- [ ] **POST-03**: 用户可删除自己的帖子
+- [ ] **POST-04**: 用户可浏览帖子列表（按时间排序）
+- [ ] **POST-05**: 用户可查看帖子详情（含内容、评论、作者信息）
+- [ ] **POST-06**: 管理员可删除任意帖子
+- [ ] **POST-07**: 管理员可设置帖子为精华帖
+- [ ] **POST-08**: 管理员可设置帖子为置顶帖
+
+### Comments
+
+- [ ] **COMM-01**: 用户可在帖子下回复评论
+- [ ] **COMM-02**: 用户可查看帖子的评论列表
+
+### Interactions
+
+- [ ] **INTER-01**: 用户可点赞帖子
+- [ ] **INTER-02**: 用户可收藏帖子
+
+### Attachments
+
+- [ ] **ATTACH-01**: 用户可在发帖/评论中上传图片
+- [ ] **ATTACH-02**: 用户可分享网盘链接（文本形式）
+- [ ] **ATTACH-03**: 用户可上传文档文件
+- [ ] **ATTACH-04**: 用户可下载/查看已上传的附件
+
+### Admin - Content Management
+
+- [ ] **ADMIN-01**: 管理员可在后台浏览待审核帖子列表
+- [ ] **ADMIN-02**: 管理员可审核通过帖子
+- [ ] **ADMIN-03**: 管理员可审核驳回帖子
+- [ ] **ADMIN-04**: 管理员可批量删除违规内容
+
+### Admin - User Management
+
+- [ ] **USER-ADMIN-01**: 中台管理员可封禁用户账号
+- [ ] **USER-ADMIN-02**: 中台管理员可查看所有用户列表
+- [ ] **USER-ADMIN-03**: 中台管理员可手动升级用户等级（Level 0 → Level 1+）
+- [ ] **USER-ADMIN-04**: 中台管理员可查看用户当前等级和操作日志
+
+### Admin - Invite Code Management
+
+- [ ] **INVITE-01**: 中台管理员可生成单个邀请码
+- [ ] **INVITE-02**: 中台管理员可批量生成邀请码（指定数量）
+- [ ] **INVITE-03**: 中台管理员可查看邀请码使用状态（已使用/未使用/过期）
+- [ ] **INVITE-04**: 邀请码绑定注册记录，可追溯哪个邀请码注册了哪个用户
+- [ ] **INVITE-05**: 中台管理员可作废未使用的邀请码
+
+### Admin - System Config
+
+- [ ] **CONFIG-01**: 中台管理员可查看和修改系统配置（发帖限制、板块开关）
+- [ ] **CONFIG-02**: 中台管理员可分配简单角色权限（普通用户/管理员/中台管理员）
+
+### Moderation
+
+- [ ] **MOD-01**: 发帖/评论提交时自动校验敏感词（内置规则表）
+- [ ] **MOD-02**: 中台管理员可添加敏感词到规则表
+
+### Analytics
+
+- [ ] **ANAL-01**: 中台可查看核心数据概览（注册用户数、日发帖量、板块活跃度）
+- [ ] **ANAL-02**: 中台可查看每日统计报表
+
+### Frontend
+
+- [ ] **FE-01**: 用户端支持PC端浏览和发帖
+- [ ] **FE-02**: 用户端支持移动端H5自适应浏览
+- [ ] **FE-03**: 中台管理端支持PC端管理界面
+- [ ] **FE-04**: Nginx反向代理前端和各后端服务API路由
+
+### Infrastructure
+
+- [ ] **INFRA-01**: Docker Compose编排所有服务（3个Go服务+PostgreSQL+Redis+Nginx+前端）
+- [ ] **INFRA-02**: 三个服务使用独立PostgreSQL schema隔离数据
+- [ ] **INFRA-03**: 服务间通过REST API进行内部通信（/internal/v1/前缀）
+
+## v2 Requirements
+
+### Notifications
+
+- **NOTF-01**: 用户收到站内消息通知（回复、点赞）
+- **NOTF-02**: 管理员收到审核待处理提醒
+
+### Points System
+
+- **POINT-01**: 用户发帖、回复、贡献资源获取积分
+- **POINT-02**: 积分可兑换学习资料/周边
+
+### Social
+
+- **SOCL-01**: 用户可私信聊天
+- **SOCL-02**: 用户可关注其他用户
+- **SOCL-03**: 用户可查看关注用户的动态
+
+### Advanced Features
+
+- **ADV-01**: 细分AI技术子板块（大模型、CV、NLP等）
+- **ADV-02**: 赛事专区和报名系统
+- **ADV-03**: 代码高亮、公式排版、论文格式预览
+- **ADV-04**: 数据集专区
+
+### Advanced Moderation
+
+- **MODV2-01**: 自定义敏感词库管理
+- **MODV2-02**: 风险预警和自动拦截
+- **MODV2-03**: 详细用户行为日志
+
+### Advanced Analytics
+
+- **ANALV2-01**: 用户画像分析（年级、专业、兴趣方向）
+- **ANALV2-02**: 留存率、流失预警
+- **ANALV2-03**: 数据导出（Excel/PDF）
+- **ANALV2-04**: 活动数据深度统计
+
+### Emergency Control
+
+- **EMRG-01**: 一键关闭发帖功能
+- **EMRG-02**: 限制特定用户访问
+- **EMRG-03**: 紧急删除违规内容
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| AI模型训练/算力部署 | 仅做交流讨论，不做基础设施 |
+| 付费课程售卖/商业化商城 | 初期纯公益学术社区 |
+| 直播授课系统 | 仅留图文公告，后期迭代 |
+| 线下实体会务系统 | 不做复杂考勤打卡 |
+| 第三方跨平台同步 | 不在初期范围内 |
+| 企业招聘/人才猎头 | 初期不搭建重度功能 |
+| 客户端APP | 优先网页端+H5移动端 |
+| 中台AI智能预测/深度数据挖掘 | 仅实现基础统计、趋势分析、预警 |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Pending |
+| LEVEL-01 | Phase 2 | Pending |
+| LEVEL-02 | Phase 2 | Pending |
+| LEVEL-03 | Phase 2 | Pending |
+| LEVEL-04 | Phase 3 | Pending |
+| LEVEL-05 | Phase 3 | Pending |
+| LEVEL-06 | Phase 2 | Pending |
+| BOARD-01 | Phase 2 | Pending |
+| BOARD-02 | Phase 2 | Pending |
+| BOARD-03 | Phase 3 | Pending |
+| POST-01 | Phase 2 | Pending |
+| POST-02 | Phase 2 | Pending |
+| POST-03 | Phase 2 | Pending |
+| POST-04 | Phase 2 | Pending |
+| POST-05 | Phase 2 | Pending |
+| POST-06 | Phase 3 | Pending |
+| POST-07 | Phase 3 | Pending |
+| POST-08 | Phase 3 | Pending |
+| COMM-01 | Phase 2 | Pending |
+| COMM-02 | Phase 2 | Pending |
+| INTER-01 | Phase 2 | Pending |
+| INTER-02 | Phase 2 | Pending |
+| ATTACH-01 | Phase 2 | Pending |
+| ATTACH-02 | Phase 2 | Pending |
+| ATTACH-03 | Phase 2 | Pending |
+| ATTACH-04 | Phase 2 | Pending |
+| ADMIN-01 | Phase 3 | Pending |
+| ADMIN-02 | Phase 3 | Pending |
+| ADMIN-03 | Phase 3 | Pending |
+| ADMIN-04 | Phase 3 | Pending |
+| USER-ADMIN-01 | Phase 3 | Pending |
+| USER-ADMIN-02 | Phase 3 | Pending |
+| USER-ADMIN-03 | Phase 3 | Pending |
+| USER-ADMIN-04 | Phase 3 | Pending |
+| INVITE-01 | Phase 2 | Pending |
+| INVITE-02 | Phase 2 | Pending |
+| INVITE-03 | Phase 3 | Pending |
+| INVITE-04 | Phase 3 | Pending |
+| INVITE-05 | Phase 3 | Pending |
+| CONFIG-01 | Phase 3 | Pending |
+| CONFIG-02 | Phase 3 | Pending |
+| MOD-01 | Phase 2 | Pending |
+| MOD-02 | Phase 3 | Pending |
+| ANAL-01 | Phase 3 | Pending |
+| ANAL-02 | Phase 3 | Pending |
+| FE-01 | Phase 2 | Pending |
+| FE-02 | Phase 2 | Pending |
+| FE-03 | Phase 3 | Pending |
+| FE-04 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+
+**Coverage:**
+- v1 requirements: 53 total
+- Mapped to phases: 53
+- Unmapped: 0 ✓
+
+---
+*Requirements defined: 2026-05-21*
+*Last updated: 2026-05-21 after initial definition*

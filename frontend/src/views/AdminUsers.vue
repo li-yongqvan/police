@@ -7,12 +7,12 @@ const session = useSessionStore()
 const users = ref([])
 
 async function load() {
-  users.value = await userApi.listUsers()
+  users.value = await userApi.listUsers(session.token)
 }
 
 async function toggleStatus(user) {
   const next = user.status === 'active' ? 'banned' : 'active'
-  await adminApi.setUserStatus(user.id, next)
+  await adminApi.setUserStatus(user.id, next, session.token)
   session.setFlash(`用户状态已切换为 ${next}`, 'success')
   await load()
 }

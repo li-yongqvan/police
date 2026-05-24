@@ -34,15 +34,12 @@ async function submit() {
     : []
   const post = await forumApi.createPost({
     boardId: form.value.boardId,
-    authorId: session.currentUser.id,
     title: form.value.title,
     content: form.value.content,
-    tags: form.value.tags.split(',').map((item) => item.trim()).filter(Boolean),
-    attachments,
-  })
+  }, session.token)
   session.setFlash(
-    post.status === 'pending' ? '帖子已进入审核队列。' : '帖子已成功发布。',
-    post.status === 'pending' ? 'warning' : 'success',
+    post.status === 'pending_review' ? '帖子已进入审核队列。' : '帖子已成功发布。',
+    post.status === 'pending_review' ? 'warning' : 'success',
   )
   if (post.status === 'published') {
     router.push(`/community/posts/${post.id}`)

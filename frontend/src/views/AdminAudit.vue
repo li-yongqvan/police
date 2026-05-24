@@ -8,22 +8,22 @@ const items = ref([])
 const preview = ref(null)
 
 async function load() {
-  items.value = await adminApi.getPendingAudit()
-  preview.value = items.value[0] ? await forumApi.getPost(items.value[0].postId, true) : null
+  items.value = await adminApi.getPendingAudit(session.token)
+  preview.value = items.value[0] ? await forumApi.getPost(items.value[0].postId) : null
 }
 
 async function act(item, action) {
   if (action === 'approve') {
-    await adminApi.approveAudit(item.id, session.currentUser.id)
+    await adminApi.approveAudit(item.id, session.token)
   } else {
-    await adminApi.rejectAudit(item.id, session.currentUser.id)
+    await adminApi.rejectAudit(item.id, session.token)
   }
   session.setFlash(`审核操作已完成：${action === 'approve' ? '通过' : '驳回'}`, 'success')
   await load()
 }
 
 async function showPreview(item) {
-  preview.value = await forumApi.getPost(item.postId, true)
+  preview.value = await forumApi.getPost(item.postId)
 }
 
 onMounted(load)

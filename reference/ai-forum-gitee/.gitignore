@@ -1,0 +1,35 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code / OMC state
+.omc/
+CLAUDE.md
+
+# Go binaries
+*.exe
+*.test
+*.out
+
+# Logs
+*.log
+
+# Temp
+tmp/
+temp/

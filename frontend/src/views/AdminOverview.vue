@@ -5,7 +5,7 @@ import { adminApi } from '../api'
 const overview = ref(null)
 
 onMounted(async () => {
-  overview.value = await adminApi.getOverview()
+  overview.value = await adminApi.getOverview(session.token)
 })
 </script>
 

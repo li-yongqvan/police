@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AiForum" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">#0f2139</item>
+        <item name="android:navigationBarColor">#eef3f8</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

@@ -1,0 +1,128 @@
+services:
+  # ─── API Gateway ───
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/includes:/etc/nginx/includes:ro
+    depends_on:
+      - user-service
+      - forum-service
+      - admin-service
+    networks:
+      - ai-forum-net
+
+  # ─── User Service ───
+  user-service:
+    build:
+      context: ./services/user
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - DB_SCHEMA=schema_auth
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-forum-net
+
+  # ─── Forum Service ───
+  forum-service:
+    build:
+      context: ./services/forum
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    environment:
+      - DB_SCHEMA=schema_forum
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-forum-net
+
+  # ─── Admin Service ───
+  admin-service:
+    build:
+      context: ./services/admin
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+    environment:
+      - DB_SCHEMA=schema_admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-forum-net
+
+  # ─── PostgreSQL ───
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ai_forum
+      POSTGRES_USER: ai_forum
+      POSTGRES_PASSWORD: ai_forum_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations/init/000_init_schemas.up.sql:/docker-entrypoint-initdb.d/001_init_schemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_forum"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - ai-forum-net
+
+  # ─── Redis ───
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - ai-forum-net
+
+  # ─── Frontend ───
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - user-service
+      - forum-service
+      - admin-service
+    networks:
+      - ai-forum-net
+
+volumes:
+  pgdata:
+
+networks:
+  ai-forum-net:
+    driver: bridge

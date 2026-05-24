@@ -2,7 +2,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { adminApi, forumApi } from '../api'
+import { useSessionStore } from '../stores/session'
 
+const session = useSessionStore()
 const boards = ref([])
 const posts = ref([])
 const overview = ref(null)
@@ -13,7 +15,7 @@ onMounted(async () => {
   boards.value = await forumApi.getBoards()
   posts.value = await forumApi.getPosts()
   try {
-    overview.value = await adminApi.getOverview()
+    overview.value = await adminApi.getOverview(session.token)
   } catch {
     overview.value = null
   }

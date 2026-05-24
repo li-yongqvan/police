@@ -1,0 +1,27 @@
+# Production overrides for Ubuntu cloud host (single-machine Compose).
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  nginx:
+    ports:
+      - "80:80"
+
+  user-service:
+    ports: []
+    environment:
+      - APP_ENV=production
+
+  forum-service:
+    ports: []
+
+  admin-service:
+    ports: []
+
+  postgres:
+    ports: []
+
+  redis:
+    ports: []
+
+  frontend:
+    ports: []

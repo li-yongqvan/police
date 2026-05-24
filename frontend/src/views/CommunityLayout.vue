@@ -14,7 +14,7 @@ const pendingCount = computed(() => session.canAccessAdmin ? '可切后台' : '�
 async function loadMeta() {
   boards.value = await forumApi.getBoards()
   if (session.canAccessAdmin) {
-    config.value = await adminApi.getConfig()
+    config.value = await adminApi.getConfig(session.token)
   }
 }
 

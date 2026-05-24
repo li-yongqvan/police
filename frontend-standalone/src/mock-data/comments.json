@@ -1,0 +1,37 @@
+[
+  {
+    "id": "comment-1",
+    "postId": "post-1",
+    "authorId": "user-admin",
+    "content": "这条路线很适合协会内部推广，后面可以顺手补一份工具安装清单。",
+    "createdAt": "2026-05-20T09:30:00+08:00"
+  },
+  {
+    "id": "comment-2",
+    "postId": "post-1",
+    "authorId": "user-platform",
+    "content": "如果你要做展示，最好在第三周就开始搭第一个 demo，论坛上的反馈会更具体。",
+    "createdAt": "2026-05-20T09:45:00+08:00"
+  },
+  {
+    "id": "comment-3",
+    "postId": "post-2",
+    "authorId": "user-student",
+    "content": "报名之后会提前公布组队主题吗？",
+    "createdAt": "2026-05-20T10:40:00+08:00"
+  },
+  {
+    "id": "comment-4",
+    "postId": "post-3",
+    "authorId": "user-platform",
+    "content": "如果你现在主要目标是验证流程，先用 FAISS 本地跑通会更省力。",
+    "createdAt": "2026-05-20T11:50:00+08:00"
+  },
+  {
+    "id": "comment-5",
+    "postId": "post-3",
+    "authorId": "user-admin",
+    "content": "后续如果考虑多人协作和数据持久化，再切到 PGVector 会更顺一些。",
+    "createdAt": "2026-05-20T12:05:00+08:00"
+  }
+]

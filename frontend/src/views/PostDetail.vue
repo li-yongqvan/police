@@ -16,16 +16,15 @@ async function loadPost() {
 }
 
 async function likePost() {
-  await forumApi.likePost(route.params.id)
+  await forumApi.likePost(route.params.id, session.token)
   await loadPost()
   session.setFlash('点赞已记录。', 'success')
 }
 
 async function submitComment() {
   await forumApi.createComment(route.params.id, {
-    authorId: session.currentUser.id,
     content: commentText.value,
-  })
+  }, session.token)
   commentText.value = ''
   await loadPost()
   session.setFlash('评论已发布。', 'success')
