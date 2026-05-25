@@ -43,6 +43,22 @@ func (h *UserAdminHandler) BanUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "user banned"})
 }
 
+// UnbanUser restores a banned user account
+func (h *UserAdminHandler) UnbanUser(c *gin.Context) {
+	userID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	operatorID, operatorName := getOperatorInfo(c)
+	if err := h.UserAdminService.UnbanUser(c.Request.Context(), uint(userID), operatorID, operatorName); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "user unbanned"})
+}
+
 // ListUsers returns paginated user list
 func (h *UserAdminHandler) ListUsers(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))

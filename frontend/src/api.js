@@ -1,20 +1,22 @@
-const defaultHeaders = (token) => ({
-  'Content-Type': 'application/json',
-  ...(token ? { Authorization: `Bearer ${token}` } : {}),
-})
+import { apiRequest, apiUpload, setRefreshToken } from './api/http'
 
-function getToken(explicit) {
-  if (explicit) return explicit
-  return localStorage.getItem('ai-forum-token') || ''
+const authHeaders = (json = true, tokenOverride) => {
+  const headers = {}
+  if (json) headers['Content-Type'] = 'application/json'
+  const token = tokenOverride ?? (localStorage.getItem('ai-forum-token') || '')
+  if (token) headers.Authorization = `Bearer ${token}`
+  return headers
 }
 
-async function request(base, path, options = {}) {
-  const response = await fetch(`${base}${path}`, options)
-  const payload = await response.json().catch(() => ({}))
-  if (!response.ok) {
-    throw new Error(payload.error || payload.message || '请求失败')
-  }
-  return payload
+function request(base, path, options = {}) {
+  return apiRequest(base, path, options)
+}
+
+function attachmentUrl(pathOrId) {
+  if (!pathOrId) return '#'
+  if (String(pathOrId).startsWith('http')) return pathOrId
+  if (String(pathOrId).startsWith('/')) return `/forum-api${pathOrId}`
+  return `/forum-api/api/v1/attachments/${pathOrId}`
 }
 
 function mapBoard(board) {
@@ -24,6 +26,7 @@ function mapBoard(board) {
     slug: board.slug,
     description: board.description,
     enabled: board.enabled,
+    sortOrder: board.sort_order ?? 0,
     postCount: board.post_count ?? 0,
   }
 }
@@ -43,7 +46,7 @@ function mapPostListItem(post) {
     likeCount: post.like_count ?? 0,
     commentCount: post.comment_count ?? 0,
     createdAt: post.created_at,
-    tags: [],
+    tags: post.tags || [],
   }
 }
 
@@ -55,41 +58,40 @@ function mapPostDetail(post, comments = []) {
       attachments: (post.attachments || []).map((item) => ({
         id: String(item.id),
         type: item.file_type,
-        title: item.filename,
-        url: item.file_path,
+        title: item.filename || item.title || '附件',
+        url: attachmentUrl(item.file_path || item.id),
       })),
-      tags: [],
+      tags: post.tags || [],
     },
     comments: comments.map((item) => ({
       id: String(item.id),
       postId: String(item.post_id),
       authorId: String(item.author_id),
-      authorName: item.author_name || '',
+      authorName: item.author_name || item.author_id,
       content: item.content,
       createdAt: item.created_at,
     })),
   }
 }
 
-function mapUser(user) {
+function mapUser(user, roleFallback) {
   return {
     id: String(user.id),
+    username: user.username || '',
     name: user.name || user.nickname || user.username,
     avatar: user.avatar || '',
-    role: user.role || 'student',
+    role: user.role || roleFallback || 'student',
+    level: user.level ?? 1,
     department: user.department || '',
     bio: user.bio || '',
     status: user.status || 'active',
   }
 }
 
-function mapConfigFromBackend(configs = {}) {
+function mapConfigFromBackend(configs = {}, boards = []) {
   const boardSwitches = {}
-  Object.entries(configs).forEach(([key, value]) => {
-    const match = key.match(/^board_(.+)_enabled$/)
-    if (match) {
-      boardSwitches[match[1]] = value === 'true'
-    }
+  boards.forEach((board) => {
+    boardSwitches[board.id] = configs[`board_${board.slug}_enabled`] !== 'false'
   })
   return {
     postingEnabled: configs.post_requires_level !== '99',
@@ -99,37 +101,80 @@ function mapConfigFromBackend(configs = {}) {
   }
 }
 
+function persistTokens(payload) {
+  const token = payload.access_token || payload.token
+  if (token) localStorage.setItem('ai-forum-token', token)
+  if (payload.refresh_token) setRefreshToken(payload.refresh_token)
+  return token
+}
+
 export const userApi = {
+  async register({ username, password, invitationCode }) {
+    await request('/user-api', '/api/v1/register', {
+      method: 'POST',
+      headers: authHeaders(true, null),
+      body: JSON.stringify({ username, password, invitation_code: invitationCode }),
+    })
+    return userApi.login(username, password)
+  },
+  async login(username, password) {
+    const payload = await request('/user-api', '/api/v1/login', {
+      method: 'POST',
+      headers: authHeaders(true, null),
+      body: JSON.stringify({ username, password }),
+    })
+    const token = persistTokens(payload)
+    const user = await userApi.me()
+    return { token, user, refreshToken: payload.refresh_token }
+  },
   async demoLogin(role) {
+    if (!import.meta.env.DEV) throw new Error('demo-login 仅用于开发环境')
     const payload = await request('/user-api', '/api/v1/demo-login', {
       method: 'POST',
-      headers: defaultHeaders(),
+      headers: authHeaders(true, null),
       body: JSON.stringify({ role }),
     })
-    return {
-      token: payload.token || payload.access_token,
-      user: mapUser(payload.user),
-    }
+    const token = persistTokens(payload)
+    return { token, user: mapUser(payload.user, role) }
   },
-  async me(token) {
+  async me() {
     const payload = await request('/user-api', '/api/v1/users/me', {
-      headers: defaultHeaders(getToken(token)),
+      headers: authHeaders(),
     })
     return mapUser(payload)
   },
-  async listUsers(token) {
-    const payload = await request('/admin-api', '/api/v1/admin/users?limit=100', {
-      headers: defaultHeaders(getToken(token)),
+  async getProfile(id) {
+    const payload = await request('/user-api', `/api/v1/users/${id}`, {
+      headers: authHeaders(),
     })
-    return (payload.users || []).map((user) => ({
-      id: String(user.id ?? user.user_id),
-      name: user.nickname || user.username,
-      avatar: user.avatar || '',
-      role: user.role || 'student',
-      department: '',
-      bio: user.bio || '',
-      status: user.status || 'active',
-    }))
+    return mapUser(payload)
+  },
+  async updateProfile(id, data) {
+    const payload = await request('/user-api', `/api/v1/users/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ nickname: data.name, bio: data.bio, username: data.username }),
+    })
+    return mapUser({ ...payload, role: (await userApi.me()).role })
+  },
+  async uploadAvatar(id, file) {
+    const form = new FormData()
+    form.append('avatar', file)
+    const payload = await apiUpload('/user-api', `/api/v1/users/${id}/avatar`, form)
+    return mapUser({ ...payload, role: (await userApi.me()).role })
+  },
+  async listUsers(page = 1, limit = 20) {
+    const payload = await request(
+      '/admin-api',
+      `/api/v1/admin/users?limit=${limit}&page=${page}`,
+      { headers: authHeaders() },
+    )
+    return {
+      users: (payload.users || []).map((user) => mapUser(user)),
+      total: payload.total ?? 0,
+      page: payload.page ?? page,
+      limit: payload.limit ?? limit,
+    }
   },
 }
 
@@ -137,109 +182,152 @@ export const forumApi = {
   async getBoards(includeDisabled = false) {
     const boards = await request('/forum-api', '/api/v1/boards')
     const list = Array.isArray(boards) ? boards.map(mapBoard) : []
-    if (!includeDisabled) {
-      return list.filter((item) => item.enabled)
-    }
-    return list
+    return includeDisabled ? list : list.filter((item) => item.enabled)
   },
-  async getPosts(boardId = '', includePending = false) {
+  async getPosts({ boardId = '', page = 1, limit = 20, includePending = false } = {}) {
     const query = new URLSearchParams()
-    if (boardId) query.set('board_id', boardId)
-    query.set('limit', '100')
+    if (boardId) query.set('board_id', String(boardId))
+    query.set('page', String(page))
+    query.set('limit', String(limit))
     const payload = await request('/forum-api', `/api/v1/posts?${query}`)
     let posts = (payload.posts || []).map(mapPostListItem)
-    if (!includePending) {
-      posts = posts.filter((item) => item.status === 'published')
+    if (!includePending) posts = posts.filter((item) => item.status === 'published')
+    return {
+      posts,
+      total: payload.total ?? posts.length,
+      page: payload.page ?? page,
+      limit: payload.limit ?? limit,
     }
-    return posts
   },
   async getPost(id) {
     const post = await request('/forum-api', `/api/v1/posts/${id}`)
     const commentsPayload = await request('/forum-api', `/api/v1/posts/${id}/comments?limit=100`)
     return mapPostDetail(post, commentsPayload.comments || [])
   },
-  async createPost(payload, token) {
+  async createPost(payload) {
+    const body = {
+      title: payload.title,
+      content: payload.content,
+      board_id: Number(payload.boardId),
+    }
+    if (payload.attachmentIds?.length) body.attachment_ids = payload.attachmentIds.map(Number)
     const post = await request('/forum-api', '/api/v1/posts', {
       method: 'POST',
-      headers: defaultHeaders(getToken(token)),
-      body: JSON.stringify({
-        title: payload.title,
-        content: payload.content,
-        board_id: Number(payload.boardId),
-      }),
+      headers: authHeaders(),
+      body: JSON.stringify(body),
     })
     return mapPostListItem(post)
   },
-  async createComment(id, payload, token) {
+  async updatePost(id, payload) {
+    const post = await request('/forum-api', `/api/v1/posts/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ title: payload.title, content: payload.content }),
+    })
+    return mapPostListItem(post)
+  },
+  async deletePost(id) {
+    await request('/forum-api', `/api/v1/posts/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+  },
+  async createComment(id, payload) {
     await request('/forum-api', `/api/v1/posts/${id}/comments`, {
       method: 'POST',
-      headers: defaultHeaders(getToken(token)),
+      headers: authHeaders(),
       body: JSON.stringify({ content: payload.content }),
     })
   },
-  async likePost(id, token) {
-    await request('/forum-api', `/api/v1/posts/${id}/like`, {
+  async likePost(id) {
+    const resp = await request('/forum-api', `/api/v1/posts/${id}/like`, {
       method: 'POST',
-      headers: defaultHeaders(getToken(token)),
+      headers: authHeaders(),
+    })
+    return { likeCount: resp.like_count ?? 0, liked: resp.liked }
+  },
+  async collectPost(id) {
+    return request('/forum-api', `/api/v1/posts/${id}/collect`, {
+      method: 'POST',
+      headers: authHeaders(),
     })
   },
-  async toggleFeature() {
-    throw new Error('精华帖操作请在中台完成')
+  async uploadAttachment({ type, file, linkUrl }) {
+    const form = new FormData()
+    form.append('type', type)
+    if (type === 'link') form.append('link_url', linkUrl)
+    else if (file) form.append('file', file)
+    const payload = await apiUpload('/forum-api', '/api/v1/attachments/upload', form)
+    return String(payload.id)
   },
 }
 
 export const adminApi = {
-  async getOverview(token) {
-    const payload = await request('/admin-api', '/api/v1/admin/stats/overview', {
-      headers: defaultHeaders(getToken(token)),
-    })
-    const data = payload.data || payload
+  async getOverview() {
+    const auth = authHeaders()
+    const [statsPayload, pendingPayload, boards] = await Promise.all([
+      request('/admin-api', '/api/v1/admin/stats/overview', { headers: auth }),
+      request('/admin-api', '/api/v1/admin/audit/pending', { headers: auth }).catch(() => ({
+        posts: [],
+      })),
+      forumApi.getBoards(true),
+    ])
+    const data = statsPayload.data || statsPayload
+    const pending = pendingPayload.posts || []
     return {
       userCount: data.total_users ?? 0,
       postCount: data.total_posts ?? 0,
       commentCount: data.total_comments ?? 0,
-      pendingAuditCount: 0,
-      boardActivity: [],
+      todayPostCount: data.posts_today ?? 0,
+      pendingAuditCount: pending.length,
+      boardActivity: boards.map((board) => ({
+        boardId: board.id,
+        name: board.name,
+        count: board.postCount ?? 0,
+      })),
     }
   },
-  async getConfig(token) {
+  async getDailyStats(days = 7) {
+    const payload = await request('/admin-api', `/api/v1/admin/stats/daily?days=${days}`, {
+      headers: authHeaders(),
+    })
+    return payload.data || payload || []
+  },
+  async getConfig() {
     const payload = await request('/admin-api', '/api/v1/admin/config', {
-      headers: defaultHeaders(getToken(token)),
+      headers: authHeaders(),
     })
-    const configs = payload.configs || {}
-    const mapped = mapConfigFromBackend(configs)
     const boards = await forumApi.getBoards(true)
-    const boardSwitches = {}
-    boards.forEach((board) => {
-      boardSwitches[board.id] = configs[`board_${board.slug}_enabled`] !== 'false'
-    })
-    mapped.boardSwitches = boardSwitches
-    return mapped
+    return mapConfigFromBackend(payload.configs || {}, boards)
   },
-  async updateConfig(config, token) {
+  async updateConfig(config) {
     const updates = []
-    if (config.moderationMode) {
-      updates.push(['sensitive_word_action', config.moderationMode === 'manual' ? 'pending_review' : 'reject'])
+    if (typeof config.postingEnabled === 'boolean') {
+      updates.push(['post_requires_level', config.postingEnabled ? '1' : '99'])
     }
+    if (config.moderationMode) {
+      updates.push([
+        'sensitive_word_action',
+        config.moderationMode === 'manual' ? 'pending_review' : 'reject',
+      ])
+    }
+    const boards = await forumApi.getBoards(true)
     for (const [boardId, enabled] of Object.entries(config.boardSwitches || {})) {
-      const boards = await forumApi.getBoards(true)
       const board = boards.find((item) => item.id === boardId)
-      if (board) {
-        updates.push([`board_${board.slug}_enabled`, enabled ? 'true' : 'false'])
-      }
+      if (board) updates.push([`board_${board.slug}_enabled`, enabled ? 'true' : 'false'])
     }
     for (const [key, value] of updates) {
       await request('/admin-api', `/api/v1/admin/config/${key}`, {
         method: 'PUT',
-        headers: defaultHeaders(getToken(token)),
+        headers: authHeaders(),
         body: JSON.stringify({ value: String(value) }),
       })
     }
-    return this.getConfig(token)
+    return adminApi.getConfig()
   },
-  async getPendingAudit(token) {
+  async getPendingAudit() {
     const payload = await request('/admin-api', '/api/v1/admin/audit/pending', {
-      headers: defaultHeaders(getToken(token)),
+      headers: authHeaders(),
     })
     return (payload.posts || []).map((post) => ({
       id: String(post.id),
@@ -248,35 +336,209 @@ export const adminApi = {
       authorName: post.author_name,
       boardName: post.board_name,
       status: post.status,
+      reason: post.reject_reason || '',
     }))
   },
-  async approveAudit(id, token) {
+  async approveAudit(id) {
     await request('/admin-api', `/api/v1/admin/audit/${id}/approve`, {
       method: 'POST',
-      headers: defaultHeaders(getToken(token)),
+      headers: authHeaders(),
       body: JSON.stringify({}),
     })
   },
-  async rejectAudit(id, token) {
+  async rejectAudit(id, reason = '不符合社区规范') {
     await request('/admin-api', `/api/v1/admin/audit/${id}/reject`, {
       method: 'POST',
-      headers: defaultHeaders(getToken(token)),
-      body: JSON.stringify({ reason: '演示驳回' }),
+      headers: authHeaders(),
+      body: JSON.stringify({ reason }),
     })
   },
-  async deletePost(id, token) {
+  async batchDeleteAudit(postIds, reason = '') {
+    await request('/admin-api', '/api/v1/admin/audit/batch-delete', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        post_ids: postIds.map((id) => Number(id)),
+        reason,
+      }),
+    })
+  },
+  async listPosts(page = 1, limit = 20) {
+    const payload = await request(
+      '/admin-api',
+      `/api/v1/admin/posts?page=${page}&limit=${limit}`,
+      { headers: authHeaders() },
+    )
+    return {
+      posts: (payload.posts || []).map(mapPostListItem),
+      total: payload.total ?? 0,
+      page: payload.page ?? page,
+      limit: payload.limit ?? limit,
+    }
+  },
+  async deletePost(id) {
     await request('/admin-api', `/api/v1/admin/posts/${id}/delete`, {
       method: 'POST',
-      headers: defaultHeaders(getToken(token)),
+      headers: authHeaders(),
     })
   },
-  async setUserStatus(id, status, token) {
+  async setPostFeatured(id, featured) {
+    await request('/admin-api', `/api/v1/admin/posts/${id}/featured`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ featured }),
+    })
+  },
+  async setPostPinned(id, pinned) {
+    await request('/admin-api', `/api/v1/admin/posts/${id}/pinned`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ pinned }),
+    })
+  },
+  async listBoards() {
+    const payload = await request('/admin-api', '/api/v1/admin/boards', {
+      headers: authHeaders(),
+    })
+    const boards = payload.boards || payload || []
+    return Array.isArray(boards) ? boards.map(mapBoard) : []
+  },
+  async createBoard(data) {
+    await request('/admin-api', '/api/v1/admin/boards', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        sort_order: Number(data.sortOrder) || 0,
+      }),
+    })
+  },
+  async updateBoard(id, data) {
+    await request('/admin-api', `/api/v1/admin/boards/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        sort_order: Number(data.sortOrder) || 0,
+        enabled: data.enabled,
+      }),
+    })
+  },
+  async deleteBoard(id) {
+    await request('/admin-api', `/api/v1/admin/boards/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+  },
+  async setUserStatus(id, status) {
     if (status === 'banned') {
       await request('/admin-api', `/api/v1/admin/users/${id}/ban`, {
         method: 'POST',
-        headers: defaultHeaders(getToken(token)),
+        headers: authHeaders(),
         body: JSON.stringify({ reason: '演示封禁' }),
       })
+    } else {
+      await request('/admin-api', `/api/v1/admin/users/${id}/unban`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({}),
+      })
     }
+  },
+  async updateUserLevel(id, level) {
+    await request('/admin-api', `/api/v1/admin/users/${id}/level`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ level: Number(level) }),
+    })
+  },
+  async getUserLogs(id) {
+    const payload = await request('/admin-api', `/api/v1/admin/users/${id}/logs?limit=20`, {
+      headers: authHeaders(),
+    })
+    return payload.logs || []
+  },
+  async listInviteCodes() {
+    const payload = await request('/admin-api', '/api/v1/admin/invite-codes?limit=50', {
+      headers: authHeaders(),
+    })
+    return payload.codes || payload.invite_codes || []
+  },
+  async getInviteCodeStatus(code) {
+    return request(
+      '/admin-api',
+      `/api/v1/admin/invite-codes/${encodeURIComponent(code)}/status`,
+      { headers: authHeaders() },
+    )
+  },
+  async generateInviteCode() {
+    const payload = await request('/admin-api', '/api/v1/admin/invite-codes', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({}),
+    })
+    return payload.code
+  },
+  async generateInviteBatch(count) {
+    const payload = await request('/admin-api', '/api/v1/admin/invite-codes/batch', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ count }),
+    })
+    return payload.codes || []
+  },
+  async voidInviteCode(code) {
+    await request('/admin-api', `/api/v1/admin/invite-codes/${encodeURIComponent(code)}/void`, {
+      method: 'PUT',
+      headers: authHeaders(),
+    })
+  },
+  async listSensitiveWords() {
+    const payload = await request('/admin-api', '/api/v1/admin/sensitive-words', {
+      headers: authHeaders(),
+    })
+    return Array.isArray(payload) ? payload : payload.words || []
+  },
+  async addSensitiveWord(word, category) {
+    await request('/admin-api', '/api/v1/admin/sensitive-words', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ word, category: category || 'general' }),
+    })
+  },
+  async deleteSensitiveWord(id) {
+    await request('/admin-api', `/api/v1/admin/sensitive-words/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+  },
+  async listRoles() {
+    const payload = await request('/admin-api', '/api/v1/admin/roles', {
+      headers: authHeaders(),
+    })
+    return payload.roles || []
+  },
+  async getUserRoles(userId) {
+    const payload = await request('/admin-api', `/api/v1/admin/users/${userId}/roles`, {
+      headers: authHeaders(),
+    })
+    return payload.roles || []
+  },
+  async assignRole(userId, roleId) {
+    await request('/admin-api', `/api/v1/admin/users/${userId}/roles`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ role_id: Number(roleId) }),
+    })
+  },
+  async removeRole(userId, roleId) {
+    await request('/admin-api', `/api/v1/admin/users/${userId}/roles/${roleId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
   },
 }

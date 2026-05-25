@@ -8,12 +8,13 @@ const config = ref(null)
 const boards = ref([])
 
 onMounted(async () => {
-  config.value = await adminApi.getConfig(session.token)
+  config.value = await adminApi.getConfig()
   boards.value = await forumApi.getBoards(true)
 })
 
 async function save() {
-  config.value = await adminApi.updateConfig(config.value, session.token)
+  config.value = await adminApi.updateConfig(config.value)
+  window.dispatchEvent(new CustomEvent('forum-config-updated'))
   session.setFlash('系统配置已保存。', 'success')
 }
 </script>

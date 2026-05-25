@@ -1,20 +1,26 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { formatApiError } from '../api/errors'
 import { forumApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
 const router = useRouter()
 const session = useSessionStore()
 const boards = ref([])
+const uploading = ref(false)
+const needsLevelForAttachment = computed(
+  () => (session.currentUser?.level ?? 1) < 2,
+)
 const form = ref({
   boardId: '',
   title: '',
   content: '',
   tags: '',
-  attachmentName: '',
   attachmentType: 'link',
+  attachmentName: '',
   attachmentUrl: '',
+  attachmentFile: null,
 })
 
 onMounted(async () => {
@@ -22,29 +28,46 @@ onMounted(async () => {
   form.value.boardId = boards.value[0]?.id || ''
 })
 
+async function uploadIfNeeded() {
+  if (form.value.attachmentType === 'link' && form.value.attachmentUrl) {
+    return [
+      await forumApi.uploadAttachment({ type: 'link', linkUrl: form.value.attachmentUrl }),
+    ]
+  }
+  if (form.value.attachmentFile) {
+    return [
+      await forumApi.uploadAttachment({
+        type: form.value.attachmentType,
+        file: form.value.attachmentFile,
+      }),
+    ]
+  }
+  return []
+}
+
 async function submit() {
-  const attachments = form.value.attachmentName
-    ? [
-        {
-          name: form.value.attachmentName,
-          type: form.value.attachmentType,
-          url: form.value.attachmentUrl,
-        },
-      ]
-    : []
-  const post = await forumApi.createPost({
-    boardId: form.value.boardId,
-    title: form.value.title,
-    content: form.value.content,
-  }, session.token)
-  session.setFlash(
-    post.status === 'pending_review' ? '帖子已进入审核队列。' : '帖子已成功发布。',
-    post.status === 'pending_review' ? 'warning' : 'success',
-  )
-  if (post.status === 'published') {
-    router.push(`/community/posts/${post.id}`)
-  } else {
-    router.push('/community')
+  uploading.value = true
+  try {
+    const attachmentIds = await uploadIfNeeded()
+    const post = await forumApi.createPost({
+      boardId: form.value.boardId,
+      title: form.value.title,
+      content: form.value.content,
+      attachmentIds,
+    })
+    session.setFlash(
+      post.status === 'pending_review' ? '帖子已进入审核队列。' : '帖子已成功发布。',
+      post.status === 'pending_review' ? 'warning' : 'success',
+    )
+    if (post.status === 'published') {
+      router.push(`/community/posts/${post.id}`)
+    } else {
+      router.push('/community')
+    }
+  } catch (error) {
+    session.setFlash(formatApiError(error), 'info')
+  } finally {
+    uploading.value = false
   }
 }
 </script>
@@ -68,10 +91,9 @@ async function submit() {
         <span>正文</span>
         <textarea v-model="form.content" rows="8" placeholder="写下你的问题、经验或活动信息。" />
       </label>
-      <label>
-        <span>标签（逗号分隔）</span>
-        <input v-model="form.tags" type="text" placeholder="RAG, 检索, 课程助手" />
-      </label>
+      <p v-if="needsLevelForAttachment" class="status-hint">
+        上传文件或链接附件需要账号等级 ≥ 2（当前 Lv.{{ session.currentUser?.level ?? 1 }}）。
+      </p>
       <label>
         <span>附件类型</span>
         <select v-model="form.attachmentType">
@@ -80,21 +102,17 @@ async function submit() {
           <option value="image">图片</option>
         </select>
       </label>
-      <label>
-        <span>附件名称</span>
-        <input v-model="form.attachmentName" type="text" placeholder="例如：项目草图.pdf" />
+      <label v-if="form.attachmentType === 'link'" class="full-span">
+        <span>链接地址</span>
+        <input v-model="form.attachmentUrl" type="url" placeholder="https://..." />
       </label>
-      <label>
-        <span>附件 URL</span>
-        <input v-model="form.attachmentUrl" type="text" placeholder="https://example.com/resource" />
+      <label v-else class="full-span">
+        <span>上传文件</span>
+        <input type="file" @change="(e) => (form.attachmentFile = e.target.files?.[0])" />
       </label>
     </div>
-    <button
-      class="primary-button"
-      :disabled="!form.boardId || !form.title.trim() || !form.content.trim()"
-      @click="submit"
-    >
-      提交帖子
+    <button class="primary-button" :disabled="uploading" @click="submit">
+      {{ uploading ? '提交中…' : '发布帖子' }}
     </button>
   </section>
 </template>

@@ -91,6 +91,11 @@ func (c *UserClient) BanUser(userID uint, reason string) error {
 	return c.postJSON(fmt.Sprintf("%s/internal/v1/users/%d/ban", c.BaseURL, userID), payload)
 }
 
+// UnbanUser calls user-service to restore a banned user
+func (c *UserClient) UnbanUser(userID uint) error {
+	return c.postJSON(fmt.Sprintf("%s/internal/v1/users/%d/unban", c.BaseURL, userID), map[string]interface{}{})
+}
+
 // ListUsers calls user-service to get paginated user list
 func (c *UserClient) ListUsers(page, limit int, status string) ([]map[string]interface{}, int, error) {
 	url := fmt.Sprintf("%s/internal/v1/users?page=%d&limit=%d", c.BaseURL, page, limit)

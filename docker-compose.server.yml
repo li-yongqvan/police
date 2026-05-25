@@ -1,0 +1,11 @@
+# Ubuntu cloud host with 1Panel on :80 — gateway published on :8888 only.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.server.yml up -d --build
+
+services:
+  nginx:
+    ports:
+      - "8888:80"
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

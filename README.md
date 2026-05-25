@@ -5,15 +5,15 @@
 ## 目录结构
 
 ```text
-frontend/                 Vue 3 + Vite 前端
-frontend-standalone/      纯前端演示（内置 mock，无需后端）
+frontend/                 Vue 3 + Vite 前端（学院演示 UI，唯一线上前端）
+frontend-standalone/      纯前端 Mock 演示（本地离线用，不部署）
 services/user/            用户服务 (:8001)
 services/forum/           论坛服务 (:8002)
 services/admin/           中台服务 (:8003)
 migrations/init/          数据库 Schema 初始化
 nginx/                    API 网关配置（Docker 全栈）
 infra/                    本地 Postgres + Redis
-reference/ai-forum-gitee/ Gitee 参考仓库（只读）
+reference/ai-forum-gitee/ Gitee 后端参考（只读，不含前端）
 docs/                     分析与计划文档
 ```
 

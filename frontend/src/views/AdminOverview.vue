@@ -1,11 +1,13 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { adminApi } from '../api'
+import { useSessionStore } from '../stores/session'
 
+const session = useSessionStore()
 const overview = ref(null)
 
 onMounted(async () => {
-  overview.value = await adminApi.getOverview(session.token)
+  overview.value = await adminApi.getOverview()
 })
 </script>
 

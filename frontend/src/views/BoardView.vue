@@ -1,24 +1,48 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { forumApi } from '../api'
 
 const route = useRoute()
 const boards = ref([])
 const posts = ref([])
+const total = ref(0)
+const page = ref(1)
+const limit = 20
+const loadingMore = ref(false)
 
 const currentBoard = computed(() => boards.value.find((item) => item.slug === route.params.slug))
-const currentPosts = computed(() =>
-  posts.value.filter((item) => item.boardId === currentBoard.value?.id),
-)
 
-async function loadBoard() {
+async function loadBoard(reset = true) {
+  if (reset) page.value = 1
   boards.value = await forumApi.getBoards()
-  posts.value = await forumApi.getPosts()
+  const board = boards.value.find((item) => item.slug === route.params.slug)
+  if (!board) {
+    posts.value = []
+    total.value = 0
+    return
+  }
+  const feed = await forumApi.getPosts({ boardId: board.id, page: page.value, limit })
+  if (reset) posts.value = feed.posts
+  else posts.value = [...posts.value, ...feed.posts]
+  total.value = feed.total
 }
 
-watch(() => route.params.slug, loadBoard, { immediate: true })
-onMounted(loadBoard)
+async function loadMore() {
+  if (posts.value.length >= total.value) return
+  loadingMore.value = true
+  page.value += 1
+  try {
+    const board = currentBoard.value
+    if (!board) return
+    const feed = await forumApi.getPosts({ boardId: board.id, page: page.value, limit })
+    posts.value = [...posts.value, ...feed.posts]
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+watch(() => route.params.slug, () => loadBoard(true), { immediate: true })
 </script>
 
 <template>
@@ -33,14 +57,14 @@ onMounted(loadBoard)
       <div class="section-title">
         <div>
           <p class="eyebrow">帖子列表</p>
-          <h3>{{ currentPosts.length }} 篇可展示内容</h3>
+          <h3>{{ posts.length }} / {{ total }} 篇可展示内容</h3>
         </div>
         <RouterLink to="/community/posts/new" class="secondary-button">发布到本板块</RouterLink>
       </div>
 
       <div class="post-list">
         <RouterLink
-          v-for="post in currentPosts"
+          v-for="post in posts"
           :key="post.id"
           :to="`/community/posts/${post.id}`"
           class="post-card"
@@ -53,6 +77,14 @@ onMounted(loadBoard)
           <p>{{ post.content }}</p>
         </RouterLink>
       </div>
+      <button
+        v-if="posts.length < total"
+        class="secondary-button load-more-btn"
+        :disabled="loadingMore"
+        @click="loadMore"
+      >
+        {{ loadingMore ? '加载中…' : '加载更多' }}
+      </button>
     </section>
   </div>
 </template>

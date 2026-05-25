@@ -111,6 +111,7 @@ func main() {
 		v1.POST("/posts/:id/pinned", postAdminHandler.SetPostPinned)
 
 		v1.POST("/users/:id/ban", userAdminHandler.BanUser)
+		v1.POST("/users/:id/unban", userAdminHandler.UnbanUser)
 		v1.GET("/users", userAdminHandler.ListUsers)
 		v1.PUT("/users/:id/level", userAdminHandler.UpdateUserLevel)
 		v1.GET("/users/:id/logs", userAdminHandler.GetUserLogs)

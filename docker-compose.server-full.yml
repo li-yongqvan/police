@@ -1,8 +1,8 @@
 services:
-  # ─── API Gateway ───
   nginx:
     image: nginx:alpine
-    restart: unless-stopped
+    ports:
+      - "8888:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/includes:/etc/nginx/includes:ro
@@ -10,16 +10,13 @@ services:
       - user-service
       - forum-service
       - admin-service
-      - frontend
     networks:
       - ai-forum-net
 
-  # ─── User Service ───
   user-service:
     build:
       context: ./services/user
       dockerfile: Dockerfile
-    restart: unless-stopped
     env_file:
       - .env
     environment:
@@ -32,12 +29,10 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── Forum Service ───
   forum-service:
     build:
       context: ./services/forum
       dockerfile: Dockerfile
-    restart: unless-stopped
     env_file:
       - .env
     environment:
@@ -50,12 +45,10 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── Admin Service ───
   admin-service:
     build:
       context: ./services/admin
       dockerfile: Dockerfile
-    restart: unless-stopped
     env_file:
       - .env
     environment:
@@ -68,14 +61,12 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── PostgreSQL ───
   postgres:
     image: postgres:16
-    restart: unless-stopped
     environment:
       POSTGRES_DB: ai_forum
       POSTGRES_USER: ai_forum
-      POSTGRES_PASSWORD: ai_forum_dev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./migrations/init/000_init_schemas.up.sql:/docker-entrypoint-initdb.d/001_init_schemas.sql:ro
@@ -88,10 +79,8 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── Redis ───
   redis:
     image: redis:7-alpine
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -101,12 +90,10 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── Frontend ───
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    restart: unless-stopped
     depends_on:
       - user-service
       - forum-service
