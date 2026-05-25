@@ -63,7 +63,7 @@ onMounted(loadPost)
 </script>
 
 <template>
-  <div v-if="payload.post" class="page-stack">
+  <div v-if="payload.post" class="page-stack mw-post-detail">
     <article class="panel detail-card">
       <div class="post-topline">
         <span class="badge">{{ payload.post.isFeatured ? '精华帖' : '公开帖' }}</span>

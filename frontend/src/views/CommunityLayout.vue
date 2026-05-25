@@ -47,10 +47,11 @@ onMounted(() => {
       <button
         type="button"
         class="layout-menu-button"
-        aria-label="打开导航菜单"
+        :aria-expanded="drawerOpen"
+        :aria-label="drawerOpen ? '关闭导航菜单' : '打开导航菜单'"
         @click="toggleDrawer"
       >
-        菜单
+        <span class="mw-sr-only">{{ drawerOpen ? '关闭菜单' : '打开菜单' }}</span>
       </button>
       <div class="layout-topbar-title">
         <strong>AI 智联论坛</strong>

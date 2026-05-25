@@ -61,11 +61,11 @@ onMounted(load)
           <p class="eyebrow">内容审核</p>
           <h3>待审核帖子列表</h3>
         </div>
-        <div class="audit-actions">
-          <button class="danger-button" :disabled="!selected.size" @click="batchDelete">
-            批量删除 ({{ selected.size }})
-          </button>
-        </div>
+      </div>
+      <div class="mw-sticky-toolbar">
+        <button class="danger-button" :disabled="!selected.size" @click="batchDelete">
+          批量删除 ({{ selected.size }})
+        </button>
       </div>
 
       <div v-if="!items.length" class="empty-state">当前没有待审核内容，社区流转正常。</div>

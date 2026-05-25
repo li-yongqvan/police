@@ -1,0 +1,11 @@
+/* Mobile-web design tokens (Coyier: one dial for touch spacing) */
+@media (max-width: 767.98px) {
+  :root {
+    --mw-tap-min: 44px;
+    --mw-space-page: 16px;
+    --mw-space-card: 14px;
+    --mw-radius-chip: 999px;
+    --mw-sticky-top: calc(var(--layout-topbar-height, 56px) + var(--safe-top, 0px));
+    --mw-font-input: 16px;
+  }
+}

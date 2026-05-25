@@ -1,0 +1,41 @@
+/* M2: Shared mobile utilities */
+@media (max-width: 767.98px) {
+  .mw-line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .mw-line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .load-more-btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .toast {
+    left: calc(12px + var(--safe-left));
+    right: calc(12px + var(--safe-right));
+    bottom: calc(12px + var(--safe-bottom));
+    width: auto;
+    max-width: none;
+    text-align: center;
+  }
+
+  .section-title .audit-actions.mw-pagination {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .section-title .audit-actions.mw-pagination button {
+    width: 100%;
+  }
+}

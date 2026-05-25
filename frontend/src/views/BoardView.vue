@@ -54,7 +54,7 @@ watch(() => route.params.slug, () => loadBoard(true), { immediate: true })
     </section>
 
     <section class="panel content-panel">
-      <div class="section-title">
+      <div class="section-title board-view-header">
         <div>
           <p class="eyebrow">帖子列表</p>
           <h3>{{ posts.length }} / {{ total }} 篇可展示内容</h3>

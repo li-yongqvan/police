@@ -1,11 +1,14 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useBodyScrollLock } from '../../../mobile-web/composables/useBodyScrollLock.js'
 
 const DESKTOP_BREAKPOINT = 1024
 
 export function useDrawerNav() {
   const route = useRoute()
   const drawerOpen = ref(false)
+
+  useBodyScrollLock(drawerOpen)
 
   function closeDrawer() {
     drawerOpen.value = false

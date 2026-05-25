@@ -1,0 +1,12 @@
+/**
+ * AI 智联论坛 — 手机浏览器适配样式包
+ * 仅在 max-width: 767.98px 生效，由 frontend/src/main.js 引入
+ */
+@import './tokens.css';
+@import './touch-forms.css';
+@import './drawer.css';
+@import './utilities.css';
+@import './pages/login.css';
+@import './pages/community.css';
+@import './pages/post.css';
+@import './pages/admin.css';

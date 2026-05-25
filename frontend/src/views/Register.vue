@@ -63,7 +63,13 @@ async function submit() {
         </label>
         <label class="role-login-field">
           <span>邀请码</span>
-          <input v-model="form.invitationCode" type="text" placeholder="向管理员索取" />
+          <input
+            v-model="form.invitationCode"
+            type="text"
+            inputmode="text"
+            autocomplete="one-time-code"
+            placeholder="向管理员索取"
+          />
         </label>
         <p v-if="error" class="role-login-error">{{ error }}</p>
         <div class="role-login-actions">

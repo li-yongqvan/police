@@ -1,0 +1,67 @@
+/* M1: Touch targets, iOS form zoom, focus rings */
+@media (max-width: 767.98px) {
+  .primary-button,
+  .secondary-button,
+  .ghost-button,
+  .danger-button,
+  .nav-link,
+  .layout-menu-button,
+  .board-chip,
+  .load-more-btn {
+    min-height: var(--mw-tap-min);
+  }
+
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea,
+  .role-login-field input,
+  .role-login-field textarea,
+  .comment-form textarea,
+  .level-inline input,
+  .invite-status-row input {
+    font-size: var(--mw-font-input);
+    line-height: 1.4;
+  }
+
+  .role-login-field input,
+  .form-grid input,
+  .invite-status-row input {
+    min-height: var(--mw-tap-min);
+  }
+
+  .primary-button:focus-visible,
+  .secondary-button:focus-visible,
+  .ghost-button:focus-visible,
+  .danger-button:focus-visible,
+  .nav-link:focus-visible,
+  .layout-menu-button:focus-visible {
+    outline: 2px solid #3d7c73;
+    outline-offset: 2px;
+  }
+
+  .primary-button:active,
+  .secondary-button:active,
+  .ghost-button:active,
+  .danger-button:active,
+  .layout-menu-button:active {
+    transform: scale(0.98);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layout-drawer {
+      transition: none;
+    }
+
+    .layout-backdrop {
+      transition: none;
+    }
+
+    .primary-button:active,
+    .secondary-button:active,
+    .ghost-button:active,
+    .danger-button:active,
+    .layout-menu-button:active {
+      transform: none;
+    }
+  }
+}

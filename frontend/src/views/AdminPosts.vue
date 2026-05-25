@@ -51,15 +51,15 @@ onMounted(load)
         <p class="eyebrow">内容管理</p>
         <h3>全站帖子运营 · 第 {{ page }} / {{ totalPages() }} 页</h3>
       </div>
-      <div class="audit-actions">
-        <button class="secondary-button" :disabled="page <= 1" @click="changePage(page - 1)">上一页</button>
-        <button class="secondary-button" :disabled="page >= totalPages()" @click="changePage(page + 1)">
-          下一页
-        </button>
-      </div>
+      <div class="audit-actions mw-pagination">
+          <button class="secondary-button" :disabled="page <= 1" @click="changePage(page - 1)">上一页</button>
+          <button class="secondary-button" :disabled="page >= totalPages()" @click="changePage(page + 1)">
+            下一页
+          </button>
+        </div>
     </div>
     <div class="post-list compact">
-      <article v-for="post in posts" :key="post.id" class="post-card compact">
+      <article v-for="post in posts" :key="post.id" class="post-card compact mw-admin-post">
         <div>
           <strong>{{ post.title }}</strong>
           <p>{{ post.boardName }} · {{ post.authorName }} · {{ post.status }}</p>

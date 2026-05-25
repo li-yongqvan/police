@@ -54,7 +54,7 @@ onMounted(load)
           <p class="eyebrow">用户管理</p>
           <h3>封禁、解封与等级 · 第 {{ page }} / {{ totalPages() }} 页</h3>
         </div>
-        <div class="audit-actions">
+        <div class="audit-actions mw-pagination">
           <button class="secondary-button" :disabled="page <= 1" @click="changePage(page - 1)">上一页</button>
           <button class="secondary-button" :disabled="page >= totalPages()" @click="changePage(page + 1)">
             下一页
@@ -63,7 +63,7 @@ onMounted(load)
       </div>
 
       <div class="user-list">
-        <article v-for="user in users" :key="user.id" class="user-row">
+        <article v-for="user in users" :key="user.id" class="user-row mw-user-row">
           <div>
             <strong>{{ user.name }}</strong>
             <p>{{ user.username }} · {{ user.role }} · Lv.{{ user.level }}</p>
