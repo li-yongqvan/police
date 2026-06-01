@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import GxAvatarInitial from './GxAvatarInitial.vue'
 import GxVoteRail from './GxVoteRail.vue'
-import Badge from '../ui/Badge.vue'
 import GxIcon from './GxIcon.vue'
 import { boardKeyFromName } from '../../composables/useGxNav'
 import { formatAuthorLabel, formatRelativeTime } from '../../utils/displayName'
@@ -83,7 +82,7 @@ async function onVote() {
     />
     <div class="gx-feed-card__body">
       <div class="gx-feed-card__meta">
-        <Badge v-if="pinned" variant="gold" class="gx-feed-card__badge">置顶</Badge>
+        <span v-if="pinned" class="gx-feed-card__pin-tag">[置顶]</span>
         <RouterLink v-else :to="boardPath" class="gx-feed-card__board" @click.stop>
           {{ post.boardName || '讨论' }}
         </RouterLink>

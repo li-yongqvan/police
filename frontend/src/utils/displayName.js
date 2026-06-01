@@ -1,3 +1,11 @@
+/** 顶栏 / 欢迎区：区队 · 姓名 */
+export function formatUserChipLabel(user) {
+  const name = String(user?.name || user?.username || '同学').trim()
+  const squad = String(user?.squad || '').trim()
+  if (squad && name) return `${squad} · ${name}`
+  return name || '同学'
+}
+
 /** 展示用学号/队别昵称（合规：不使用「警号」） */
 export function formatAuthorLabel(user, post) {
   if (post?.authorName) return maskStudentLabel(post.authorName)

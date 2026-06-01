@@ -4,6 +4,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import GxAvatarInitial from './GxAvatarInitial.vue'
 import GxIcon from './GxIcon.vue'
 import { GX_HEADER_NAV } from '../../composables/useGxNav'
+import { formatUserChipLabel } from '../../utils/displayName'
 import { useSessionStore } from '../../stores/session'
 
 defineProps({
@@ -18,7 +19,9 @@ const session = useSessionStore()
 const showDropdown = ref(false)
 const searchQ = ref(route.query.q || '')
 
-const displayName = computed(() => session.currentUser?.name || session.currentUser?.username || '同学')
+const displayName = computed(() =>
+  session.currentUser ? formatUserChipLabel(session.currentUser) : '同学',
+)
 
 function isHeaderActive(item) {
   return item.match?.(route) ?? route.path.startsWith(item.to)

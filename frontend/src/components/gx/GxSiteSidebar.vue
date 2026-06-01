@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import GxIcon from './GxIcon.vue'
-import GxSidebarUserCard from './GxSidebarUserCard.vue'
 import {
   GX_NAV_ITEMS,
   GX_SIDEBAR_PERSONAL,
@@ -87,13 +86,10 @@ function logout() {
         @click="onNav"
       >
         <span>{{ item.label }}</span>
-        <GxIcon v-if="isBoardActive(item.key)" name="star" :size="16" class="gx-sidebar-boards__star" />
       </RouterLink>
     </nav>
 
-    <GxSidebarUserCard class="gx-sidebar-user-wrap mt-auto" />
-
-    <nav v-if="session.canAccessAdmin" class="gx-sidebar-nav">
+    <nav v-if="session.canAccessAdmin" class="gx-sidebar-nav gx-sidebar-nav--admin mt-auto">
       <RouterLink to="/admin" class="gx-sidebar-nav__link" @click="onNav">
         <GxIcon name="shield" :size="20" />
         <span>管理端</span>

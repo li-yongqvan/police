@@ -98,13 +98,11 @@ const updatedAt = computed(() => formatDisplayDate(new Date().toISOString()))
         </ul>
       </div>
 
-      <div class="gx-panel">
+      <div class="gx-panel gx-panel--notice">
         <h3 class="gx-panel__title">发帖须知</h3>
-        <ul class="gx-feed-aside__tips">
-          <li>标题简明，正文文明理性</li>
-          <li>涉密、违规内容请勿发布</li>
-          <li>部分帖子需审核后展示</li>
-        </ul>
+        <p class="gx-feed-aside__notice">
+          标题简明，正文文明理性；涉密、违规内容请勿发布；部分帖子需审核后展示。转载请注明出处，尊重师长与同学。
+        </p>
       </div>
     </template>
   </div>

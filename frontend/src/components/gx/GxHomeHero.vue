@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import GxIcon from './GxIcon.vue'
+import { formatUserChipLabel } from '../../utils/displayName'
 import { useSessionStore } from '../../stores/session'
 
 const props = defineProps({
@@ -11,11 +12,11 @@ const props = defineProps({
 const session = useSessionStore()
 
 const greeting = computed(() => {
-  const name = session.currentUser?.name || session.currentUser?.username || '同学'
+  const who = session.currentUser ? formatUserChipLabel(session.currentUser) : '同学'
   const hour = new Date().getHours()
-  if (hour < 12) return `早上好，${name}`
-  if (hour < 18) return `下午好，${name}`
-  return `晚上好，${name}`
+  if (hour < 12) return `早上好，${who}`
+  if (hour < 18) return `下午好，${who}`
+  return `晚上好，${who}`
 })
 
 const statLine = computed(() => {
