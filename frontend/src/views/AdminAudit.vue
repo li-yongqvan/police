@@ -54,43 +54,48 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="page-stack">
-    <section class="panel content-panel">
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">内容审核</p>
-          <h3>待审核帖子列表</h3>
+  <div class="gx-page gx-admin-page">
+    <header class="gx-page-head">
+      <p class="gx-eyebrow">内容审核</p>
+      <h1>待审核帖子</h1>
+    </header>
+
+    <div class="gx-audit-workbench">
+      <section class="gx-card">
+        <div class="gx-toolbar">
+          <button type="button" class="gx-btn gx-btn--danger" :disabled="!selected.size" @click="batchDelete">
+            批量删除 ({{ selected.size }})
+          </button>
         </div>
-      </div>
-      <div class="mw-sticky-toolbar">
-        <button class="danger-button" :disabled="!selected.size" @click="batchDelete">
-          批量删除 ({{ selected.size }})
-        </button>
-      </div>
 
-      <div v-if="!items.length" class="empty-state">当前没有待审核内容，社区流转正常。</div>
+        <div v-if="!items.length" class="gx-empty">当前没有待审核内容，社区流转正常。</div>
 
-      <div v-else class="audit-grid">
-        <article v-for="item in items" :key="item.id" class="audit-card">
-          <label class="audit-select">
-            <input type="checkbox" :checked="selected.has(item.postId)" @change="toggleSelect(item.postId)" />
-            选中
-          </label>
-          <h4>{{ item.title }}</h4>
-          <p>{{ item.reason || '待人工审核' }}</p>
-          <div class="audit-actions">
-            <button class="secondary-button" @click="showPreview(item)">查看内容</button>
-            <button class="primary-button" @click="act(item, 'approve')">审核通过</button>
-            <button class="danger-button" @click="act(item, 'reject')">驳回</button>
-          </div>
-        </article>
-      </div>
-    </section>
+        <div v-else class="gx-audit-grid">
+          <article v-for="item in items" :key="item.id" class="gx-card">
+            <label class="gx-muted">
+              <input type="checkbox" :checked="selected.has(item.postId)" @change="toggleSelect(item.postId)" />
+              选中
+            </label>
+            <h4>{{ item.title }}</h4>
+            <p class="gx-muted">{{ item.reason || '待人工审核' }}</p>
+            <div class="gx-admin-actions">
+              <button type="button" class="gx-btn gx-btn--secondary" @click="showPreview(item)">查看内容</button>
+              <button type="button" class="gx-btn gx-btn--primary" @click="act(item, 'approve')">审核通过</button>
+              <button type="button" class="gx-btn gx-btn--danger" @click="act(item, 'reject')">驳回</button>
+            </div>
+          </article>
+        </div>
+      </section>
 
-    <section v-if="preview?.post" class="panel detail-card">
-      <p class="eyebrow">审核预览</p>
-      <h2>{{ preview.post.title }}</h2>
-      <p class="detail-copy">{{ preview.post.content }}</p>
-    </section>
+      <section v-if="preview?.post" class="gx-card gx-audit-preview">
+        <p class="gx-eyebrow">审核预览</p>
+        <h2>{{ preview.post.title }}</h2>
+        <p class="gx-post-body">{{ preview.post.content }}</p>
+      </section>
+      <section v-else class="gx-card gx-audit-preview gx-muted" style="min-height: 200px">
+        <p class="gx-eyebrow">审核预览</p>
+        <p>点击「查看内容」在此预览帖子正文。</p>
+      </section>
+    </div>
   </div>
 </template>

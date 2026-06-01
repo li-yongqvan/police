@@ -1,0 +1,51 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-gx-primary: #0f2b5b;
+  --color-gx-primary-dark: #0a2249;
+  --color-gx-accent: #c81623;
+  --color-gx-danger: #c81623;
+  --color-gx-warning: #9a6b1f;
+  --color-gx-success: #1b6b4a;
+  --color-gx-brand: #3d7eef;
+  --color-gx-gold: #d4b86a;
+  --color-gx-muted: #5c6b7a;
+  --color-gx-border: #d8dee6;
+  --color-gx-surface: #ffffff;
+  --color-gx-bg: #f5f7fa;
+  --radius-gx-sm: 4px;
+  --radius-gx-md: 8px;
+  --radius-gx-lg: 12px;
+  --font-sans: 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --spacing-reading: 42rem;
+  --breakpoint-gx: 992px;
+}
+
+@utility text-display {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+@utility text-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+@utility text-body {
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+@utility text-meta {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+@utility text-caption {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--color-gx-muted);
+}

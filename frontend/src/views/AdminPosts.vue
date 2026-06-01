@@ -45,35 +45,48 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="panel content-panel">
-    <div class="section-title">
-      <div>
-        <p class="eyebrow">内容管理</p>
-        <h3>全站帖子运营 · 第 {{ page }} / {{ totalPages() }} 页</h3>
-      </div>
-      <div class="audit-actions mw-pagination">
-          <button class="secondary-button" :disabled="page <= 1" @click="changePage(page - 1)">上一页</button>
-          <button class="secondary-button" :disabled="page >= totalPages()" @click="changePage(page + 1)">
+  <div class="gx-page gx-admin-page">
+    <header class="gx-page-head">
+      <p class="gx-eyebrow">内容管理</p>
+      <h1>全站帖子运营</h1>
+      <p class="gx-muted">第 {{ page }} / {{ totalPages() }} 页</p>
+    </header>
+
+    <section class="gx-card">
+      <div class="gx-section-head">
+        <span class="gx-muted">{{ total }} 篇</span>
+        <div class="gx-admin-actions">
+          <button type="button" class="gx-btn gx-btn--secondary" :disabled="page <= 1" @click="changePage(page - 1)">
+            上一页
+          </button>
+          <button
+            type="button"
+            class="gx-btn gx-btn--secondary"
+            :disabled="page >= totalPages()"
+            @click="changePage(page + 1)"
+          >
             下一页
           </button>
         </div>
-    </div>
-    <div class="post-list compact">
-      <article v-for="post in posts" :key="post.id" class="post-card compact mw-admin-post">
-        <div>
-          <strong>{{ post.title }}</strong>
-          <p>{{ post.boardName }} · {{ post.authorName }} · {{ post.status }}</p>
-        </div>
-        <div class="audit-actions">
-          <button class="secondary-button" @click="toggleFeatured(post)">
-            {{ post.isFeatured ? '取消精华' : '设精华' }}
-          </button>
-          <button class="secondary-button" @click="togglePinned(post)">
-            {{ post.isPinned ? '取消置顶' : '置顶' }}
-          </button>
-          <button class="danger-button" @click="remove(post)">删除</button>
-        </div>
-      </article>
-    </div>
-  </section>
+      </div>
+
+      <div class="gx-admin-list">
+        <article v-for="post in posts" :key="post.id" class="gx-admin-row">
+          <div>
+            <strong>{{ post.title }}</strong>
+            <p class="gx-muted">{{ post.boardName }} · {{ post.authorName }} · {{ post.status }}</p>
+          </div>
+          <div class="gx-admin-actions">
+            <button type="button" class="gx-btn gx-btn--secondary" @click="toggleFeatured(post)">
+              {{ post.isFeatured ? '取消精华' : '设精华' }}
+            </button>
+            <button type="button" class="gx-btn gx-btn--secondary" @click="togglePinned(post)">
+              {{ post.isPinned ? '取消置顶' : '置顶' }}
+            </button>
+            <button type="button" class="gx-btn gx-btn--danger" @click="remove(post)">删除</button>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
 </template>

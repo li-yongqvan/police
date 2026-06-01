@@ -2,6 +2,8 @@
 
 面向学院级人工智能协会展示的可运行 MVP：Vue 3 前端 + Go 三微服务后端（PostgreSQL + Redis）。
 
+**功能说明与使用指南（领域驱动设计视角）** → [docs/项目介绍与使用指南-领域驱动设计视角.md](docs/项目介绍与使用指南-领域驱动设计视角.md)
+
 ## 目录结构
 
 ```text
@@ -77,7 +79,7 @@ go run ./cmd/main.go
 ```powershell
 cd frontend
 npm install
-npm run dev -- --host 127.0.0.1 --port 4173
+npm run dev -- --host 127.0.0.1 --port 8091
 ```
 
 ### 4. 演示账号
@@ -117,13 +119,14 @@ docker compose up -d --build
 | user-service | 8001 |
 | forum-service | 8002 |
 | admin-service | 8003 |
-| frontend (dev) | 4173 |
+| frontend (dev) | 8091 |
 | PostgreSQL | 5432 |
 | Redis | 6379 |
 | Nginx (compose) | 80 |
 
 ## 文档
 
+- **[项目介绍与使用指南（DDD 领域视角）](docs/项目介绍与使用指南-领域驱动设计视角.md)** — 限界上下文、角色能力、演示与本地用法
 - [后端框架分析报告](docs/backend-framework-analysis-report.md)
 - [后端对接实施计划](docs/backend-framework-integration-plan.md)
 

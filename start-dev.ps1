@@ -35,4 +35,4 @@ Start-GoService "$root\services\user" "schema_auth"
 Start-GoService "$root\services\forum" "schema_forum"
 Start-GoService "$root\services\admin" "schema_admin"
 Start-Sleep -Seconds 2
-Start-Process powershell -ArgumentList '-NoLogo','-NoProfile','-Command',"Set-Location '$root\frontend'; npm run dev -- --host 127.0.0.1 --port 4173"
+Start-Process powershell -ArgumentList '-NoLogo','-NoProfile','-Command',"Set-Location '$root\frontend'; npm run dev -- --host 127.0.0.1 --port 8091"

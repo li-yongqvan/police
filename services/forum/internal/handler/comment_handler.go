@@ -13,11 +13,12 @@ import (
 // CommentHandler handles comment operations
 type CommentHandler struct {
 	Service *service.ForumService
+	Extras  *service.ExtrasService
 }
 
 // NewCommentHandler creates a new CommentHandler
-func NewCommentHandler(svc *service.ForumService) *CommentHandler {
-	return &CommentHandler{Service: svc}
+func NewCommentHandler(svc *service.ForumService, extras *service.ExtrasService) *CommentHandler {
+	return &CommentHandler{Service: svc, Extras: extras}
 }
 
 // ListComments returns comments for a post
@@ -60,10 +61,13 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
-	comment, err := h.Service.CreateComment(c.Request.Context(), authorID, uint(postID), req.Content)
+	comment, err := h.Service.CreateComment(c.Request.Context(), authorID, uint(postID), req.Content, req.ParentID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+	if meta, err := h.Service.GetPostNotifyMeta(c.Request.Context(), uint(postID)); err == nil && h.Extras != nil {
+		h.Extras.NotifyPostAuthorOnComment(c.Request.Context(), uint(postID), meta.AuthorID, authorID, meta.Title)
 	}
 	c.JSON(http.StatusCreated, comment)
 }

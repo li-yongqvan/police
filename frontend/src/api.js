@@ -1,4 +1,5 @@
-import { apiRequest, apiUpload, setRefreshToken } from './api/http'
+import { apiRequest, apiUpload, LOGIN_TIMEOUT_MS, setRefreshToken } from './api/http'
+import { formatDisplayDate, formatDisplayTime } from './utils/displayName'
 
 const authHeaders = (json = true, tokenOverride) => {
   const headers = {}
@@ -10,6 +11,14 @@ const authHeaders = (json = true, tokenOverride) => {
 
 function request(base, path, options = {}) {
   return apiRequest(base, path, options)
+}
+
+function viewerRequest(base, path, options = {}) {
+  const token = localStorage.getItem('ai-forum-token')
+  if (token) {
+    options.headers = { ...authHeaders(), ...options.headers }
+  }
+  return request(base, path, options)
 }
 
 function attachmentUrl(pathOrId) {
@@ -38,14 +47,17 @@ function mapPostListItem(post) {
     content: post.content,
     boardId: String(post.board_id),
     boardName: post.board_name,
+    boardSlug: post.board_slug || '',
     authorId: String(post.author_id),
     authorName: post.author_name,
     status: post.status,
     isFeatured: post.is_featured,
     isPinned: post.is_pinned,
     likeCount: post.like_count ?? 0,
+    liked: !!post.liked,
     commentCount: post.comment_count ?? 0,
-    createdAt: post.created_at,
+    createdAtIso: post.created_at,
+    createdAt: formatDisplayDate(post.created_at),
     tags: post.tags || [],
   }
 }
@@ -62,15 +74,32 @@ function mapPostDetail(post, comments = []) {
         url: attachmentUrl(item.file_path || item.id),
       })),
       tags: post.tags || [],
+      collected: !!post.collected,
     },
     comments: comments.map((item) => ({
       id: String(item.id),
       postId: String(item.post_id),
+      parentId: item.parent_id ? String(item.parent_id) : '',
+      depth: item.depth ?? 0,
       authorId: String(item.author_id),
       authorName: item.author_name || item.author_id,
       content: item.content,
-      createdAt: item.created_at,
+      createdAtIso: item.created_at,
+      createdAt: formatDisplayTime(item.created_at),
     })),
+  }
+}
+
+function mapNotification(row) {
+  return {
+    id: String(row.id),
+    type: row.type,
+    title: row.title,
+    body: row.body,
+    related_post_id: row.related_post_id ? String(row.related_post_id) : '',
+    is_read: row.is_read,
+    createdAtIso: row.created_at,
+    created_at: formatDisplayTime(row.created_at),
   }
 }
 
@@ -83,6 +112,9 @@ function mapUser(user, roleFallback) {
     role: user.role || roleFallback || 'student',
     level: user.level ?? 1,
     department: user.department || '',
+    squad: user.squad || '',
+    grade: user.grade || '',
+    profileCompleted: user.profile_completed ?? user.profileCompleted ?? false,
     bio: user.bio || '',
     status: user.status || 'active',
   }
@@ -109,11 +141,18 @@ function persistTokens(payload) {
 }
 
 export const userApi = {
-  async register({ username, password, invitationCode }) {
+  async register({ username, password, invitationCode, department, squad, grade }) {
     await request('/user-api', '/api/v1/register', {
       method: 'POST',
       headers: authHeaders(true, null),
-      body: JSON.stringify({ username, password, invitation_code: invitationCode }),
+      body: JSON.stringify({
+        username,
+        password,
+        invitation_code: invitationCode,
+        department,
+        squad,
+        grade,
+      }),
     })
     return userApi.login(username, password)
   },
@@ -122,6 +161,9 @@ export const userApi = {
       method: 'POST',
       headers: authHeaders(true, null),
       body: JSON.stringify({ username, password }),
+      timeoutMs: LOGIN_TIMEOUT_MS,
+      retries: 2,
+      retryOnPost: true,
     })
     const token = persistTokens(payload)
     const user = await userApi.me()
@@ -153,7 +195,15 @@ export const userApi = {
     const payload = await request('/user-api', `/api/v1/users/${id}`, {
       method: 'PUT',
       headers: authHeaders(),
-      body: JSON.stringify({ nickname: data.name, bio: data.bio, username: data.username }),
+      body: JSON.stringify({
+        nickname: data.name,
+        bio: data.bio,
+        username: data.username,
+        department: data.department,
+        squad: data.squad,
+        grade: data.grade,
+        profile_completed: data.profileCompleted,
+      }),
     })
     return mapUser({ ...payload, role: (await userApi.me()).role })
   },
@@ -184,12 +234,15 @@ export const forumApi = {
     const list = Array.isArray(boards) ? boards.map(mapBoard) : []
     return includeDisabled ? list : list.filter((item) => item.enabled)
   },
-  async getPosts({ boardId = '', page = 1, limit = 20, includePending = false } = {}) {
+  async getPosts({ boardId = '', authorId = '', page = 1, limit = 20, includePending = false, q = '', sort = 'hot' } = {}) {
     const query = new URLSearchParams()
     if (boardId) query.set('board_id', String(boardId))
+    if (authorId) query.set('author_id', String(authorId))
+    if (q) query.set('q', q)
+    if (sort) query.set('sort', sort)
     query.set('page', String(page))
     query.set('limit', String(limit))
-    const payload = await request('/forum-api', `/api/v1/posts?${query}`)
+    const payload = await viewerRequest('/forum-api', `/api/v1/posts?${query}`)
     let posts = (payload.posts || []).map(mapPostListItem)
     if (!includePending) posts = posts.filter((item) => item.status === 'published')
     return {
@@ -200,7 +253,7 @@ export const forumApi = {
     }
   },
   async getPost(id) {
-    const post = await request('/forum-api', `/api/v1/posts/${id}`)
+    const post = await viewerRequest('/forum-api', `/api/v1/posts/${id}`)
     const commentsPayload = await request('/forum-api', `/api/v1/posts/${id}/comments?limit=100`)
     return mapPostDetail(post, commentsPayload.comments || [])
   },
@@ -233,10 +286,12 @@ export const forumApi = {
     })
   },
   async createComment(id, payload) {
+    const body = { content: payload.content }
+    if (payload.parentId) body.parent_id = Number(payload.parentId)
     await request('/forum-api', `/api/v1/posts/${id}/comments`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ content: payload.content }),
+      body: JSON.stringify(body),
     })
   },
   async likePost(id) {
@@ -250,6 +305,46 @@ export const forumApi = {
     return request('/forum-api', `/api/v1/posts/${id}/collect`, {
       method: 'POST',
       headers: authHeaders(),
+    })
+  },
+  async getMyCollections({ page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams({ page: String(page), limit: String(limit) })
+    const payload = await request('/forum-api', `/api/v1/me/collections?${query}`, {
+      headers: authHeaders(),
+    })
+    const posts = (payload.posts || []).map(mapPostListItem)
+    return {
+      posts,
+      total: payload.total ?? posts.length,
+      page: payload.page ?? page,
+      limit: payload.limit ?? limit,
+    }
+  },
+  async getCommunityStats() {
+    const payload = await request('/forum-api', '/api/v1/stats/community')
+    return payload.data || payload
+  },
+  async listNotifications(page = 1, limit = 20) {
+    const payload = await request('/forum-api', `/api/v1/notifications?page=${page}&limit=${limit}`, {
+      headers: authHeaders(),
+    })
+    const items = (payload.notifications || []).map(mapNotification)
+    return {
+      items,
+      total: payload.total ?? items.length,
+    }
+  },
+  async markNotificationRead(id) {
+    await request('/forum-api', `/api/v1/notifications/${id}/read`, {
+      method: 'PUT',
+      headers: authHeaders(),
+    })
+  },
+  async reportPost(id, reason) {
+    return request('/forum-api', `/api/v1/posts/${id}/report`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ reason }),
     })
   },
   async uploadAttachment({ type, file, linkUrl }) {
@@ -360,6 +455,36 @@ export const adminApi = {
       body: JSON.stringify({
         post_ids: postIds.map((id) => Number(id)),
         reason,
+      }),
+    })
+  },
+  async getReports(status = 'pending', page = 1, limit = 50) {
+    const payload = await request(
+      '/admin-api',
+      `/api/v1/admin/reports?page=${page}&limit=${limit}&status=${encodeURIComponent(status)}`,
+      { headers: authHeaders() },
+    )
+    return (payload.reports || []).map((row) => ({
+      id: String(row.id),
+      postId: String(row.post_id),
+      postTitle: row.post_title || '（帖子已删除）',
+      reporterId: String(row.reporter_id),
+      reporterName: row.reporter_name || row.reporter_id,
+      reason: row.reason,
+      status: row.status,
+      adminNote: row.admin_note || '',
+      createdAtIso: row.created_at,
+      createdAt: formatDisplayDate(row.created_at),
+    }))
+  },
+  async resolveReport(id, { action, delete_post = false, admin_note = '' }) {
+    await request('/admin-api', `/api/v1/admin/reports/${id}/resolve`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        action,
+        delete_post,
+        admin_note,
       }),
     })
   },

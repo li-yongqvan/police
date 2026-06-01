@@ -1,0 +1,11 @@
+# Copy to infra/cloudflared/config.yml after: bash scripts/setup-cloudflare-tunnel.sh
+# Requires credentials.json from: cloudflared tunnel create ai-forum
+
+tunnel: ai-forum
+credentials-file: /etc/cloudflared/credentials.json
+
+ingress:
+  # Replace with your Cloudflare DNS hostname (orange cloud proxied)
+  - hostname: forum.example.com
+    service: http://127.0.0.1:8888
+  - service: http_status:404

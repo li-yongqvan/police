@@ -45,10 +45,18 @@ func (s *UserService) resolveJWTReole(ctx context.Context, userID uint) string {
 		END
 		LIMIT 1
 	`, userID).Scan(&roleName)
-	if err != nil {
-		return "user"
+	if err != nil || roleName == "" {
+		return "student"
+	}
+	if roleName == "user" {
+		return "student"
 	}
 	return roleName
+}
+
+// ResolveAppRole returns the frontend-facing role for routing.
+func (s *UserService) ResolveAppRole(ctx context.Context, userID uint) string {
+	return s.resolveJWTReole(ctx, userID)
 }
 
 // Register creates a new user account with invite code validation
@@ -95,13 +103,15 @@ func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) 
 
 	// Insert user
 	var user model.User
+	completed := req.Department != "" && req.Squad != "" && req.Grade != ""
 	err = tx.QueryRow(ctx, `
-		INSERT INTO schema_auth.users (username, password_hash, nickname, bio, avatar, level, status)
-		VALUES ($1, $2, $3, '', '', 0, 'active')
-		RETURNING id, username, nickname, bio, avatar, level, status, created_at, updated_at
-	`, req.Username, string(hash), req.Username).Scan(
+		INSERT INTO schema_auth.users (username, password_hash, nickname, bio, avatar, level, status, department, squad, grade, profile_completed)
+		VALUES ($1, $2, $3, '', '', 0, 'active', $4, $5, $6, $7)
+		RETURNING id, username, nickname, bio, avatar, level, status, department, squad, grade, profile_completed, created_at, updated_at
+	`, req.Username, string(hash), req.Username, req.Department, req.Squad, req.Grade, completed).Scan(
 		&user.ID, &user.Username, &user.Nickname, &user.Bio, &user.Avatar,
-		&user.Level, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.Level, &user.Status, &user.Department, &user.Squad, &user.Grade, &user.ProfileCompleted,
+		&user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create user: %w", err)
@@ -138,11 +148,13 @@ func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) 
 func (s *UserService) Login(ctx context.Context, username, password string) (*model.LoginResponse, error) {
 	var user model.User
 	err := s.DB.QueryRow(ctx, `
-		SELECT id, username, password_hash, nickname, bio, avatar, level, status, created_at, updated_at
+		SELECT id, username, password_hash, nickname, bio, avatar, level, status,
+		       department, squad, grade, profile_completed, created_at, updated_at
 		FROM schema_auth.users WHERE username = $1
 	`, username).Scan(
 		&user.ID, &user.Username, &user.PasswordHash, &user.Nickname, &user.Bio,
-		&user.Avatar, &user.Level, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.Avatar, &user.Level, &user.Status, &user.Department, &user.Squad, &user.Grade,
+		&user.ProfileCompleted, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("用户名或密码错误")
@@ -220,11 +232,13 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (st
 func (s *UserService) GetUserProfile(ctx context.Context, id uint) (*model.User, error) {
 	var user model.User
 	err := s.DB.QueryRow(ctx, `
-		SELECT id, username, nickname, bio, avatar, level, status, created_at, updated_at
+		SELECT id, username, nickname, bio, avatar, level, status,
+		       department, squad, grade, profile_completed, created_at, updated_at
 		FROM schema_auth.users WHERE id = $1
 	`, id).Scan(
 		&user.ID, &user.Username, &user.Nickname, &user.Bio, &user.Avatar,
-		&user.Level, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.Level, &user.Status, &user.Department, &user.Squad, &user.Grade,
+		&user.ProfileCompleted, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("用户不存在")
@@ -249,6 +263,7 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, id uint, req *model
 		}
 	}
 
+	profileCompleted := req.ProfileCompleted
 	var user model.User
 	err := s.DB.QueryRow(ctx, `
 		UPDATE schema_auth.users
@@ -256,12 +271,19 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, id uint, req *model
 		    nickname = COALESCE(NULLIF($2, ''), nickname),
 		    bio = COALESCE($3, bio),
 		    avatar = COALESCE(NULLIF($4, ''), avatar),
+		    department = COALESCE(NULLIF($5, ''), department),
+		    squad = COALESCE(NULLIF($6, ''), squad),
+		    grade = COALESCE(NULLIF($7, ''), grade),
+		    profile_completed = COALESCE($8, profile_completed),
 		    updated_at = NOW()
-		WHERE id = $5
-		RETURNING id, username, nickname, bio, avatar, level, status, created_at, updated_at
-	`, req.Username, req.Nickname, req.Bio, req.Avatar, id).Scan(
+		WHERE id = $9
+		RETURNING id, username, nickname, bio, avatar, level, status,
+		          department, squad, grade, profile_completed, created_at, updated_at
+	`, req.Username, req.Nickname, req.Bio, req.Avatar, req.Department, req.Squad, req.Grade,
+		profileCompleted, id).Scan(
 		&user.ID, &user.Username, &user.Nickname, &user.Bio, &user.Avatar,
-		&user.Level, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.Level, &user.Status, &user.Department, &user.Squad, &user.Grade,
+		&user.ProfileCompleted, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update profile: %w", err)

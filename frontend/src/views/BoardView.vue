@@ -1,90 +1,106 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
+import GxBoardHero from '../components/gx/GxBoardHero.vue'
+import GxFeedAside from '../components/gx/GxFeedAside.vue'
+import GxFeedLayout from '../components/gx/GxFeedLayout.vue'
+import GxFeedPagination from '../components/gx/GxFeedPagination.vue'
+import GxFeedPostCard from '../components/gx/GxFeedPostCard.vue'
+import GxEmptyState from '../components/gx/GxEmptyState.vue'
+import GxFeedSortBar from '../components/gx/GxFeedSortBar.vue'
+import { GX_NAV_ITEMS, rememberBoardSlug, resolveBoardByKey } from '../composables/useGxNav'
+import { useFeedSort, useFeedSortWatch } from '../composables/useFeedSort'
 import { forumApi } from '../api'
 
 const route = useRoute()
+const { sort } = useFeedSort()
+const limit = 10
+
+watch(
+  () => route.params.slug,
+  (slug) => rememberBoardSlug(slug),
+  { immediate: true },
+)
+
 const boards = ref([])
 const posts = ref([])
 const total = ref(0)
-const page = ref(1)
-const limit = 20
-const loadingMore = ref(false)
+const stats = ref(null)
+const page = ref(Number(route.query.page) || 1)
+const loading = ref(false)
 
-const currentBoard = computed(() => boards.value.find((item) => item.slug === route.params.slug))
+const navItem = computed(() => GX_NAV_ITEMS.find((n) => n.key === route.params.slug))
+const board = computed(() => resolveBoardByKey(boards.value, route.params.slug))
 
-async function loadBoard(reset = true) {
-  if (reset) page.value = 1
-  boards.value = await forumApi.getBoards()
-  const board = boards.value.find((item) => item.slug === route.params.slug)
-  if (!board) {
-    posts.value = []
-    total.value = 0
-    return
-  }
-  const feed = await forumApi.getPosts({ boardId: board.id, page: page.value, limit })
-  if (reset) posts.value = feed.posts
-  else posts.value = [...posts.value, ...feed.posts]
-  total.value = feed.total
-}
-
-async function loadMore() {
-  if (posts.value.length >= total.value) return
-  loadingMore.value = true
-  page.value += 1
+async function load(resetPage = false) {
+  if (resetPage) page.value = 1
+  loading.value = true
   try {
-    const board = currentBoard.value
-    if (!board) return
-    const feed = await forumApi.getPosts({ boardId: board.id, page: page.value, limit })
-    posts.value = [...posts.value, ...feed.posts]
+    boards.value = await forumApi.getBoards()
+    stats.value = await forumApi.getCommunityStats()
+    const b = board.value
+    if (!b) {
+      posts.value = []
+      total.value = 0
+      return
+    }
+    const feed = await forumApi.getPosts({
+      boardId: b.id,
+      page: page.value,
+      limit,
+      sort: sort.value,
+    })
+    posts.value = feed.posts
+    total.value = feed.total
   } finally {
-    loadingMore.value = false
+    loading.value = false
   }
 }
 
-watch(() => route.params.slug, () => loadBoard(true), { immediate: true })
+watch(page, () => load(false))
+watch(() => route.params.slug, () => load(true), { immediate: true })
+watch(sort, () => load(true))
+useFeedSortWatch(() => load(true))
+
+function onPageChange(n) {
+  page.value = n
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 </script>
 
 <template>
-  <div class="page-stack">
-    <section class="panel content-panel">
-      <p class="eyebrow">板块详情</p>
-      <h2>{{ currentBoard?.name }}</h2>
-      <p>{{ currentBoard?.description }}</p>
-    </section>
-
-    <section class="panel content-panel">
-      <div class="section-title board-view-header">
-        <div>
-          <p class="eyebrow">帖子列表</p>
-          <h3>{{ posts.length }} / {{ total }} 篇可展示内容</h3>
-        </div>
-        <RouterLink to="/community/posts/new" class="secondary-button">发布到本板块</RouterLink>
-      </div>
-
-      <div class="post-list">
-        <RouterLink
+  <div class="gx-page gx-feed-page">
+    <GxFeedLayout>
+      <template #header>
+        <GxBoardHero :board="board" :nav-label="navItem?.label" />
+      </template>
+      <template #sort>
+        <GxFeedSortBar v-model="sort" />
+      </template>
+      <GxEmptyState
+        v-if="!loading && !posts.length"
+        title="该板块暂无帖子"
+        description="成为第一个在本板块发帖的同学"
+      />
+      <div v-else class="gx-feed-stream">
+        <GxFeedPostCard
           v-for="post in posts"
           :key="post.id"
-          :to="`/community/posts/${post.id}`"
-          class="post-card"
-        >
-          <div class="post-topline">
-            <span class="badge subtle">{{ post.isFeatured ? '精华' : '讨论' }}</span>
-            <span>{{ post.likeCount }} 赞 · {{ post.commentCount }} 评论</span>
-          </div>
-          <h4>{{ post.title }}</h4>
-          <p>{{ post.content }}</p>
-        </RouterLink>
+          :post="post"
+          :pinned="post.isPinned"
+          :announce="post.isFeatured"
+        />
+        <GxFeedPagination
+          v-if="total > limit"
+          :page="page"
+          :total="total"
+          :limit="limit"
+          @update:page="onPageChange"
+        />
       </div>
-      <button
-        v-if="posts.length < total"
-        class="secondary-button load-more-btn"
-        :disabled="loadingMore"
-        @click="loadMore"
-      >
-        {{ loadingMore ? '加载中…' : '加载更多' }}
-      </button>
-    </section>
+      <template #aside>
+        <GxFeedAside variant="board" :stats="stats" :board="board" />
+      </template>
+    </GxFeedLayout>
   </div>
 </template>

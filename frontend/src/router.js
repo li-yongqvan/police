@@ -11,6 +11,9 @@ const NewPost = () => import('./views/NewPost.vue')
 const EditPost = () => import('./views/EditPost.vue')
 const ProfileView = () => import('./views/ProfileView.vue')
 const UserPublic = () => import('./views/UserPublic.vue')
+const MessagesView = () => import('./views/MessagesView.vue')
+const AboutView = () => import('./views/AboutView.vue')
+const MyLibraryView = () => import('./views/MyLibraryView.vue')
 const AdminLayout = () => import('./views/AdminLayout.vue')
 const AdminOverview = () => import('./views/AdminOverview.vue')
 const AdminAudit = () => import('./views/AdminAudit.vue')
@@ -22,6 +25,7 @@ const AdminInvites = () => import('./views/AdminInvites.vue')
 const AdminSensitiveWords = () => import('./views/AdminSensitiveWords.vue')
 const AdminRoles = () => import('./views/AdminRoles.vue')
 const AdminStats = () => import('./views/AdminStats.vue')
+const AdminReports = () => import('./views/AdminReports.vue')
 
 const router = createRouter({
   history: createWebHistory(),
@@ -45,7 +49,27 @@ const router = createRouter({
         { path: 'posts/:id/edit', name: 'edit-post', component: EditPost },
         { path: 'posts/:id', name: 'post-detail', component: PostDetail },
         { path: 'profile', name: 'profile', component: ProfileView },
+        {
+          path: 'my/posts',
+          name: 'my-posts',
+          component: MyLibraryView,
+          meta: { libraryMode: 'posts' },
+        },
+        {
+          path: 'my/favorites',
+          name: 'my-favorites',
+          component: MyLibraryView,
+          meta: { libraryMode: 'favorites' },
+        },
+        {
+          path: 'my/history',
+          name: 'my-history',
+          component: MyLibraryView,
+          meta: { libraryMode: 'history' },
+        },
         { path: 'users/:id', name: 'user-public', component: UserPublic },
+        { path: 'messages', name: 'messages', component: MessagesView },
+        { path: 'about', name: 'about', component: AboutView },
       ],
     },
     {
@@ -54,6 +78,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'admin-overview', component: AdminOverview },
         { path: 'audit', name: 'admin-audit', component: AdminAudit },
+        { path: 'reports', name: 'admin-reports', component: AdminReports },
         { path: 'posts', name: 'admin-posts', component: AdminPosts },
         { path: 'users', name: 'admin-users', component: AdminUsers },
         { path: 'boards', name: 'admin-boards', component: AdminBoards },
@@ -69,6 +94,13 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const session = useSessionStore()
+  if ((to.name === 'login' || to.name === 'register') && session.token) {
+    const role = session.currentUser?.role
+    if (['admin', 'platform_admin'].includes(role)) {
+      return { path: '/admin' }
+    }
+    return { path: '/community' }
+  }
   if (to.name === 'login' || to.name === 'register') {
     return true
   }

@@ -41,10 +41,13 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="panel form-panel">
-    <p class="eyebrow">角色权限</p>
-    <h2>为用户分配中台角色</h2>
-    <div class="form-grid">
+  <div class="gx-page gx-admin-page">
+    <header class="gx-page-head">
+      <p class="gx-eyebrow">角色权限</p>
+      <h1>为用户分配中台角色</h1>
+    </header>
+
+    <section class="gx-card gx-form">
       <label>
         <span>用户</span>
         <select v-model="selectedUserId" @change="loadUserRoles">
@@ -57,14 +60,16 @@ onMounted(load)
           <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.name }}</option>
         </select>
       </label>
-    </div>
-    <button class="primary-button" @click="assign">分配角色</button>
+      <button type="button" class="gx-btn gx-btn--primary" @click="assign">分配角色</button>
+    </section>
 
-    <div class="user-list" style="margin-top: 22px">
-      <article v-for="r in userRoles" :key="r.id || r.role_id" class="user-row">
-        <strong>{{ r.name || r.role_name }}</strong>
-        <button class="secondary-button" @click="remove(r.id || r.role_id)">移除</button>
-      </article>
-    </div>
-  </section>
+    <section class="gx-card">
+      <div class="gx-admin-list">
+        <article v-for="r in userRoles" :key="r.id || r.role_id" class="gx-admin-row">
+          <strong>{{ r.name || r.role_name }}</strong>
+          <button type="button" class="gx-btn gx-btn--secondary" @click="remove(r.id || r.role_id)">移除</button>
+        </article>
+      </div>
+    </section>
+  </div>
 </template>

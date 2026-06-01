@@ -54,9 +54,9 @@ func (s *StatsService) GetOverview(ctx context.Context) (*ForumOverview, error) 
 		return nil, fmt.Errorf("failed to count total posts: %w", err)
 	}
 
-	// Total comments
+	// Total comments (comments table has no status column)
 	err = s.DB.QueryRow(ctx,
-		"SELECT COUNT(*) FROM schema_forum.comments WHERE status = 'published'",
+		"SELECT COUNT(*) FROM schema_forum.comments",
 	).Scan(&overview.TotalComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count total comments: %w", err)
@@ -81,7 +81,7 @@ func (s *StatsService) GetOverview(ctx context.Context) (*ForumOverview, error) 
 
 	// Comments today
 	err = s.DB.QueryRow(ctx,
-		"SELECT COUNT(*) FROM schema_forum.comments WHERE status = 'published' AND created_at >= $1",
+		"SELECT COUNT(*) FROM schema_forum.comments WHERE created_at >= $1",
 		today,
 	).Scan(&overview.CommentsToday)
 	if err != nil {
@@ -132,7 +132,7 @@ func (s *StatsService) GetDailyComments(ctx context.Context, days int) ([]DailyC
 	query := `
 		SELECT DATE(created_at)::text as day, COUNT(*) as cnt
 		FROM schema_forum.comments
-		WHERE status = 'published' AND created_at >= $1
+		WHERE created_at >= $1
 		GROUP BY DATE(created_at)
 		ORDER BY day
 	`
@@ -158,7 +158,7 @@ func (s *StatsService) GetBoardActivity(ctx context.Context) ([]BoardActivity, e
 	query := `
 		SELECT b.id, b.name,
 		       COUNT(DISTINCT p.id) FILTER (WHERE p.status = 'published') as post_count,
-		       COUNT(DISTINCT c.id) FILTER (WHERE c.status = 'published') as comment_count
+		       COUNT(DISTINCT c.id) as comment_count
 		FROM schema_forum.boards b
 		LEFT JOIN schema_forum.posts p ON p.board_id = b.id
 		LEFT JOIN schema_forum.comments c ON c.post_id = p.id

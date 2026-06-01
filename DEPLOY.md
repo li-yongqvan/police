@@ -53,8 +53,13 @@ bash scripts/smoke-test.sh
 
 | 入口 | 地址 |
 |------|------|
-| 用户站点 | `http://<云主机公网IP>/` |
-| 演示登录 | 首页角色按钮；**公网默认拒绝** `demo-login`，见下文 |
+| **学生正式入口（推荐）** | `https://<你的固定域名>/` — 仅向师生分发此地址 |
+| 源站运维（可选） | `http://<云主机公网IP>:8888/` — 勿对外推广；Tunnel 正常后可关公网 8888 |
+| **大陆手机 Tunnel** | [docs/cloudflare-tunnel-setup.md](docs/cloudflare-tunnel-setup.md) |
+| 大陆手机备选 | [docs/cross-border-access.md](docs/cross-border-access.md) |
+| 演示登录 | 学号单框登录；**公网默认拒绝** `demo-login`，见下文 |
+
+校内试运行运维详见 [docs/pilot-runbook.md](docs/pilot-runbook.md)。
 
 ### 演示账号（密码均为 `demo123456`）
 
@@ -93,18 +98,23 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build us
 
 ```bash
 # 查看状态
-docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+docker compose -f docker-compose.yml -f docker-compose.server.yml ps
 
-# 日志
-docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f nginx user-service
+# 生产冒烟（在 .env.smoke 中配置 BASE_URL=https://你的域名）
+bash scripts/smoke-test.sh
+
+# 每日备份
+sudo bash scripts/backup-postgres.sh
+
+# 强密钥检查（部署前）
+bash scripts/check-production-secrets.sh .env
 
 # 更新版本
 git pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-
-# 备份数据库
-docker compose exec -T postgres pg_dump -U ai_forum ai_forum > backup_$(date +%F).sql
+bash scripts/deploy-full-platform.sh
 ```
+
+备份与 cron 示例见 [docs/pilot-runbook.md](docs/pilot-runbook.md)。放量与验收见 [docs/pilot-launch-guide.md](docs/pilot-launch-guide.md)。
 
 ## 7. 本地开发（Windows / macOS）
 
@@ -124,6 +134,8 @@ $env:APP_ENV="development"
 | 论坛为空 | 执行 `bash scripts/seed-content.sh` |
 | demo-login 403 | 从校园网/VPN 访问，或配置 `DEMO_LOGIN_ALLOWLIST` |
 | 中台 403 | 使用 demo_admin / demo_platform_admin 登录 |
+| 大陆手机打不开 / 仅首页能开 | [Cloudflare Tunnel](docs/cloudflare-tunnel-setup.md)；备选 [跨境指南](docs/cross-border-access.md) |
+| API 502 但容器 healthy | `docker compose ... restart nginx`（上游 IP 变更后） |
 
 ## 9. 后续（Phase 2+）
 

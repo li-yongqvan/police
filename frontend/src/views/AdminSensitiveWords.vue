@@ -30,10 +30,13 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="panel form-panel">
-    <p class="eyebrow">敏感词库</p>
-    <h2>内容合规关键词</h2>
-    <div class="form-grid">
+  <div class="gx-page gx-admin-page">
+    <header class="gx-page-head">
+      <p class="gx-eyebrow">敏感词库</p>
+      <h1>内容合规关键词</h1>
+    </header>
+
+    <section class="gx-card gx-form">
       <label>
         <span>词条</span>
         <input v-model="newWord" type="text" placeholder="输入敏感词" />
@@ -42,17 +45,19 @@ onMounted(load)
         <span>分类</span>
         <input v-model="category" type="text" />
       </label>
-    </div>
-    <button class="primary-button" @click="add">添加</button>
+      <button type="button" class="gx-btn gx-btn--primary" @click="add">添加</button>
+    </section>
 
-    <div class="user-list" style="margin-top: 22px">
-      <article v-for="item in words" :key="item.id" class="user-row">
-        <div>
-          <strong>{{ item.word }}</strong>
-          <p>{{ item.category || 'general' }}</p>
-        </div>
-        <button class="danger-button" @click="remove(item.id)">删除</button>
-      </article>
-    </div>
-  </section>
+    <section class="gx-card">
+      <div class="gx-admin-list">
+        <article v-for="item in words" :key="item.id" class="gx-admin-row">
+          <div>
+            <strong>{{ item.word }}</strong>
+            <p class="gx-muted">{{ item.category || 'general' }}</p>
+          </div>
+          <button type="button" class="gx-btn gx-btn--danger" @click="remove(item.id)">删除</button>
+        </article>
+      </div>
+    </section>
+  </div>
 </template>

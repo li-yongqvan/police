@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"ai-forum/user-service/internal/handler"
 	"ai-forum/user-service/internal/middleware"
@@ -86,7 +87,7 @@ func main() {
 	v1 := router.Group("/api/v1")
 	{
 		v1.POST("/register", userHandler.Register)
-		v1.POST("/login", userHandler.Login)
+		v1.POST("/login", middleware.RateLimitByIP(rdb, "login", 5, time.Minute), userHandler.Login)
 		v1.POST("/demo-login", middleware.DemoLoginGuard(), userHandler.DemoLogin)
 		v1.POST("/auth/refresh", userHandler.RefreshToken)
 	}

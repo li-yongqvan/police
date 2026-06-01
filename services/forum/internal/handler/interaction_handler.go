@@ -52,3 +52,22 @@ func (h *InteractionHandler) CollectPost(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, resp)
 }
+
+// ListMyCollections returns the current user's collected posts.
+func (h *InteractionHandler) ListMyCollections(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+
+	posts, total, err := h.Service.ListUserCollections(c.Request.Context(), userID, page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取收藏列表失败"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"posts": posts,
+		"total": total,
+		"page":  page,
+		"limit": limit,
+	})
+}

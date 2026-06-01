@@ -58,10 +58,26 @@ func (h *ForumHandler) ListPosts(c *gin.Context) {
 			boardID = uint(id)
 		}
 	}
+	authorIDStr := c.Query("author_id")
+	var authorID uint
+	if authorIDStr != "" {
+		id, err := strconv.ParseUint(authorIDStr, 10, 32)
+		if err == nil {
+			authorID = uint(id)
+		}
+	}
 	page, _ := strconv.Atoi(pageStr)
 	limit, _ := strconv.Atoi(limitStr)
+	keyword := c.Query("q")
+	sort := c.DefaultQuery("sort", "hot")
 
-	posts, total, err := h.Service.ListPosts(c.Request.Context(), boardID, page, limit)
+	var viewerID uint
+	if id, ok := c.Get("user_id"); ok {
+		if uid, ok := id.(uint); ok {
+			viewerID = uid
+		}
+	}
+	posts, total, err := h.Service.ListPosts(c.Request.Context(), boardID, authorID, page, limit, keyword, sort, viewerID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取帖子列表失败"})
 		return
@@ -81,7 +97,13 @@ func (h *ForumHandler) GetPost(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的帖子ID"})
 		return
 	}
-	post, err := h.Service.GetPost(c.Request.Context(), uint(id))
+	var viewerID uint
+	if uid, ok := c.Get("user_id"); ok {
+		if v, ok := uid.(uint); ok {
+			viewerID = v
+		}
+	}
+	post, err := h.Service.GetPost(c.Request.Context(), uint(id), viewerID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

@@ -13,6 +13,10 @@ export const useSessionStore = defineStore('session', () => {
     ['admin', 'platform_admin'].includes(currentUser.value?.role),
   )
 
+  const needsOnboarding = computed(
+    () => currentUser.value && !currentUser.value.profileCompleted && currentUser.value.role === 'student',
+  )
+
   function setFlash(message, type = 'info') {
     flashMessage.value = message
     flashType.value = type
@@ -32,23 +36,15 @@ export const useSessionStore = defineStore('session', () => {
     if (result.refreshToken) setRefreshToken(result.refreshToken)
   }
 
-  async function loginWithCredentials(username, password, expectedRole) {
+  async function loginWithCredentials(username, password) {
     const result = await userApi.login(username, password)
-    if (expectedRole && result.user.role !== expectedRole) {
-      const labels = {
-        student: '学生用户',
-        admin: '协会管理员',
-        platform_admin: '中台管理员',
-      }
-      throw new Error(`请使用${labels[expectedRole] || expectedRole}对应的账号登录`)
-    }
     persistSession(result)
     return result.user
   }
 
-  async function loginAs(role) {
-    const result = await userApi.demoLogin(role)
-    persistSession(result)
+  function routeAfterLogin(user) {
+    if (['admin', 'platform_admin'].includes(user.role)) return '/admin'
+    return '/community'
   }
 
   async function refreshMe() {
@@ -71,10 +67,11 @@ export const useSessionStore = defineStore('session', () => {
     flashMessage,
     flashType,
     canAccessAdmin,
+    needsOnboarding,
     setFlash,
     persistSession,
-    loginAs,
     loginWithCredentials,
+    routeAfterLogin,
     refreshMe,
     logout,
   }

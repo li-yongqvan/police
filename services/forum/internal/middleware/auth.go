@@ -50,6 +50,41 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// OptionalAuthMiddleware sets user context when a valid Bearer token is present.
+func OptionalAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.Next()
+			return
+		}
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == authHeader {
+			c.Next()
+			return
+		}
+		jwtSecret := os.Getenv("JWT_SECRET")
+		if jwtSecret == "" {
+			jwtSecret = "default-secret-change-in-production"
+		}
+		claims, err := jwt.ValidateToken(tokenString, jwtSecret)
+		if err != nil {
+			c.Next()
+			return
+		}
+		if userID, ok := claims["user_id"].(float64); ok {
+			c.Set("user_id", uint(userID))
+		}
+		if username, ok := claims["username"].(string); ok {
+			c.Set("username", username)
+		}
+		if level, ok := claims["level"].(float64); ok {
+			c.Set("level", int(level))
+		}
+		c.Next()
+	}
+}
+
 // RequireLevel checks if the user has sufficient level
 func RequireLevel(minLevel int) gin.HandlerFunc {
 	return func(c *gin.Context) {

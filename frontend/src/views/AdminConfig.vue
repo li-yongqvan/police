@@ -20,16 +20,19 @@ async function save() {
 </script>
 
 <template>
-  <section v-if="config" class="panel form-panel">
-    <p class="eyebrow">系统配置</p>
-    <h2>基础控制能力</h2>
-    <div class="config-list">
-      <label class="switch-row">
+  <div v-if="config" class="gx-page gx-admin-page">
+    <header class="gx-page-head">
+      <p class="gx-eyebrow">系统配置</p>
+      <h1>基础控制能力</h1>
+    </header>
+
+    <section class="gx-card gx-form">
+      <label class="gx-admin-row">
         <span>开启发帖</span>
         <input v-model="config.postingEnabled" type="checkbox" />
       </label>
 
-      <label class="stacked-row">
+      <label>
         <span>审核模式</span>
         <select v-model="config.moderationMode">
           <option value="auto">自动审核</option>
@@ -37,16 +40,15 @@ async function save() {
         </select>
       </label>
 
-      <div class="stacked-row">
-        <span>板块开关</span>
-        <div class="toggle-grid">
-          <label v-for="board in boards" :key="board.id" class="switch-row">
-            <span>{{ board.name }}</span>
-            <input v-model="config.boardSwitches[board.id]" type="checkbox" />
-          </label>
-        </div>
+      <div>
+        <span class="gx-panel__title">板块开关</span>
+        <label v-for="board in boards" :key="board.id" class="gx-admin-row">
+          <span>{{ board.name }}</span>
+          <input v-model="config.boardSwitches[board.id]" type="checkbox" />
+        </label>
       </div>
-    </div>
-    <button class="primary-button" @click="save">保存配置</button>
-  </section>
+
+      <button type="button" class="gx-btn gx-btn--primary" @click="save">保存配置</button>
+    </section>
+  </div>
 </template>

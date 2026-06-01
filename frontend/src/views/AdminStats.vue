@@ -1,9 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { adminApi } from '../api'
-import { useSessionStore } from '../stores/session'
 
-const session = useSessionStore()
 const rows = ref([])
 
 onMounted(async () => {
@@ -12,15 +10,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="panel content-panel">
-    <div class="section-title">
-      <div>
-        <p class="eyebrow">趋势统计</p>
-        <h3>近 7 日运营数据</h3>
-      </div>
-    </div>
-    <div class="stats-table-wrap">
-      <table class="stats-table">
+  <div class="gx-page gx-admin-page">
+    <header class="gx-page-head">
+      <p class="gx-eyebrow">趋势统计</p>
+      <h1>近 7 日运营数据</h1>
+    </header>
+
+    <section class="gx-card gx-table-wrap">
+      <table class="gx-table">
         <thead>
           <tr>
             <th>日期</th>
@@ -38,7 +35,7 @@ onMounted(async () => {
           </tr>
         </tbody>
       </table>
-      <p v-if="!rows.length" class="login-hint">暂无历史统计数据，服务运行一段时间后会自动沉淀。</p>
-    </div>
-  </section>
+      <p v-if="!rows.length" class="gx-muted">暂无历史统计数据，服务运行一段时间后会自动沉淀。</p>
+    </section>
+  </div>
 </template>

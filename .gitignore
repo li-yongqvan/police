@@ -13,6 +13,16 @@ dist-ssr
 *.local
 .env
 
+# Local deploy artifacts
+deploy-log.txt
+deploy-reddit-log.txt
+*.tgz
+_so.html
+
+# Cloudflare Tunnel secrets (use config.yml.example as template)
+infra/cloudflared/config.yml
+infra/cloudflared/credentials.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

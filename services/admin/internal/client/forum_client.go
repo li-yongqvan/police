@@ -279,6 +279,52 @@ func (c *ForumClient) GetDailyPosts(days int) ([]DailyCount, error) {
 	return result.Data, nil
 }
 
+// ReportItem is a user report on a post.
+type ReportItem struct {
+	ID           uint   `json:"id"`
+	PostID       uint   `json:"post_id"`
+	PostTitle    string `json:"post_title"`
+	ReporterID   uint   `json:"reporter_id"`
+	ReporterName string `json:"reporter_name"`
+	Reason       string `json:"reason"`
+	Status       string `json:"status"`
+	AdminNote    string `json:"admin_note,omitempty"`
+	CreatedAt    string `json:"created_at"`
+}
+
+// ResolveReportRequest is the body for resolving a report.
+type ResolveReportRequest struct {
+	Action     string `json:"action"`
+	DeletePost bool   `json:"delete_post"`
+	AdminNote  string `json:"admin_note"`
+}
+
+// ListReports returns paginated post reports from forum-service.
+func (c *ForumClient) ListReports(page, limit int, status string) ([]ReportItem, int, error) {
+	url := fmt.Sprintf("%s/internal/v1/reports?page=%d&limit=%d&status=%s", c.BaseURL, page, limit, status)
+	resp, err := c.HTTPClient.Get(url)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list reports: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, 0, fmt.Errorf("forum-service returned status %d for list reports", resp.StatusCode)
+	}
+	var result struct {
+		Reports []ReportItem `json:"reports"`
+		Total   int          `json:"total"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, 0, fmt.Errorf("failed to decode reports: %w", err)
+	}
+	return result.Reports, result.Total, nil
+}
+
+// ResolveReport marks a report resolved or dismissed.
+func (c *ForumClient) ResolveReport(reportID uint, req ResolveReportRequest) error {
+	return c.postJSON(fmt.Sprintf("%s/internal/v1/reports/%d/resolve", c.BaseURL, reportID), req)
+}
+
 // GetBoardActivity calls forum-service internal board activity endpoint
 func (c *ForumClient) GetBoardActivity() ([]BoardActivity, error) {
 	url := fmt.Sprintf("%s/internal/v1/stats/board-activity", c.BaseURL)

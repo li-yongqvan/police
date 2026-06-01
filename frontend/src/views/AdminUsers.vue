@@ -47,48 +47,60 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="page-stack">
-    <section class="panel content-panel">
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">用户管理</p>
-          <h3>封禁、解封与等级 · 第 {{ page }} / {{ totalPages() }} 页</h3>
-        </div>
-        <div class="audit-actions mw-pagination">
-          <button class="secondary-button" :disabled="page <= 1" @click="changePage(page - 1)">上一页</button>
-          <button class="secondary-button" :disabled="page >= totalPages()" @click="changePage(page + 1)">
+  <div class="gx-page gx-admin-page">
+    <header class="gx-page-head">
+      <p class="gx-eyebrow">用户管理</p>
+      <h1>封禁、解封与等级</h1>
+      <p class="gx-muted">第 {{ page }} / {{ totalPages() }} 页</p>
+    </header>
+
+    <section class="gx-card">
+      <div class="gx-section-head">
+        <span class="gx-muted">共 {{ total }} 人</span>
+        <div class="gx-admin-actions">
+          <button type="button" class="gx-btn gx-btn--secondary" :disabled="page <= 1" @click="changePage(page - 1)">
+            上一页
+          </button>
+          <button
+            type="button"
+            class="gx-btn gx-btn--secondary"
+            :disabled="page >= totalPages()"
+            @click="changePage(page + 1)"
+          >
             下一页
           </button>
         </div>
       </div>
 
-      <div class="user-list">
-        <article v-for="user in users" :key="user.id" class="user-row mw-user-row">
+      <div class="gx-admin-list">
+        <article v-for="user in users" :key="user.id" class="gx-admin-row">
           <div>
             <strong>{{ user.name }}</strong>
-            <p>{{ user.username }} · {{ user.role }} · Lv.{{ user.level }}</p>
+            <p class="gx-muted">{{ user.username }} · {{ user.role }} · Lv.{{ user.level }}</p>
           </div>
-          <div class="user-actions stacked-admin-actions">
-            <span :class="['badge', user.status === 'active' ? 'good' : 'bad']">{{ user.status }}</span>
-            <label class="level-inline">
+          <div class="gx-admin-actions">
+            <span :class="['gx-badge', user.status === 'active' ? 'gx-badge--ok' : 'gx-badge--bad']">
+              {{ user.status }}
+            </span>
+            <label class="gx-muted">
               <input v-model="levelDraft[user.id]" type="number" min="0" max="5" :placeholder="String(user.level)" />
-              <button class="ghost-button" @click="saveLevel(user)">改等级</button>
             </label>
-            <button class="secondary-button" @click="toggleStatus(user)">
+            <button type="button" class="gx-btn gx-btn--ghost" @click="saveLevel(user)">改等级</button>
+            <button type="button" class="gx-btn gx-btn--secondary" @click="toggleStatus(user)">
               {{ user.status === 'active' ? '封禁' : '解封' }}
             </button>
-            <button class="ghost-button" @click="showLogs(user)">日志</button>
+            <button type="button" class="gx-btn gx-btn--ghost" @click="showLogs(user)">日志</button>
           </div>
         </article>
       </div>
     </section>
 
-    <section v-if="logsUserId" class="panel content-panel">
-      <p class="eyebrow">操作日志 · 用户 {{ logsUserId }}</p>
-      <div class="comment-list">
-        <article v-for="(log, i) in logs" :key="i" class="comment-card">
+    <section v-if="logsUserId" class="gx-card">
+      <h3 class="gx-panel__title">操作日志 · 用户 {{ logsUserId }}</h3>
+      <div class="gx-admin-list">
+        <article v-for="(log, i) in logs" :key="i" class="gx-comment">
           <strong>{{ log.action || log.operation }}</strong>
-          <p>{{ log.created_at || log.timestamp }} — {{ log.detail || log.message || '' }}</p>
+          <p class="gx-muted">{{ log.created_at || log.timestamp }} — {{ log.detail || log.message || '' }}</p>
         </article>
       </div>
     </section>

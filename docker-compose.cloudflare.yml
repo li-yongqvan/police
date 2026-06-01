@@ -1,0 +1,15 @@
+# Cloudflare Named Tunnel — overlays docker-compose.yml (+ server.yml on VPS)
+# Usage:
+#   1. bash scripts/setup-cloudflare-tunnel.sh   # once: login + create tunnel
+#   2. docker compose -f docker-compose.yml -f docker-compose.server.yml \
+#        -f docker-compose.cloudflare.yml up -d cloudflared
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:2024.12.2
+    restart: unless-stopped
+    command: tunnel --config /etc/cloudflared/config.yml run
+    network_mode: host
+    volumes:
+      - ./infra/cloudflared/config.yml:/etc/cloudflared/config.yml:ro
+      - ./infra/cloudflared/credentials.json:/etc/cloudflared/credentials.json:ro

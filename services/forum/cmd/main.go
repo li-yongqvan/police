@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"ai-forum/forum-service/internal/client"
 	"ai-forum/forum-service/internal/handler"
 	"ai-forum/forum-service/internal/middleware"
 	"ai-forum/forum-service/internal/service"
 	"ai-forum/forum-service/pkg/database"
+	forumredis "ai-forum/forum-service/pkg/redis"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -48,6 +50,15 @@ func main() {
 		log.Printf("Migration warning: %v", err)
 	}
 
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPort := os.Getenv("REDIS_PORT")
+	rdb, err := forumredis.Connect(redisHost, redisPort)
+	if err != nil {
+		log.Fatalf("Failed to connect to Redis: %v", err)
+	}
+	defer rdb.Close()
+	log.Println("Connected to Redis")
+
 	// Initialize admin service client
 	adminURL := os.Getenv("ADMIN_SERVICE_URL")
 	if adminURL == "" {
@@ -57,8 +68,13 @@ func main() {
 
 	// Initialize service and handlers
 	forumService := service.NewForumService(pool, adminClient)
+	extrasService := service.NewExtrasService(pool)
 	forumHandler := handler.NewForumHandler(forumService)
-	commentHandler := handler.NewCommentHandler(forumService)
+	commentHandler := handler.NewCommentHandler(forumService, extrasService)
+	notificationHandler := handler.NewNotificationHandler(extrasService)
+	reportHandler := handler.NewReportHandler(extrasService)
+	reportAdminHandler := handler.NewReportAdminHandler(extrasService)
+	communityHandler := handler.NewCommunityHandler(extrasService)
 	interactionHandler := handler.NewInteractionHandler(forumService)
 	attachmentHandler := handler.NewAttachmentHandler(forumService)
 
@@ -83,9 +99,11 @@ func main() {
 		v1.GET("/boards", forumHandler.ListBoards)
 		v1.GET("/boards/:id", forumHandler.GetBoard)
 
-		// Post routes (read only)
-		v1.GET("/posts", forumHandler.ListPosts)
-		v1.GET("/posts/:id", forumHandler.GetPost)
+		// Post routes (read only; optional auth enriches liked/collected)
+		postRead := v1.Group("")
+		postRead.Use(middleware.OptionalAuthMiddleware())
+		postRead.GET("/posts", forumHandler.ListPosts)
+		postRead.GET("/posts/:id", forumHandler.GetPost)
 
 		// Comment routes (read only)
 		v1.GET("/posts/:id/comments", commentHandler.ListComments)
@@ -93,6 +111,7 @@ func main() {
 		// Attachment download (read only)
 		v1.GET("/attachments/:id", attachmentHandler.DownloadAttachment)
 		v1.GET("/posts/:id/attachments", attachmentHandler.GetPostAttachments)
+		v1.GET("/stats/community", communityHandler.Stats)
 	}
 
 	// Authenticated routes
@@ -100,7 +119,7 @@ func main() {
 	auth.Use(middleware.AuthMiddleware())
 	{
 		// Post routes (write)
-		auth.POST("/posts", middleware.RequireLevel(1), forumHandler.CreatePost)
+		auth.POST("/posts", middleware.RequireLevel(1), middleware.RateLimitByUser(rdb, "create_post", 10, time.Hour), forumHandler.CreatePost)
 		auth.PUT("/posts/:id", forumHandler.UpdatePost)
 		auth.DELETE("/posts/:id", forumHandler.DeletePost)
 
@@ -110,9 +129,14 @@ func main() {
 		// Interaction routes
 		auth.POST("/posts/:id/like", interactionHandler.LikePost)
 		auth.POST("/posts/:id/collect", interactionHandler.CollectPost)
+		auth.GET("/me/collections", interactionHandler.ListMyCollections)
 
 		// Attachment upload (requires level 2 for files)
 		auth.POST("/attachments/upload", middleware.RequireLevel(2), attachmentHandler.UploadAttachment)
+
+		auth.GET("/notifications", notificationHandler.List)
+		auth.PUT("/notifications/:id/read", notificationHandler.MarkRead)
+		auth.POST("/posts/:id/report", reportHandler.ReportPost)
 	}
 
 	// Internal routes (service-to-service only)
@@ -154,6 +178,9 @@ func main() {
 		internal.GET("/stats/daily-posts", statsHandler.GetDailyPosts)
 		internal.GET("/stats/daily-comments", statsHandler.GetDailyComments)
 		internal.GET("/stats/board-activity", statsHandler.GetBoardActivity)
+
+		internal.GET("/reports", reportAdminHandler.ListReports)
+		internal.POST("/reports/:id/resolve", reportAdminHandler.ResolveReport)
 	}
 
 	// Start server

@@ -73,8 +73,8 @@ func (s *ForumService) GetBoard(ctx context.Context, id uint) (*model.BoardRespo
 	return b, nil
 }
 
-// ListPosts returns paginated posts, optionally filtered by board
-func (s *ForumService) ListPosts(ctx context.Context, boardID uint, page, limit int) ([]*model.PostListItem, int, error) {
+// ListPosts returns paginated posts, optionally filtered by board, keyword, and sort mode.
+func (s *ForumService) ListPosts(ctx context.Context, boardID, authorID uint, page, limit int, keyword, sort string, viewerID uint) ([]*model.PostListItem, int, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -86,10 +86,23 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID uint, page, limit 
 	// Count total
 	countQuery := "SELECT COUNT(*) FROM schema_forum.posts WHERE status = 'published'"
 	args := []interface{}{}
+	argN := 1
 	if boardID > 0 {
-		countQuery += " AND board_id = $1"
+		countQuery += fmt.Sprintf(" AND board_id = $%d", argN)
 		args = append(args, boardID)
+		argN++
 	}
+	if authorID > 0 {
+		countQuery += fmt.Sprintf(" AND author_id = $%d", argN)
+		args = append(args, authorID)
+		argN++
+	}
+	if keyword != "" {
+		countQuery += fmt.Sprintf(" AND (title ILIKE $%d OR content ILIKE $%d)", argN, argN)
+		args = append(args, "%"+keyword+"%")
+		argN++
+	}
+	countQuery += postSortCountFilter(sort)
 	var total int
 	err := s.DB.QueryRow(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
@@ -98,19 +111,34 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID uint, page, limit 
 
 	// Fetch posts
 	query := `
-		SELECT p.id, p.title, p.author_id, u.username, p.board_id, b.name,
+		SELECT p.id, p.title, LEFT(p.content, 320), p.author_id, u.username, p.board_id, b.name, b.slug,
 		       p.status, p.is_pinned, p.is_featured, p.like_count, p.comment_count, p.created_at
 		FROM schema_forum.posts p
 		JOIN schema_auth.users u ON p.author_id = u.id
 		JOIN schema_forum.boards b ON p.board_id = b.id
 		WHERE p.status = 'published'`
+	qArgs := []interface{}{}
+	qN := 1
 	if boardID > 0 {
-		query += " AND p.board_id = $1"
+		query += fmt.Sprintf(" AND p.board_id = $%d", qN)
+		qArgs = append(qArgs, boardID)
+		qN++
 	}
-	query += " ORDER BY p.is_pinned DESC, p.created_at DESC"
+	if authorID > 0 {
+		query += fmt.Sprintf(" AND p.author_id = $%d", qN)
+		qArgs = append(qArgs, authorID)
+		qN++
+	}
+	if keyword != "" {
+		query += fmt.Sprintf(" AND (p.title ILIKE $%d OR p.content ILIKE $%d)", qN, qN)
+		qArgs = append(qArgs, "%"+keyword+"%")
+		qN++
+	}
+	query += postSortListFilter(sort)
+	query += postSortOrderBy(sort)
 	query += fmt.Sprintf(" LIMIT %d OFFSET %d", limit, offset)
 
-	rows, err := s.DB.Query(ctx, query, args...)
+	rows, err := s.DB.Query(ctx, query, qArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to query posts: %w", err)
 	}
@@ -119,18 +147,148 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID uint, page, limit 
 	var posts []*model.PostListItem
 	for rows.Next() {
 		p := &model.PostListItem{}
-		if err := rows.Scan(&p.ID, &p.Title, &p.AuthorID, &p.AuthorName,
-			&p.BoardID, &p.BoardName, &p.Status, &p.IsPinned, &p.IsFeatured,
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName,
+			&p.BoardID, &p.BoardName, &p.BoardSlug, &p.Status, &p.IsPinned, &p.IsFeatured,
 			&p.LikeCount, &p.CommentCount, &p.CreatedAt); err != nil {
 			return nil, 0, fmt.Errorf("failed to scan post: %w", err)
 		}
 		posts = append(posts, p)
 	}
+	if viewerID > 0 && len(posts) > 0 {
+		applyPostLikes(ctx, s.DB, viewerID, posts)
+	}
 	return posts, total, nil
 }
 
+// ListUserCollections returns posts the user has bookmarked.
+func (s *ForumService) ListUserCollections(ctx context.Context, userID uint, page, limit int) ([]*model.PostListItem, int, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 20
+	}
+	offset := (page - 1) * limit
+
+	var total int
+	err := s.DB.QueryRow(ctx, `
+		SELECT COUNT(*) FROM schema_forum.collections c
+		JOIN schema_forum.posts p ON p.id = c.post_id
+		WHERE c.user_id = $1 AND p.status = 'published'
+	`, userID).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count collections: %w", err)
+	}
+
+	rows, err := s.DB.Query(ctx, `
+		SELECT p.id, p.title, LEFT(p.content, 320), p.author_id, u.username, p.board_id, b.name, b.slug,
+		       p.status, p.is_pinned, p.is_featured, p.like_count, p.comment_count, p.created_at
+		FROM schema_forum.collections c
+		JOIN schema_forum.posts p ON p.id = c.post_id
+		JOIN schema_auth.users u ON p.author_id = u.id
+		JOIN schema_forum.boards b ON p.board_id = b.id
+		WHERE c.user_id = $1 AND p.status = 'published'
+		ORDER BY c.created_at DESC
+		LIMIT $2 OFFSET $3
+	`, userID, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to query collections: %w", err)
+	}
+	defer rows.Close()
+
+	var posts []*model.PostListItem
+	for rows.Next() {
+		p := &model.PostListItem{}
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName,
+			&p.BoardID, &p.BoardName, &p.BoardSlug, &p.Status, &p.IsPinned, &p.IsFeatured,
+			&p.LikeCount, &p.CommentCount, &p.CreatedAt); err != nil {
+			return nil, 0, fmt.Errorf("failed to scan collection post: %w", err)
+		}
+		posts = append(posts, p)
+	}
+	if len(posts) > 0 {
+		applyPostLikes(ctx, s.DB, userID, posts)
+	}
+	return posts, total, nil
+}
+
+func applyPostLikes(ctx context.Context, db *pgxpool.Pool, viewerID uint, posts []*model.PostListItem) {
+	ids := make([]int64, len(posts))
+	for i, p := range posts {
+		ids[i] = int64(p.ID)
+	}
+	rows, err := db.Query(ctx, `
+		SELECT post_id FROM schema_forum.likes
+		WHERE user_id = $1 AND post_id = ANY($2)
+	`, viewerID, ids)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	liked := make(map[uint]bool)
+	for rows.Next() {
+		var pid uint
+		if rows.Scan(&pid) == nil {
+			liked[pid] = true
+		}
+	}
+	for _, p := range posts {
+		p.Liked = liked[p.ID]
+	}
+}
+
+func postSortCountFilter(sort string) string {
+	switch sort {
+	case "featured":
+		return " AND (is_pinned = true OR is_featured = true)"
+	case "today":
+		return " AND created_at >= CURRENT_DATE"
+	default:
+		return ""
+	}
+}
+
+func postSortListFilter(sort string) string {
+	switch sort {
+	case "featured":
+		return " AND (p.is_pinned = true OR p.is_featured = true)"
+	case "today":
+		return " AND p.created_at >= CURRENT_DATE"
+	default:
+		return ""
+	}
+}
+
+func postSortOrderBy(sort string) string {
+	switch sort {
+	case "new":
+		return " ORDER BY p.is_pinned DESC, p.created_at DESC"
+	case "featured":
+		return " ORDER BY p.is_pinned DESC, p.created_at DESC"
+	case "today", "hot":
+		return " ORDER BY p.is_pinned DESC, (p.like_count * 2 + p.comment_count * 3) DESC, p.created_at DESC"
+	default:
+		return " ORDER BY p.is_pinned DESC, (p.like_count * 2 + p.comment_count * 3) DESC, p.created_at DESC"
+	}
+}
+
+type PostNotifyMeta struct {
+	AuthorID uint
+	Title    string
+}
+
+func (s *ForumService) GetPostNotifyMeta(ctx context.Context, id uint) (*PostNotifyMeta, error) {
+	meta := &PostNotifyMeta{}
+	err := s.DB.QueryRow(ctx, `SELECT author_id, title FROM schema_forum.posts WHERE id = $1`, id).
+		Scan(&meta.AuthorID, &meta.Title)
+	if err != nil {
+		return nil, err
+	}
+	return meta, nil
+}
+
 // GetPost returns full post detail with attachments
-func (s *ForumService) GetPost(ctx context.Context, id uint) (*model.PostDetail, error) {
+func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*model.PostDetail, error) {
 	detail := &model.PostDetail{}
 	err := s.DB.QueryRow(ctx, `
 		SELECT p.id, p.title, p.content, p.author_id, u.username, p.board_id, b.name,
@@ -163,6 +321,17 @@ func (s *ForumService) GetPost(ctx context.Context, id uint) (*model.PostDetail,
 				detail.Attachments = append(detail.Attachments, a)
 			}
 		}
+	}
+
+	if viewerID > 0 {
+		_ = s.DB.QueryRow(ctx,
+			"SELECT EXISTS(SELECT 1 FROM schema_forum.likes WHERE post_id = $1 AND user_id = $2)",
+			id, viewerID,
+		).Scan(&detail.Liked)
+		_ = s.DB.QueryRow(ctx,
+			"SELECT EXISTS(SELECT 1 FROM schema_forum.collections WHERE post_id = $1 AND user_id = $2)",
+			id, viewerID,
+		).Scan(&detail.Collected)
 	}
 
 	return detail, nil
@@ -299,8 +468,13 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 		return nil, 0, err
 	}
 
-	rows, err := s.DB.Query(ctx,
-		"SELECT id, post_id, author_id, content, created_at FROM schema_forum.comments WHERE post_id = $1 ORDER BY created_at ASC LIMIT $2 OFFSET $3",
+	rows, err := s.DB.Query(ctx, `
+		SELECT c.id, c.post_id, c.parent_id, c.depth, c.author_id, u.username, c.content, c.created_at
+		FROM schema_forum.comments c
+		JOIN schema_auth.users u ON c.author_id = u.id
+		WHERE c.post_id = $1
+		ORDER BY c.created_at ASC
+		LIMIT $2 OFFSET $3`,
 		postID, limit, offset,
 	)
 	if err != nil {
@@ -311,7 +485,7 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 	var comments []*model.Comment
 	for rows.Next() {
 		c := &model.Comment{}
-		if err := rows.Scan(&c.ID, &c.PostID, &c.AuthorID, &c.Content, &c.CreatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.PostID, &c.ParentID, &c.Depth, &c.AuthorID, &c.AuthorName, &c.Content, &c.CreatedAt); err != nil {
 			return nil, 0, err
 		}
 		comments = append(comments, c)
@@ -319,9 +493,8 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 	return comments, total, nil
 }
 
-// CreateComment creates a new comment with sensitive word check
-func (s *ForumService) CreateComment(ctx context.Context, authorID, postID uint, content string) (*model.Comment, error) {
-	// Check sensitive words
+// CreateComment creates a new comment with sensitive word check and optional parent reply.
+func (s *ForumService) CreateComment(ctx context.Context, authorID, postID uint, content string, parentID *uint) (*model.Comment, error) {
 	clean, err := s.AdminClient.CheckSensitiveWords(content)
 	if err != nil {
 		clean = true
@@ -330,19 +503,37 @@ func (s *ForumService) CreateComment(ctx context.Context, authorID, postID uint,
 		return nil, fmt.Errorf("comment contains sensitive words, rejected")
 	}
 
-	comment := &model.Comment{}
+	depth := 0
+	if parentID != nil && *parentID > 0 {
+		var parentPostID uint
+		var parentDepth int
+		err = s.DB.QueryRow(ctx,
+			`SELECT post_id, depth FROM schema_forum.comments WHERE id = $1`,
+			*parentID,
+		).Scan(&parentPostID, &parentDepth)
+		if err != nil || parentPostID != postID {
+			return nil, fmt.Errorf("invalid parent comment")
+		}
+		if parentDepth >= 8 {
+			return nil, fmt.Errorf("reply depth limit reached")
+		}
+		depth = parentDepth + 1
+	}
+
+	comment := &model.Comment{ParentID: parentID, Depth: depth}
 	err = s.DB.QueryRow(ctx, `
-		INSERT INTO schema_forum.comments (post_id, author_id, content)
-		VALUES ($1, $2, $3)
-		RETURNING id, post_id, author_id, content, created_at
-	`, postID, authorID, content).Scan(
-		&comment.ID, &comment.PostID, &comment.AuthorID, &comment.Content, &comment.CreatedAt,
+		INSERT INTO schema_forum.comments (post_id, parent_id, depth, author_id, content)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, post_id, parent_id, depth, author_id, content, created_at
+	`, postID, parentID, depth, authorID, content).Scan(
+		&comment.ID, &comment.PostID, &comment.ParentID, &comment.Depth, &comment.AuthorID, &comment.Content, &comment.CreatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create comment: %w", err)
 	}
 
-	// Increment comment count
+	_ = s.DB.QueryRow(ctx, `SELECT username FROM schema_auth.users WHERE id = $1`, authorID).Scan(&comment.AuthorName)
+
 	_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.posts SET comment_count = comment_count + 1 WHERE id = $1", postID)
 
 	return comment, nil

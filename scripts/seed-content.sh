@@ -36,4 +36,10 @@ docker compose exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U "${DB_USER}" -d "${DB_NAME}" \
   < scripts/seed/001_content.sql
 
+if [ -f scripts/seed/002_pilot_gx_content.sql ]; then
+  docker compose exec -T postgres \
+    psql -v ON_ERROR_STOP=1 -U "${DB_USER}" -d "${DB_NAME}" \
+    < scripts/seed/002_pilot_gx_content.sql
+fi
+
 echo "Seed complete."

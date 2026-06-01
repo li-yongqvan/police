@@ -88,6 +88,7 @@ func main() {
 	boardAdminHandler := handler.NewBoardAdminHandler(forumClient)
 	roleHandler := handler.NewRoleHandler(roleService)
 	postAdminHandler := handler.NewPostAdminHandler(postAdminService, forumClient)
+	reportHandler := handler.NewReportHandler(forumClient)
 	statsHandler := handler.NewStatsHandler(statsService)
 
 	router := gin.Default()
@@ -138,6 +139,9 @@ func main() {
 
 		v1.GET("/stats/overview", statsHandler.GetOverview)
 		v1.GET("/stats/daily", statsHandler.GetDailyStats)
+
+		v1.GET("/reports", reportHandler.ListReports)
+		v1.POST("/reports/:id/resolve", reportHandler.ResolveReport)
 	}
 
 	internal := router.Group("/internal/v1")

@@ -96,7 +96,8 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user.ToResponse())
+	role := h.Service.ResolveAppRole(c.Request.Context(), uint(id))
+	c.JSON(http.StatusOK, toUserJSON(user.ToResponse(), role))
 }
 
 // UpdateProfile updates user profile information
@@ -128,7 +129,8 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user.ToResponse())
+	role := h.Service.ResolveAppRole(c.Request.Context(), uint(id))
+	c.JSON(http.StatusOK, toUserJSON(user.ToResponse(), role))
 }
 
 // UploadAvatar handles avatar image upload
@@ -238,12 +240,15 @@ func (h *UserHandler) DemoLogin(c *gin.Context) {
 		return
 	}
 
-	user := toDemoUser(resp.User, req.Role)
+	role := h.Service.ResolveAppRole(c.Request.Context(), resp.User.ID)
+	if role == "" {
+		role = req.Role
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"token":         resp.AccessToken,
 		"access_token":  resp.AccessToken,
 		"refresh_token": resp.RefreshToken,
-		"user":          user,
+		"user":          toUserJSON(resp.User, role),
 	})
 }
 
@@ -262,22 +267,27 @@ func (h *UserHandler) Me(c *gin.Context) {
 		return
 	}
 
-	role := demoRoleFromUsername[user.Username]
-	if role == "" {
-		role = "student"
-	}
-	c.JSON(http.StatusOK, toDemoUser(user.ToResponse(), role))
+	role := h.Service.ResolveAppRole(c.Request.Context(), userID)
+	c.JSON(http.StatusOK, toUserJSON(user.ToResponse(), role))
 }
 
-func toDemoUser(u model.UserResponse, role string) gin.H {
+func toUserJSON(u model.UserResponse, role string) gin.H {
+	name := u.Nickname
+	if u.Squad != "" && name != "" {
+		name = u.Squad + "·" + name
+	}
 	return gin.H{
-		"id":         strconv.FormatUint(uint64(u.ID), 10),
-		"name":       u.Nickname,
-		"username":   u.Username,
-		"avatar":     u.Avatar,
-		"role":       role,
-		"department": "",
-		"bio":        u.Bio,
-		"status":     u.Status,
+		"id":                strconv.FormatUint(uint64(u.ID), 10),
+		"name":              name,
+		"username":          u.Username,
+		"avatar":            u.Avatar,
+		"role":              role,
+		"department":        u.Department,
+		"squad":             u.Squad,
+		"grade":             u.Grade,
+		"profile_completed": u.ProfileCompleted,
+		"bio":               u.Bio,
+		"status":            u.Status,
+		"level":             u.Level,
 	}
 }

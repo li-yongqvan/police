@@ -1,121 +1,101 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { adminApi, forumApi } from '../api'
+import { RouterView, useRoute } from 'vue-router'
+import GxAdminFab from '../components/gx/GxAdminFab.vue'
+import GxMobileTabBar from '../components/gx/GxMobileTabBar.vue'
+import GxSiteFooter from '../components/gx/GxSiteFooter.vue'
+import GxSiteHeader from '../components/gx/GxSiteHeader.vue'
+import GxSiteSidebar from '../components/gx/GxSiteSidebar.vue'
+import Button from '../components/ui/Button.vue'
+import Card from '../components/ui/Card.vue'
+import Input from '../components/ui/Input.vue'
+import Label from '../components/ui/Label.vue'
 import { useDrawerNav } from '../composables/useDrawerNav'
 import { useSessionStore } from '../stores/session'
+import { forumApi, userApi } from '../api'
 
-const router = useRouter()
+const route = useRoute()
 const session = useSessionStore()
 const { drawerOpen, toggleDrawer, closeDrawer } = useDrawerNav()
-const boards = ref([])
-const config = ref(null)
 
-const roleLabel = computed(() => {
-  const role = session.currentUser?.role
-  if (role === 'platform_admin') return '中台管理员'
-  if (role === 'admin') return '协会管理员'
-  return '学生用户'
-})
-
-const pendingCount = computed(() =>
-  session.canAccessAdmin ? '可进入中台' : '前台演示',
+const isFeedShell = computed(() =>
+  ['community-home', 'board', 'my-posts', 'my-favorites', 'my-history'].includes(route.name),
 )
+const showOnboarding = ref(false)
+const onboard = ref({ department: '', squad: '', grade: '' })
+const boards = ref([])
+const unreadCount = ref(0)
 
-async function loadMeta() {
-  boards.value = await forumApi.getBoards()
-  if (session.canAccessAdmin) {
-    config.value = await adminApi.getConfig()
+onMounted(async () => {
+  if (session.needsOnboarding) showOnboarding.value = true
+  try {
+    boards.value = await forumApi.getBoards()
+  } catch {
+    boards.value = []
   }
-}
-
-function logout() {
-  closeDrawer()
-  session.logout()
-  router.push('/')
-}
-
-onMounted(() => {
-  loadMeta()
-  window.addEventListener('forum-config-updated', loadMeta)
+  if (session.currentUser) {
+    try {
+      const { items } = await forumApi.listNotifications(1, 50)
+      unreadCount.value = items.filter((i) => !i.is_read).length
+    } catch {
+      unreadCount.value = 0
+    }
+  }
 })
+
+async function saveOnboarding() {
+  await userApi.updateProfile(session.currentUser.id, {
+    name: session.currentUser.name,
+    department: onboard.value.department,
+    squad: onboard.value.squad,
+    grade: onboard.value.grade,
+    profileCompleted: true,
+  })
+  await session.refreshMe()
+  showOnboarding.value = false
+  session.setFlash('资料已完善', 'success')
+}
 </script>
 
 <template>
-  <div class="layout-app">
-    <header class="layout-topbar">
-      <button
-        type="button"
-        class="layout-menu-button"
-        :aria-expanded="drawerOpen"
-        :aria-label="drawerOpen ? '关闭导航菜单' : '打开导航菜单'"
-        @click="toggleDrawer"
-      >
-        <span class="mw-sr-only">{{ drawerOpen ? '关闭菜单' : '打开菜单' }}</span>
-      </button>
-      <div class="layout-topbar-title">
-        <strong>AI 智联论坛</strong>
-        <span>{{ session.currentUser?.name }} · {{ roleLabel }}</span>
-      </div>
-    </header>
-
-    <div
-      class="layout-backdrop"
-      :class="{ 'is-visible': drawerOpen }"
-      aria-hidden="true"
-      @click="closeDrawer"
+  <div class="gx-app gx-community-shell gx-app--with-tabbar">
+    <GxSiteHeader
+      :drawer-open="drawerOpen"
+      :unread-count="unreadCount"
+      @toggle-drawer="toggleDrawer"
     />
+    <div class="gx-drawer-backdrop" :class="{ 'is-open': drawerOpen }" @click="closeDrawer" />
+    <GxSiteSidebar :open="drawerOpen" :boards="boards" @navigate="closeDrawer" />
 
-    <aside class="layout-drawer sidebar" :class="{ 'is-open': drawerOpen }">
-      <div class="brand-card">
-        <p class="eyebrow">Campus AI Community</p>
-        <h1>AI 智联论坛</h1>
-        <p>面向学院内部交流、问答求助、活动运营与最小中台管理。</p>
+    <main class="gx-main" :class="{ 'gx-main--feed': isFeedShell }">
+      <div class="gx-page-frame" :class="{ 'gx-page-frame--feed': isFeedShell }">
+        <RouterView />
       </div>
-
-      <section class="panel user-panel">
-        <div class="user-header">
-          <div class="avatar">{{ session.currentUser?.avatar }}</div>
-          <div>
-            <h2>{{ session.currentUser?.name }}</h2>
-            <p>{{ session.currentUser?.department }}</p>
-          </div>
-        </div>
-        <p class="user-bio">{{ session.currentUser?.bio }}</p>
-        <div class="status-row">
-          <span class="status-badge">{{ roleLabel }}</span>
-          <span class="status-light">{{ pendingCount }}</span>
-        </div>
-      </section>
-
-      <nav class="panel nav-panel">
-        <RouterLink to="/community" class="nav-link">社区总览</RouterLink>
-        <RouterLink
-          v-for="board in boards"
-          :key="board.id"
-          :to="`/community/boards/${board.slug}`"
-          class="nav-link"
-        >
-          {{ board.name }}
-        </RouterLink>
-        <RouterLink to="/community/posts/new" class="nav-link">发布新帖</RouterLink>
-        <RouterLink to="/community/profile" class="nav-link">个人主页</RouterLink>
-        <RouterLink v-if="session.canAccessAdmin" to="/admin" class="nav-link accent-link">
-          进入中台
-        </RouterLink>
-      </nav>
-
-      <section v-if="config" class="panel info-panel">
-        <p class="eyebrow">当前控制状态</p>
-        <h3>{{ config.postingEnabled ? '发帖开放中' : '发帖已关闭' }}</h3>
-        <p>监管模式：{{ config.moderationMode === 'manual' ? '人工审核' : '自动审核' }}</p>
-      </section>
-
-      <button class="ghost-button full-width" @click="logout">退出演示</button>
-    </aside>
-
-    <main class="layout-main main-area">
-      <RouterView />
+      <GxSiteFooter v-if="!isFeedShell" />
     </main>
+    <GxMobileTabBar />
+    <GxAdminFab />
+
+    <div v-if="showOnboarding" class="gx-modal-backdrop">
+      <Card class="gx-modal mx-4 max-w-md p-6">
+        <h2 class="text-title text-gx-primary">完善资料</h2>
+        <p class="mt-1 text-meta text-gx-muted">请填写院系、区队、年级。</p>
+        <div class="mt-4 space-y-4">
+          <div class="space-y-2">
+            <Label for="ob-dept">院系</Label>
+            <Input id="ob-dept" v-model="onboard.department" />
+          </div>
+          <div class="space-y-2">
+            <Label for="ob-squad">区队</Label>
+            <Input id="ob-squad" v-model="onboard.squad" />
+          </div>
+          <div class="space-y-2">
+            <Label for="ob-grade">年级</Label>
+            <Input id="ob-grade" v-model="onboard.grade" />
+          </div>
+          <Button type="button" class="w-full" @click="saveOnboarding">保存并进入社区</Button>
+        </div>
+      </Card>
+    </div>
   </div>
 </template>

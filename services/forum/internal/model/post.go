@@ -33,11 +33,14 @@ type Board struct {
 
 // Comment represents a reply to a post
 type Comment struct {
-	ID        uint      `json:"id" db:"id"`
-	PostID    uint      `json:"post_id" db:"post_id"`
-	AuthorID  uint      `json:"author_id" db:"author_id"`
-	Content   string    `json:"content" db:"content"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	ID         uint      `json:"id" db:"id"`
+	PostID     uint      `json:"post_id" db:"post_id"`
+	ParentID   *uint     `json:"parent_id,omitempty" db:"parent_id"`
+	Depth      int       `json:"depth" db:"depth"`
+	AuthorID   uint      `json:"author_id" db:"author_id"`
+	AuthorName string    `json:"author_name,omitempty" db:"-"`
+	Content    string    `json:"content" db:"content"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
 }
 
 // Like represents a post like
@@ -83,15 +86,18 @@ type BoardResponse struct {
 type PostListItem struct {
 	ID           uint      `json:"id"`
 	Title        string    `json:"title"`
+	Content      string    `json:"content,omitempty"`
 	AuthorID     uint      `json:"author_id"`
 	AuthorName   string    `json:"author_name"`
 	BoardID      uint      `json:"board_id"`
 	BoardName    string    `json:"board_name"`
+	BoardSlug    string    `json:"board_slug,omitempty"`
 	Status       string    `json:"status"`
 	IsPinned     bool      `json:"is_pinned"`
 	IsFeatured   bool      `json:"is_featured"`
 	LikeCount    int       `json:"like_count"`
 	CommentCount int       `json:"comment_count"`
+	Liked        bool      `json:"liked,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 
@@ -109,6 +115,8 @@ type PostDetail struct {
 	IsFeatured   bool         `json:"is_featured"`
 	LikeCount    int          `json:"like_count"`
 	CommentCount int          `json:"comment_count"`
+	Liked        bool         `json:"liked,omitempty"`
+	Collected    bool         `json:"collected,omitempty"`
 	Attachments  []Attachment `json:"attachments"`
 	CreatedAt    time.Time    `json:"created_at"`
 	UpdatedAt    time.Time    `json:"updated_at"`
@@ -130,7 +138,8 @@ type UpdatePostRequest struct {
 
 // CreateCommentRequest represents the input for creating a comment
 type CreateCommentRequest struct {
-	Content string `json:"content" binding:"required"`
+	Content  string `json:"content" binding:"required"`
+	ParentID *uint  `json:"parent_id"`
 }
 
 // LikeResponse represents the response for like toggle
