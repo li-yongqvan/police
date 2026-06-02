@@ -2828,6 +2828,18 @@ select {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
+
+  /* 消息中心：超窄屏空态避免被裁切（减少 py-12 的占位，并允许纵向滚动） */
+  .gx-messages-panel__body.is-empty {
+    place-items: start center;
+    padding: 12px;
+    overflow-y: auto;
+  }
+  .gx-messages-panel__body.is-empty .gx-empty-state {
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
+    max-width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
