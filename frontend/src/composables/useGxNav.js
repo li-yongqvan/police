@@ -15,10 +15,13 @@ export const GX_HEADER_NAV = [
     to: '/community/boards/study',
     match: (r) => r.name === 'board',
   },
-  { id: 'circle', label: '校园圈', to: '/community', match: (r) => false },
-  { id: 'rank', label: '排行榜', to: '/community/about', match: (r) => r.name === 'about' },
-  { id: 'help', label: '帮助中心', to: '/community/about', match: (r) => false },
+  { id: 'circle', label: '校园圈', to: '/community/circle', match: (r) => r.name === 'campus-circle' },
+  { id: 'rank', label: '排行榜', to: '/community/rank', match: (r) => r.name === 'rank' },
+  { id: 'help', label: '帮助中心', to: '/community/about', match: (r) => r.name === 'about' },
 ]
+
+/** 校园圈专属板块 slug（与 DB 迁移一致） */
+export const CAMPUS_CIRCLE_SLUG = 'campus-circle'
 
 /** 侧栏个人导航（概念稿） */
 export const GX_SIDEBAR_PERSONAL = [
@@ -92,10 +95,19 @@ export function resolveBoardByKey(boards, key) {
   )
 }
 
+export function resolveCircleBoard(boards) {
+  if (!boards?.length) return null
+  return (
+    boards.find((b) => b.slug === CAMPUS_CIRCLE_SLUG) ||
+    boards.find((b) => /校园圈|生活|日常/.test(b.name || '')) ||
+    null
+  )
+}
+
 export function boardTagClass(boardName = '') {
+  if (/校园圈|生活|日常/.test(boardName)) return 'gx-tag--life'
   if (/社团/.test(boardName)) return 'gx-tag--club'
   if (/公告|通知/.test(boardName)) return 'gx-tag--notice'
-  if (/生活/.test(boardName)) return 'gx-tag--life'
   return 'gx-tag--study'
 }
 

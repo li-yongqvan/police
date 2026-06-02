@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import GxComposeShell from '../components/gx/GxComposeShell.vue'
 import GxIcon from '../components/gx/GxIcon.vue'
 import Alert from '../components/ui/Alert.vue'
@@ -11,6 +11,7 @@ import { formatApiError } from '../api/errors'
 import { forumApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
+const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 const boards = ref([])
@@ -47,14 +48,23 @@ const canSubmit = computed(
 )
 
 function boardIcon(name = '') {
+  if (/校园圈|生活|日常/.test(name)) return 'flag'
   const key = boardKeyFromName(name)
   const icons = { study: 'book', training: 'shield', notice: 'bell', club: 'flag' }
   return icons[key] || 'book'
 }
 
+function applyBoardFromQuery() {
+  const slug = String(route.query.board || '').trim()
+  if (!slug || !boards.value.length) return
+  const match = boards.value.find((b) => b.slug === slug)
+  if (match) form.value.boardId = match.id
+}
+
 onMounted(async () => {
   boards.value = await forumApi.getBoards()
   form.value.boardId = boards.value[0]?.id || ''
+  applyBoardFromQuery()
 })
 
 async function uploadIfNeeded() {

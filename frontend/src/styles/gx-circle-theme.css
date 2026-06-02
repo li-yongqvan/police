@@ -1,0 +1,251 @@
+/* 排行榜页 */
+.gx-rank-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 0 8px;
+}
+.gx-rank-hero__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1a4a8a 100%);
+  color: var(--color-gold);
+}
+.gx-rank-hero__eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.gx-rank-hero__title {
+  margin: 4px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.gx-rank-hero__desc {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.gx-rank-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.gx-rank-stats__item {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  text-align: center;
+}
+.gx-rank-stats__value {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.gx-rank-stats__label {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.gx-rank-section {
+  margin-bottom: 24px;
+}
+.gx-rank-section__title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.gx-rank-board-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.gx-rank-board-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+.gx-rank-board-list__item:last-child {
+  border-bottom: none;
+}
+.gx-rank-board-list__rank {
+  flex-shrink: 0;
+  width: 48px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.gx-rank-board-list__rank.is-top {
+  color: var(--color-gold);
+}
+.gx-rank-board-list__link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px 12px 0;
+}
+.gx-rank-board-list__link:hover .gx-rank-board-list__name {
+  color: var(--color-brand);
+}
+.gx-rank-board-list__name {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.gx-rank-board-list__count {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.gx-rank-aside-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--color-muted);
+}
+.gx-rank-aside-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* 校园圈暖色主题（仅内容区） */
+.gx-circle-page {
+  --circle-bg: #fff8f0;
+  --circle-accent: #f4a261;
+  --circle-accent-deep: #e76f51;
+  --circle-surface: #fffdfb;
+  --circle-text: #5c4033;
+  --circle-muted: #8b7355;
+  background: var(--circle-bg);
+  border-radius: var(--radius-md);
+  min-height: 100%;
+}
+.gx-circle-page .gx-feed-layout__main {
+  background: transparent;
+}
+.gx-circle-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 18px;
+  margin-bottom: 4px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff3e6 0%, #ffe8d6 50%, #fff8f0 100%);
+  border: 1px solid rgba(244, 162, 97, 0.35);
+  box-shadow: 0 4px 20px rgba(231, 111, 81, 0.08);
+}
+.gx-circle-hero__bubble {
+  font-size: 40px;
+  line-height: 1;
+}
+.gx-circle-hero__body {
+  flex: 1;
+  min-width: 200px;
+}
+.gx-circle-hero__eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--circle-accent-deep);
+  letter-spacing: 0.04em;
+}
+.gx-circle-hero__title {
+  margin: 4px 0 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--circle-text);
+}
+.gx-circle-hero__desc {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--circle-muted);
+}
+.gx-circle-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--circle-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(244, 162, 97, 0.45);
+}
+.gx-circle-hero__cta:hover {
+  background: var(--circle-accent-deep);
+}
+.gx-circle-page .gx-feed-sort-bar {
+  border-color: rgba(244, 162, 97, 0.25);
+}
+.gx-circle-page .gx-feed-card,
+.gx-circle-feed .gx-feed-card {
+  border-radius: 14px;
+  border-color: rgba(244, 162, 97, 0.2);
+  box-shadow: 0 2px 12px rgba(92, 64, 51, 0.06);
+}
+.gx-circle-aside-panel {
+  background: var(--circle-surface);
+  border-color: rgba(244, 162, 97, 0.3);
+}
+.gx-circle-aside-panel .gx-panel__title {
+  color: var(--circle-text);
+}
+.gx-circle-aside-tips {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--circle-muted);
+}
+.gx-circle-aside-cta {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--circle-accent-deep);
+}
+.gx-circle-empty-btn {
+  display: inline-flex;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: var(--circle-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.gx-circle-empty-btn:hover {
+  background: var(--circle-accent-deep);
+}
+.gx-circle-page .gx-empty-state .text-title {
+  color: var(--circle-text);
+}
+
+@media (max-width: 767.98px) {
+  .gx-rank-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

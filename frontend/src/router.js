@@ -13,6 +13,8 @@ const ProfileView = () => import('./views/ProfileView.vue')
 const UserPublic = () => import('./views/UserPublic.vue')
 const MessagesView = () => import('./views/MessagesView.vue')
 const AboutView = () => import('./views/AboutView.vue')
+const RankView = () => import('./views/RankView.vue')
+const CircleView = () => import('./views/CircleView.vue')
 const MyLibraryView = () => import('./views/MyLibraryView.vue')
 const AdminLayout = () => import('./views/AdminLayout.vue')
 const AdminOverview = () => import('./views/AdminOverview.vue')
@@ -69,6 +71,8 @@ const router = createRouter({
         },
         { path: 'users/:id', name: 'user-public', component: UserPublic },
         { path: 'messages', name: 'messages', component: MessagesView },
+        { path: 'rank', name: 'rank', component: RankView },
+        { path: 'circle', name: 'campus-circle', component: CircleView },
         { path: 'about', name: 'about', component: AboutView },
       ],
     },

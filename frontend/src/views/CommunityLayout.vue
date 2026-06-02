@@ -19,7 +19,9 @@ const session = useSessionStore()
 const { drawerOpen, toggleDrawer, closeDrawer } = useDrawerNav()
 
 const isFeedShell = computed(() =>
-  ['community-home', 'board', 'my-posts', 'my-favorites', 'my-history'].includes(route.name),
+  ['community-home', 'board', 'rank', 'campus-circle', 'my-posts', 'my-favorites', 'my-history'].includes(
+    route.name,
+  ),
 )
 const showOnboarding = ref(false)
 const onboard = ref({ department: '', squad: '', grade: '' })

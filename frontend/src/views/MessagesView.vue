@@ -133,7 +133,7 @@ onMounted(load)
           </div>
         </header>
 
-        <div class="gx-messages-panel__body">
+        <div class="gx-messages-panel__body" :class="{ 'is-empty': !filteredItems.length }">
           <GxEmptyState
             v-if="!filteredItems.length"
             title="暂无消息"
