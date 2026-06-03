@@ -20,12 +20,16 @@
   }
 
   .toast {
-    left: calc(12px + var(--safe-left));
-    right: calc(12px + var(--safe-right));
-    bottom: calc(12px + var(--safe-bottom));
-    width: auto;
-    max-width: none;
+    top: calc(var(--gx-header-h, 52px) + var(--safe-top, 0px) + 8px);
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: min(calc(100vw - 24px), 360px);
+    padding: 10px 14px;
     text-align: center;
+    z-index: 110;
   }
 
   .section-title .audit-actions.mw-pagination {

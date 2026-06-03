@@ -83,6 +83,10 @@ async function saveAvatar() {
   <div class="gx-page gx-profile-page">
     <GxBreadcrumb :items="breadcrumbItems" />
 
+    <p v-if="session.needsOnboarding" class="gx-profile-onboard-hint" role="status">
+      建议在此完善院系、区队、年级信息，保存后即可正常使用社区功能。
+    </p>
+
     <div class="gx-profile-layout">
       <aside class="gx-profile-sidebar">
         <Card class="gx-profile-card">
