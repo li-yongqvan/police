@@ -133,7 +133,7 @@ func main() {
 		auth.GET("/me/collections", interactionHandler.ListMyCollections)
 
 		// Attachment upload (requires level 2 for files)
-		auth.POST("/attachments/upload", middleware.RequireLevel(2), attachmentHandler.UploadAttachment)
+		auth.POST("/attachments/upload", middleware.RequireLevel(1), attachmentHandler.UploadAttachment)
 
 		auth.GET("/notifications", notificationHandler.List)
 		auth.PUT("/notifications/:id/read", notificationHandler.MarkRead)

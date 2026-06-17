@@ -16,7 +16,7 @@ const router = useRouter()
 const session = useSessionStore()
 const boards = ref([])
 const uploading = ref(false)
-const needsLevelForAttachment = computed(() => (session.currentUser?.level ?? 1) < 2)
+const needsLevelForAttachment = computed(() => (session.currentUser?.level ?? 1) < 1)
 
 const form = ref({
   boardId: '',
