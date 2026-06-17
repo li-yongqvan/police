@@ -1,0 +1,94 @@
+@media (max-width: 767.98px) {
+  .mw-sticky-toolbar {
+    position: sticky;
+    top: var(--mw-sticky-top);
+    z-index: 30;
+    margin: -14px -16px 12px;
+    padding: 10px 16px;
+    background: rgba(247, 250, 255, 0.96);
+    border-bottom: 1px solid rgba(130, 146, 180, 0.2);
+    backdrop-filter: blur(8px);
+  }
+
+  .mw-sticky-toolbar .danger-button {
+    width: 100%;
+  }
+
+  .user-row.mw-user-row,
+  .post-card.compact.mw-admin-post {
+    display: grid;
+    gap: 12px;
+    padding: var(--mw-space-card) 16px;
+  }
+
+  .user-row.mw-user-row .user-actions.stacked-admin-actions {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .user-row.mw-user-row .level-inline {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .user-row.mw-user-row .level-inline input {
+    width: 100%;
+  }
+
+  .user-row.mw-user-row .secondary-button,
+  .user-row.mw-user-row .ghost-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .post-card.compact.mw-admin-post .audit-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .post-card.compact.mw-admin-post .audit-actions .danger-button {
+    grid-column: 1 / -1;
+  }
+
+  .audit-card .audit-select {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--mw-tap-min);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .audit-card .audit-select input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+    accent-color: #3d7c73;
+  }
+
+  .audit-card h4 {
+    font-size: 1rem;
+    margin: 0 0 6px;
+  }
+
+  .invite-status-row {
+    margin-bottom: 12px;
+  }
+
+  .invite-status-row .secondary-button {
+    width: 100%;
+  }
+
+  .page-stack--admin .hero-strip--admin {
+    padding: 14px 16px;
+  }
+
+  .toggle-grid label {
+    min-height: var(--mw-tap-min);
+    align-items: center;
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "deck_name": "weekly-review-deck",
+  "language": "Chinese",
+  "designer_persona": "许岑",
+  "designer_note": "延续 ai-forum-deck；协会例会向老师汇报；暖色点缀",
+  "aspect_ratio": "16:9",
+  "style": {
+    "name": "许岑式发布会美学（暖色延续）",
+    "visual_direction": "极简、高对比、超大字号、强留白；黑底白字；暖色 #E8A838 仅作一处点缀（细线/光晕/断点）",
+    "color_palette": "底 #0A0A0A，字 #FAFAFA，点缀 #E8A838",
+    "typography": "粗黑无衬线，核心词极大，副标细且疏",
+    "texture_and_finish": "无 bullet、无商务模板、无页码",
+    "deck_consistency": "三页同一视觉体系，与 ai-forum-deck 同系列"
+  },
+  "slides": [
+    {
+      "slide_number": 1,
+      "title": "复盘",
+      "layout_role": "cover",
+      "key_points": ["超大：复盘", "小字：本周 · 例会", "暖色：主词下极细线"],
+      "visual_idea": "发布会开场，大量留白，无署名"
+    },
+    {
+      "slide_number": 2,
+      "title": "没说清",
+      "layout_role": "problem",
+      "key_points": ["超大：没说清", "一行：做了什么 · 放在哪", "暖色：断线断点"],
+      "visual_idea": "信息断裂意象，无路径小字"
+    },
+    {
+      "slide_number": 3,
+      "title": "两样",
+      "layout_role": "plan",
+      "key_points": ["超大：两样", "一行：论坛 · 微电影 · 一月", "极小：展示招人"],
+      "visual_idea": "两束暖光/两竖块象征两项成果"
+    }
+  ]
+}

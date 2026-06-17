@@ -1,0 +1,29 @@
+@media (max-width: 767.98px) {
+  .page-stack--browse .section-feed {
+    order: -2;
+  }
+
+  .page-stack--browse .section-boards {
+    order: -1;
+  }
+
+  .post-card h4,
+  .post-card.compact strong {
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .post-card p,
+  .post-card.compact p {
+    font-size: 14px;
+  }
+
+  .section-title {
+    gap: 10px;
+  }
+
+  .board-view-header .section-title .secondary-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

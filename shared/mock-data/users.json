@@ -1,0 +1,29 @@
+[
+  {
+    "id": "user-student",
+    "name": "林夏",
+    "avatar": "LX",
+    "role": "student",
+    "department": "人工智能协会 / 计算机学院",
+    "bio": "关注大模型应用、AI 项目共创和技术答疑。",
+    "status": "active"
+  },
+  {
+    "id": "user-admin",
+    "name": "周沐",
+    "avatar": "ZM",
+    "role": "admin",
+    "department": "协会运营组",
+    "bio": "负责活动公告、内容审核和社区秩序维护。",
+    "status": "active"
+  },
+  {
+    "id": "user-platform",
+    "name": "陈拓",
+    "avatar": "CT",
+    "role": "platform_admin",
+    "department": "论坛中台组",
+    "bio": "负责系统配置、监管规则和核心数据看板。",
+    "status": "active"
+  }
+]

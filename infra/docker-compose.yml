@@ -1,0 +1,37 @@
+# Local infrastructure only (PostgreSQL + Redis).
+# Full stack (Go services + Nginx + frontend) uses ../docker-compose.yml at repo root.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ai-forum-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ai_forum
+      POSTGRES_USER: ai_forum
+      POSTGRES_PASSWORD: ai_forum_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../migrations/init/000_init_schemas.up.sql:/docker-entrypoint-initdb.d/001_init_schemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_forum -d ai_forum"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai-forum-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

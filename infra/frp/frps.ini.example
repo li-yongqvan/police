@@ -1,0 +1,11 @@
+# frp server — run on Hong Kong edge VPS
+# Install: https://github.com/fatedier/frp/releases
+
+[common]
+bind_port = 7000
+# vhost_http_port = 8080  # optional HTTP vhost
+
+# Dashboard (restrict to localhost or VPN)
+# dashboard_port = 7500
+# dashboard_user = admin
+# dashboard_pwd = change_me

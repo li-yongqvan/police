@@ -1,0 +1,11 @@
+# Ubuntu cloud host — gateway on 8091 and 8888 (host :80 needs root reverse proxy)
+services:
+  nginx:
+    ports:
+      - "8091:80"
+      - "8888:80"
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+

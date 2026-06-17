@@ -1,0 +1,15 @@
+# frp client — run on US origin server (107.172.138.10)
+# Exposes local forum gateway to HK edge via tunnel
+
+[common]
+server_addr = HK_EDGE_IP
+server_port = 7000
+# token = your_shared_secret
+
+[ai_forum_http]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 8888
+remote_port = 18888
+
+# On HK edge nginx: proxy_pass http://127.0.0.1:18888;

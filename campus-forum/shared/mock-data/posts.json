@@ -1,0 +1,91 @@
+[
+  {
+    "id": "post-1",
+    "boardId": "board-study",
+    "authorId": "user-student",
+    "title": "本学期 AI 学习路线怎么排最稳？",
+    "content": "如果一学期只抓三个方向，我建议按 Python 基础、机器学习核心概念、一个能展示的 AI 应用项目来安排。这样既能跟课程同步，也能给协会展示留成果。",
+    "tags": [
+      "学习路线",
+      "入门"
+    ],
+    "attachments": [
+      {
+        "id": "att-1",
+        "type": "link",
+        "name": "协会共享学习路线清单",
+        "url": "https://example.com/roadmap"
+      }
+    ],
+    "status": "published",
+    "isFeatured": true,
+    "likeCount": 14,
+    "commentCount": 5,
+    "createdAt": "2026-05-20T09:00:00+08:00"
+  },
+  {
+    "id": "post-2",
+    "boardId": "board-announcement",
+    "authorId": "user-admin",
+    "title": "本周五 AI Mini Hack Night 报名开启",
+    "content": "周五晚 19:00 在实验楼 302 举办 Mini Hack Night，欢迎带上自己的 idea 来现场组队。活动后会同步优秀项目到论坛精选区。",
+    "tags": [
+      "活动通知",
+      "Hack Night"
+    ],
+    "attachments": [
+      {
+        "id": "att-2",
+        "type": "image",
+        "name": "活动海报",
+        "url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format\u0026fit=crop\u0026w=1200\u0026q=80"
+      }
+    ],
+    "status": "published",
+    "isFeatured": false,
+    "likeCount": 9,
+    "commentCount": 1,
+    "createdAt": "2026-05-20T10:10:00+08:00"
+  },
+  {
+    "id": "post-3",
+    "boardId": "board-qa",
+    "authorId": "user-student",
+    "title": "RAG 项目里向量库先选 FAISS 还是 PGVector？",
+    "content": "我现在做校内课程助手，数据量还不大，但后面可能会扩展到多个课程知识库。想知道 MVP 阶段先用 FAISS 还是 PGVector 更合适。",
+    "tags": [
+      "RAG",
+      "向量库"
+    ],
+    "attachments": [
+      {
+        "id": "att-3",
+        "type": "document",
+        "name": "当前检索流程草图.pdf",
+        "url": "https://example.com/rag-flow.pdf"
+      }
+    ],
+    "status": "published",
+    "isFeatured": false,
+    "likeCount": 18,
+    "commentCount": 4,
+    "createdAt": "2026-05-20T11:20:00+08:00"
+  },
+  {
+    "id": "post-4",
+    "boardId": "board-announcement",
+    "authorId": "user-student",
+    "title": "求一个校外技术交流群，最好能直接引流进群",
+    "content": "想找一个适合继续交流的群，如果有现成的技术引流入口也欢迎推荐。",
+    "tags": [
+      "交流群",
+      "待审核示例"
+    ],
+    "attachments": [],
+    "status": "published",
+    "isFeatured": false,
+    "likeCount": 0,
+    "commentCount": 0,
+    "createdAt": "2026-05-20T13:10:00+08:00"
+  }
+]

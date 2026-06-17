@@ -1,0 +1,38 @@
+@media (max-width: 767.98px) {
+  .login-shell .login-hero .metric-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .login-shell .login-hero .metric-row strong {
+    font-size: 1.25rem;
+  }
+
+  .login-shell .login-hero .metric-row span {
+    font-size: 11px;
+  }
+
+  .login-shell .login-hero h1 {
+    font-size: 1.35rem;
+  }
+
+  .login-shell .login-hero .lead {
+    font-size: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .role-card--open {
+    scroll-margin-top: var(--mw-sticky-top);
+  }
+}
+
+@media (max-width: 380px) {
+  .login-shell .login-hero .metric-row {
+    grid-template-columns: 1fr;
+  }
+}

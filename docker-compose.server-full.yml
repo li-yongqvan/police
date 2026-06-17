@@ -1,0 +1,109 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8888:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/includes:/etc/nginx/includes:ro
+    depends_on:
+      - user-service
+      - forum-service
+      - admin-service
+    networks:
+      - ai-forum-net
+
+  user-service:
+    build:
+      context: ./services/user
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_SCHEMA=schema_auth
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-forum-net
+
+  forum-service:
+    build:
+      context: ./services/forum
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_SCHEMA=schema_forum
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-forum-net
+
+  admin-service:
+    build:
+      context: ./services/admin
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_SCHEMA=schema_admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-forum-net
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ai_forum
+      POSTGRES_USER: ai_forum
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations/init/000_init_schemas.up.sql:/docker-entrypoint-initdb.d/001_init_schemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_forum"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - ai-forum-net
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - ai-forum-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on:
+      - user-service
+      - forum-service
+      - admin-service
+    networks:
+      - ai-forum-net
+
+volumes:
+  pgdata:
+
+networks:
+  ai-forum-net:
+    driver: bridge

@@ -1,0 +1,11 @@
+# Production CORS: replace wildcard with your site origin.
+# Copy to cors-production.conf and include from nginx server block.
+# Example for https://api.example.com serving SPA + API on same host:
+#
+#   set $cors_origin "";
+#   if ($http_origin ~* ^https://(api\.)?example\.com$) {
+#       set $cors_origin $http_origin;
+#   }
+#   add_header Access-Control-Allow-Origin $cors_origin always;
+#
+# When frontend and API share the same origin (recommended via Tunnel), CORS is often unnecessary.

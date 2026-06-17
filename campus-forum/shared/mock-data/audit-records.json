@@ -1,0 +1,10 @@
+[
+  {
+    "id": "audit-1",
+    "postId": "post-4",
+    "reason": "命中敏感词：引流",
+    "status": "approve",
+    "reviewerId": "user-platform",
+    "createdAt": "2026-05-20T13:10:00+08:00"
+  }
+]

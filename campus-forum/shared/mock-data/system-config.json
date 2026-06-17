@@ -1,0 +1,9 @@
+{
+  "postingEnabled": true,
+  "boardSwitches": {
+    "board-study": true,
+    "board-announcement": true,
+    "board-qa": true
+  },
+  "moderationMode": "auto"
+}

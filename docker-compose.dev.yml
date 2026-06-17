@@ -1,0 +1,31 @@
+# Local development: expose service ports on the host.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+
+services:
+  nginx:
+    ports:
+      - "80:80"
+
+  user-service:
+    ports:
+      - "8001:8001"
+
+  forum-service:
+    ports:
+      - "8002:8002"
+
+  admin-service:
+    ports:
+      - "8003:8003"
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  frontend:
+    ports:
+      - "3000:80"

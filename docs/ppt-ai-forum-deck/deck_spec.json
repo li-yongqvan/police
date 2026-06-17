@@ -1,0 +1,41 @@
+{
+  "deck_name": "ai-forum-deck",
+  "language": "Chinese",
+  "designer_persona": "许岑",
+  "designer_note": "顶级发布会幻灯片设计师，锤子科技/柴静《穹顶之下》视觉，美学主张见《征服世界的美学暴力》",
+  "aspect_ratio": "16:9",
+  "style": {
+    "name": "许岑式发布会美学",
+    "visual_direction": "极简、高对比、超大字号、极少文字、强留白、单意象主视觉；像产品发布会而非论文答辩",
+    "color_palette": "主方案：深底 #0A0A0A 或纯黑 + 白字 #FAFAFA；备选：极浅灰 #F5F5F0 + 墨黑字。强调色仅用一处：冷白或单一暖色点缀",
+    "typography": "中文黑体/无衬线，核心词极大加粗，副标细且疏，字距略宽",
+    "texture_and_finish": "无渐变花哨、无 stock 商务图、无图标墙；可用抽象几何或细线示意图",
+    "deck_consistency": "三页同一套黑白电影感；每页只有一个视觉焦点词"
+  },
+  "slides": [
+    {
+      "slide_number": 1,
+      "title": "智联",
+      "layout_role": "cover",
+      "on_slide_text_max_chars": 15,
+      "key_points": ["超大：智联", "小字：AI 论坛 · MVP", "极小：学院人工智能协会"],
+      "visual_idea": "黑底白字发布会开场，大量留白，无 bullet"
+    },
+    {
+      "slide_number": 2,
+      "title": "论坛 + 中台",
+      "layout_role": "concept",
+      "on_slide_text_max_chars": 18,
+      "key_points": ["超大：论坛 + 中台", "一行：三服务 · 三板块 · 一部手机", "抽象三线或三角构图"],
+      "visual_idea": "极简线框意象，禁止端口/API 小字"
+    },
+    {
+      "slide_number": 3,
+      "title": "80%",
+      "layout_role": "summary",
+      "on_slide_text_max_chars": 20,
+      "key_points": ["超大：80%", "小字：能演示 · 能装手机 · 下一步接库", "极小：谢谢"],
+      "visual_idea": "数字占满视觉中心，像发布会终场定音"
+    }
+  ]
+}
