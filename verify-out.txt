@@ -1,0 +1,26 @@
+﻿
+$ ss -tlnp | grep -E ':80|:8091|:8888' || true
+LISTEN 0      511          0.0.0.0:80         0.0.0.0:*          
+LISTEN 0      4096         0.0.0.0:8888       0.0.0.0:*          
+LISTEN 0      4096         0.0.0.0:8091       0.0.0.0:*          
+LISTEN 0      4096         0.0.0.0:8090       0.0.0.0:*          
+LISTEN 0      511             [::]:80            [::]:*          
+LISTEN 0      4096            [::]:8888          [::]:*          
+LISTEN 0      4096            [::]:8091          [::]:*          
+LISTEN 0      4096            [::]:8090          [::]:*
+
+$ docker ps --format '{{.Names}} {{.Ports}}' | grep -E 'nginx|frontend' || true
+ai-forum-nginx-1 0.0.0.0:8091->80/tcp, 0.0.0.0:8888->80/tcp, [::]:8091->80/tcp, [::]:8888->80/tcp
+ai-forum-frontend-1 80/tcp
+
+$ curl -sS http://127.0.0.1:8091/forum-api/api/v1/boards | python3 -c "import sys,json; b=js
+['ai-learning', 'announcements', 'tech-help', 'study', 'campus-circle', 'training', 'notice', 'club']
+
+$ curl -sS http://127.0.0.1:8091/ | grep -oE 'index-[^"]+\.js' | head -1
+index-DYxZMTuj.js
+
+$ test -f /opt/ai-forum/frontend/src/composables/useGxNav.js && grep circle /opt/ai-forum/fr
+no /opt/ai-forum nav
+
+$ curl -sS -o /dev/null -w 'port80=%{http_code}\n' http://127.0.0.1:80/ 2>/dev/null || echo 
+port80=200

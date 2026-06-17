@@ -61,13 +61,9 @@ bash scripts/smoke-test.sh
 
 校内试运行运维详见 [docs/pilot-runbook.md](docs/pilot-runbook.md)。
 
-### 演示账号（密码均为 `demo123456`）
+### 演示账号
 
-| 用户名 | 角色 |
-|--------|------|
-| demo_student | 学生 |
-| demo_admin | 协会管理员 |
-| demo_platform_admin | 中台管理员 |
+详见 [docs/demo-accounts.md](docs/demo-accounts.md)。原有三个账号密码为 `demo123456`；并行测试账号 `demo01`…`demo06`、`admin01`…`admin06`、`plat01`…`plat06` 的**密码与用户名相同**。
 
 生产环境请使用 **注册 + 邀请码**（种子邀请码 `DEMO2026`）。
 

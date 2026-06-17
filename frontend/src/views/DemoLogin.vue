@@ -21,6 +21,13 @@ function redirectAfterLogin(user) {
   })
 }
 
+function loginWithQQ() {
+  const returnTo = '/community'
+  const u = new URL('/user-api/api/v1/auth/qq/start', window.location.origin)
+  u.searchParams.set('return_to', returnTo)
+  window.location.assign(u.toString())
+}
+
 onMounted(() => {
   if (session.token && session.currentUser) {
     redirectAfterLogin(session.currentUser)
@@ -81,6 +88,29 @@ async function submit() {
     <template #footer>
       <p>首次使用？请用学校发放的邀请码注册账号</p>
       <RouterLink to="/register">邀请码注册</RouterLink>
+      <div class="gx-auth-divider" />
+      <button class="gx-auth-qq" type="button" @click="loginWithQQ">QQ 一键登录</button>
     </template>
   </GxAuthShell>
 </template>
+
+<style scoped>
+.gx-auth-divider {
+  height: 1px;
+  margin: 12px 0;
+  background: rgba(255, 255, 255, 0.08);
+}
+.gx-auth-qq {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  padding: 10px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gx-auth-qq:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+</style>

@@ -1,4 +1,4 @@
-# Logs
+﻿# Logs
 logs
 *.log
 npm-debug.log*
@@ -33,3 +33,6 @@ infra/cloudflared/credentials.json
 *.njsproj
 *.sln
 *.sw?
+
+*.exe
+*.tar.gz

@@ -50,6 +50,14 @@ psql -h 127.0.0.1 -U ai_forum -d ai_forum -f migrations/init/000_init_schemas.up
 cp .env.local.example .env
 ```
 
+可选：启用 QQ 一键登录（QQ 互联网站应用）。
+
+- 在 QQ 互联创建「网站应用」，并把回调地址设置为 `.env` 里的 `QQ_REDIRECT_URI`（必须完全一致）。
+- 本地开发默认回调：`http://127.0.0.1:8001/api/v1/auth/qq/callback`
+- 前端回跳页：`.env` 里的 `FRONTEND_OAUTH_REDIRECT_URL`（默认 `http://127.0.0.1:8091/oauth/qq`）
+- 若希望 QQ 首次登录必须先邀请码注册：设置 `QQ_OAUTH_REQUIRE_INVITE=1`
+- QQ 首次登录会自动创建本地用户（默认角色 student），并将 `profile_completed=false`，进入社区后可继续补全资料
+
 ### 3. 启动后端与前端
 
 ```powershell
@@ -84,11 +92,13 @@ npm run dev -- --host 127.0.0.1 --port 8091
 
 ### 4. 演示账号
 
-| 角色 | 演示登录按钮 | 密码 |
-|------|--------------|------|
-| 学生 | 学生用户 | `demo123456` |
-| 协会管理员 | 协会管理员 | `demo123456` |
-| 中台管理员 | 中台管理员 | `demo123456` |
+完整列表见 **[docs/demo-accounts.md](docs/demo-accounts.md)**。
+
+| 角色 | 用户名（示例） | 密码 |
+|------|----------------|------|
+| 学生 | `demo_student` 或 `demo01`…`demo06` | `demo123456` 或 **与用户名相同** |
+| 协会管理员 | `demo_admin` 或 `admin01`…`admin06` | 同上 |
+| 中台管理员 | `demo_platform_admin` 或 `plat01`…`plat06` | 同上 |
 
 ## Ubuntu 云主机部署
 
@@ -126,6 +136,8 @@ docker compose up -d --build
 
 ## 文档
 
+- **[傻瓜式全功能操作清单](docs/step-by-step-uat-guide.md)** — 62 步逐步点击说明（推荐测试同学使用）
+- **[人工全功能 UAT 方案](docs/human-full-experience-uat.md)** — 六大测试方法论融合；含体验反馈单（提交给 AI 改代码）
 - **[项目介绍与使用指南（DDD 领域视角）](docs/项目介绍与使用指南-领域驱动设计视角.md)** — 限界上下文、角色能力、演示与本地用法
 - [后端框架分析报告](docs/backend-framework-analysis-report.md)
 - [后端对接实施计划](docs/backend-framework-integration-plan.md)

@@ -32,6 +32,8 @@ Write-Host "   psql ... -f migrations/init/000_init_schemas.up.sql"
 Write-Host ""
 
 Start-GoService "$root\services\user" "schema_auth"
+Write-Host "Waiting for user-service migrations before admin-service..."
+Start-Sleep -Seconds 8
 Start-GoService "$root\services\forum" "schema_forum"
 Start-GoService "$root\services\admin" "schema_admin"
 Start-Sleep -Seconds 2

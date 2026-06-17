@@ -1,0 +1,1 @@
+-- No-op: fixup migration only fills missing rows; down does not remove batch roles.

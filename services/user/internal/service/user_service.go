@@ -2,13 +2,18 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"ai-forum/user-service/internal/model"
 	"ai-forum/user-service/pkg/jwt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
@@ -24,6 +29,11 @@ const (
 type UserService struct {
 	DB  *pgxpool.Pool
 	RDB *redis.Client
+}
+
+type OAuthTokens struct {
+	AccessToken  string
+	RefreshToken string
 }
 
 // NewUserService creates a new UserService instance
@@ -188,6 +198,158 @@ func (s *UserService) Login(ctx context.Context, username, password string) (*mo
 		ExpiresIn:    int(accessTokenExpiry.Seconds()),
 		User:         user.ToResponse(),
 	}, nil
+}
+
+func (s *UserService) SetOAuthState(ctx context.Context, provider, state, returnTo string, ttl time.Duration) error {
+	key := fmt.Sprintf("oauth_state:%s:%s", provider, state)
+	return s.RDB.Set(ctx, key, returnTo, ttl).Err()
+}
+
+func (s *UserService) ConsumeOAuthState(ctx context.Context, provider, state string) (string, bool, error) {
+	key := fmt.Sprintf("oauth_state:%s:%s", provider, state)
+	val, err := s.RDB.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return "", false, nil
+		}
+		return "", false, err
+	}
+	_ = s.RDB.Del(ctx, key).Err()
+	return val, true, nil
+}
+
+// LoginOrCreateOAuthUser logs in with a third-party identity, creating a local user if needed.
+// When requireInvite is true, new users are rejected (invite-only mode).
+func (s *UserService) LoginOrCreateOAuthUser(ctx context.Context, provider, providerUserID string, rawProfile map[string]any, requireInvite bool) (*model.User, string, *OAuthTokens, error) {
+	provider = strings.TrimSpace(provider)
+	providerUserID = strings.TrimSpace(providerUserID)
+	if provider == "" || providerUserID == "" {
+		return nil, "", nil, fmt.Errorf("第三方登录参数错误")
+	}
+
+	var userID uint
+	err := s.DB.QueryRow(ctx, `
+		SELECT user_id FROM schema_auth.oauth_identities
+		WHERE provider = $1 AND provider_user_id = $2
+	`, provider, providerUserID).Scan(&userID)
+
+	if err != nil && err != pgx.ErrNoRows {
+		return nil, "", nil, fmt.Errorf("登录失败，请稍后重试")
+	}
+
+	// Existing binding
+	if err == nil && userID > 0 {
+		user, err := s.GetUserProfile(ctx, userID)
+		if err != nil {
+			return nil, "", nil, fmt.Errorf("用户不存在")
+		}
+		if user.Status == "banned" {
+			return nil, "", nil, fmt.Errorf("账号已被封禁")
+		}
+		role := s.resolveJWTReole(ctx, user.ID)
+		tokens, err := s.issueTokens(ctx, user.ID, user.Username, role, user.Level)
+		if err != nil {
+			return nil, "", nil, err
+		}
+		return user, role, tokens, nil
+	}
+
+	if requireInvite {
+		return nil, "", nil, fmt.Errorf("当前站点为邀请码模式，请先注册后再绑定 QQ")
+	}
+
+	// Create user + binding in a transaction
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return nil, "", nil, fmt.Errorf("登录失败，请稍后重试")
+	}
+	defer tx.Rollback(ctx)
+
+	username := buildOAuthUsername(provider, providerUserID)
+	// Ensure uniqueness by suffixing random bits if needed
+	for i := 0; i < 3; i++ {
+		var exists bool
+		if err := tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM schema_auth.users WHERE username = $1)", username).Scan(&exists); err == nil && !exists {
+			break
+		}
+		username = buildOAuthUsername(provider, providerUserID) + "_" + randomShort()
+	}
+
+	pwSeed := randomShort() + randomShort()
+	hash, _ := bcrypt.GenerateFromPassword([]byte(pwSeed), 12)
+
+	nickname := username
+	if v, ok := rawProfile["nickname"].(string); ok && strings.TrimSpace(v) != "" {
+		nickname = strings.TrimSpace(v)
+	}
+	avatar := ""
+	for _, k := range []string{"figureurl_qq_2", "figureurl_qq_1", "figureurl"} {
+		if v, ok := rawProfile[k].(string); ok && strings.TrimSpace(v) != "" {
+			avatar = strings.TrimSpace(v)
+			break
+		}
+	}
+
+	var user model.User
+	profileJSON, _ := json.Marshal(rawProfile)
+	err = tx.QueryRow(ctx, `
+		INSERT INTO schema_auth.users (username, password_hash, nickname, bio, avatar, level, status, department, squad, grade, profile_completed)
+		VALUES ($1, $2, $3, '', $4, 0, 'active', '', '', '', false)
+		RETURNING id, username, nickname, bio, avatar, level, status,
+		          department, squad, grade, profile_completed, created_at, updated_at
+	`, username, string(hash), nickname, avatar).Scan(
+		&user.ID, &user.Username, &user.Nickname, &user.Bio, &user.Avatar,
+		&user.Level, &user.Status, &user.Department, &user.Squad, &user.Grade, &user.ProfileCompleted,
+		&user.CreatedAt, &user.UpdatedAt,
+	)
+	if err != nil {
+		return nil, "", nil, fmt.Errorf("登录失败，请稍后重试")
+	}
+
+	_, err = tx.Exec(ctx, `
+		INSERT INTO schema_auth.oauth_identities (user_id, provider, provider_user_id, raw_profile)
+		VALUES ($1, $2, $3, $4::jsonb)
+	`, user.ID, provider, providerUserID, string(profileJSON))
+	if err != nil {
+		return nil, "", nil, fmt.Errorf("登录失败，请稍后重试")
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, "", nil, fmt.Errorf("登录失败，请稍后重试")
+	}
+
+	role := s.resolveJWTReole(ctx, user.ID)
+	tokens, err := s.issueTokens(ctx, user.ID, user.Username, role, user.Level)
+	if err != nil {
+		return nil, "", nil, err
+	}
+	return &user, role, tokens, nil
+}
+
+func (s *UserService) issueTokens(ctx context.Context, userID uint, username, role string, level int) (*OAuthTokens, error) {
+	secret := os.Getenv(jwtSecretEnv)
+	accessToken, err := jwt.GenerateToken(userID, username, role, level, secret, accessTokenExpiry)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
+	refreshToken := jwt.GenerateRefreshToken()
+	redisKey := fmt.Sprintf("refresh:%d", userID)
+	s.RDB.Set(ctx, redisKey, refreshToken, refreshTokenExpiry)
+	return &OAuthTokens{AccessToken: accessToken, RefreshToken: refreshToken}, nil
+}
+
+func buildOAuthUsername(provider, providerUserID string) string {
+	base := provider + "_" + providerUserID
+	if len(base) <= 50 {
+		return base
+	}
+	return base[:50]
+}
+
+func randomShort() string {
+	b := make([]byte, 6)
+	_, _ = rand.Read(b)
+	return base64.RawURLEncoding.EncodeToString(b)
 }
 
 // RefreshToken generates a new access token given a valid refresh token

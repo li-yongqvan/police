@@ -51,10 +51,6 @@ gunzip -c ai_forum_*.sql.gz | docker compose -f docker-compose.yml -f docker-com
 
 ## 演示账号
 
-| 用户名 | 密码 | 角色 |
-|--------|------|------|
-| demo_platform_admin | demo123456 | 中台 |
-| demo_admin | demo123456 | 协会管理员 |
-| demo_student | demo123456 | 学生 |
+见 [demo-accounts.md](./demo-accounts.md)。原有 `demo_*` 密码 `demo123456`；并行账号 `demo01`…`demo06`、`admin01`…`admin06`、`plat01`…`plat06` 密码与用户名相同。
 
 生产请改密码并走邀请码注册。

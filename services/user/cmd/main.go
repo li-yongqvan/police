@@ -68,6 +68,7 @@ func main() {
 	// Initialize service and handler
 	userService := service.NewUserService(pool, rdb)
 	userHandler := handler.NewUserHandler(userService)
+	qqOAuthHandler := handler.NewQQOAuthHandler(userService)
 
 	// Initialize user admin service and handler
 	userAdminService := service.NewUserAdminService(pool, rdb)
@@ -90,6 +91,8 @@ func main() {
 		v1.POST("/login", middleware.RateLimitByIP(rdb, "login", 5, time.Minute), userHandler.Login)
 		v1.POST("/demo-login", middleware.DemoLoginGuard(), userHandler.DemoLogin)
 		v1.POST("/auth/refresh", userHandler.RefreshToken)
+		v1.GET("/auth/qq/start", qqOAuthHandler.Start)
+		v1.GET("/auth/qq/callback", qqOAuthHandler.Callback)
 	}
 
 	// Authenticated routes

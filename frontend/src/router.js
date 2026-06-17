@@ -28,6 +28,7 @@ const AdminSensitiveWords = () => import('./views/AdminSensitiveWords.vue')
 const AdminRoles = () => import('./views/AdminRoles.vue')
 const AdminStats = () => import('./views/AdminStats.vue')
 const AdminReports = () => import('./views/AdminReports.vue')
+const OAuthQQ = () => import('./views/OAuthQQ.vue')
 
 const router = createRouter({
   history: createWebHistory(),
@@ -40,6 +41,7 @@ const router = createRouter({
     { path: '/profile', redirect: { name: 'profile' } },
     { path: '/admin/login', redirect: { name: 'login' } },
     { path: '/', name: 'login', component: DemoLogin },
+    { path: '/oauth/qq', name: 'oauth-qq', component: OAuthQQ },
     { path: '/register', name: 'register', component: Register },
     {
       path: '/community',
@@ -106,6 +108,9 @@ router.beforeEach((to) => {
     return { path: '/community' }
   }
   if (to.name === 'login' || to.name === 'register') {
+    return true
+  }
+  if (to.name === 'oauth-qq') {
     return true
   }
 
