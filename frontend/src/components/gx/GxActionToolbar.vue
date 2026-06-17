@@ -1,18 +1,20 @@
 <script setup>
-import { Bookmark, Flag, Heart, Pencil, Trash2 } from 'lucide-vue-next'
+import { Bookmark, Flag, Heart, Pencil, ThumbsDown, Trash2 } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
 
 defineProps({
   liked: { type: Boolean, default: false },
+  disliked: { type: Boolean, default: false },
   collected: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   isAuthor: { type: Boolean, default: false },
   postId: { type: [String, Number], default: '' },
   layout: { type: String, default: 'horizontal' },
   likeCount: { type: Number, default: 0 },
+  dislikeCount: { type: Number, default: 0 },
 })
 
-const emit = defineEmits(['like', 'collect', 'report', 'delete'])
+const emit = defineEmits(['like', 'dislike', 'collect', 'report', 'delete'])
 </script>
 
 <template>
@@ -27,6 +29,17 @@ const emit = defineEmits(['like', 'collect', 'report', 'delete'])
     >
       <Heart :size="18" :fill="liked ? 'currentColor' : 'none'" />
       <span>点赞<span v-if="likeCount > 0" class="gx-action-toolbar__count">{{ likeCount }}</span></span>
+    </button>
+    <button
+      type="button"
+      class="gx-action-toolbar__btn"
+      :class="{ 'is-active': disliked }"
+      :disabled="loading"
+      aria-label="点踩"
+      @click="emit('dislike')"
+    >
+      <ThumbsDown :size="18" :fill="disliked ? 'currentColor' : 'none'" />
+      <span>点踩<span v-if="dislikeCount > 0" class="gx-action-toolbar__count">{{ dislikeCount }}</span></span>
     </button>
     <button
       type="button"

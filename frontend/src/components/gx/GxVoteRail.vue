@@ -4,12 +4,13 @@ import { computed } from 'vue'
 const props = defineProps({
   score: { type: Number, default: 0 },
   liked: { type: Boolean, default: false },
+  disliked: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   compact: { type: Boolean, default: false },
   vertical: { type: Boolean, default: true },
 })
 
-const emit = defineEmits(['vote'])
+const emit = defineEmits(['vote', 'dislike'])
 
 const label = computed(() => {
   const n = props.score
@@ -20,12 +21,16 @@ const label = computed(() => {
 function onVote() {
   if (!props.loading) emit('vote')
 }
+
+function onDislike() {
+  if (!props.loading) emit('dislike')
+}
 </script>
 
 <template>
   <div
     class="gx-vote-rail"
-    :class="{ 'gx-vote-rail--compact': compact, 'gx-vote-rail--liked': liked }"
+    :class="{ 'gx-vote-rail--compact': compact, 'gx-vote-rail--liked': liked, 'gx-vote-rail--disliked': disliked }"
     @click.stop
   >
     <button
@@ -44,7 +49,14 @@ function onVote() {
       </svg>
     </button>
     <span class="gx-vote-rail__score tabular-nums" :class="{ 'is-active': liked }">{{ label }}</span>
-    <button type="button" class="gx-vote-rail__btn gx-vote-rail__btn--down" disabled aria-hidden="true" tabindex="-1">
+    <button
+      type="button"
+      class="gx-vote-rail__btn gx-vote-rail__btn--down"
+      :class="{ 'is-active': disliked }"
+      :disabled="loading"
+      aria-label="点踩"
+      @click="onDislike"
+    >
       <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
         <path
           fill="currentColor"

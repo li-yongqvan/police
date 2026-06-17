@@ -128,6 +128,7 @@ func main() {
 
 		// Interaction routes
 		auth.POST("/posts/:id/like", interactionHandler.LikePost)
+		auth.POST("/posts/:id/dislike", interactionHandler.DislikePost)
 		auth.POST("/posts/:id/collect", interactionHandler.CollectPost)
 		auth.GET("/me/collections", interactionHandler.ListMyCollections)
 

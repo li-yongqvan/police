@@ -112,7 +112,7 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID, authorID uint, pa
 	// Fetch posts
 	query := `
 		SELECT p.id, p.title, LEFT(p.content, 320), p.author_id, u.username, p.board_id, b.name, b.slug,
-		       p.status, p.is_pinned, p.is_featured, p.like_count, p.comment_count, p.created_at
+		       p.status, p.is_pinned, p.is_featured, p.like_count, p.dislike_count, p.comment_count, p.created_at
 		FROM schema_forum.posts p
 		JOIN schema_auth.users u ON p.author_id = u.id
 		JOIN schema_forum.boards b ON p.board_id = b.id
@@ -149,13 +149,13 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID, authorID uint, pa
 		p := &model.PostListItem{}
 		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName,
 			&p.BoardID, &p.BoardName, &p.BoardSlug, &p.Status, &p.IsPinned, &p.IsFeatured,
-			&p.LikeCount, &p.CommentCount, &p.CreatedAt); err != nil {
+			&p.LikeCount, &p.DislikeCount, &p.CommentCount, &p.CreatedAt); err != nil {
 			return nil, 0, fmt.Errorf("failed to scan post: %w", err)
 		}
 		posts = append(posts, p)
 	}
 	if viewerID > 0 && len(posts) > 0 {
-		applyPostLikes(ctx, s.DB, viewerID, posts)
+		applyPostInteractions(ctx, s.DB, viewerID, posts)
 	}
 	return posts, total, nil
 }
@@ -182,7 +182,7 @@ func (s *ForumService) ListUserCollections(ctx context.Context, userID uint, pag
 
 	rows, err := s.DB.Query(ctx, `
 		SELECT p.id, p.title, LEFT(p.content, 320), p.author_id, u.username, p.board_id, b.name, b.slug,
-		       p.status, p.is_pinned, p.is_featured, p.like_count, p.comment_count, p.created_at
+		       p.status, p.is_pinned, p.is_featured, p.like_count, p.dislike_count, p.comment_count, p.created_at
 		FROM schema_forum.collections c
 		JOIN schema_forum.posts p ON p.id = c.post_id
 		JOIN schema_auth.users u ON p.author_id = u.id
@@ -201,18 +201,18 @@ func (s *ForumService) ListUserCollections(ctx context.Context, userID uint, pag
 		p := &model.PostListItem{}
 		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName,
 			&p.BoardID, &p.BoardName, &p.BoardSlug, &p.Status, &p.IsPinned, &p.IsFeatured,
-			&p.LikeCount, &p.CommentCount, &p.CreatedAt); err != nil {
+			&p.LikeCount, &p.DislikeCount, &p.CommentCount, &p.CreatedAt); err != nil {
 			return nil, 0, fmt.Errorf("failed to scan collection post: %w", err)
 		}
 		posts = append(posts, p)
 	}
 	if len(posts) > 0 {
-		applyPostLikes(ctx, s.DB, userID, posts)
+		applyPostInteractions(ctx, s.DB, userID, posts)
 	}
 	return posts, total, nil
 }
 
-func applyPostLikes(ctx context.Context, db *pgxpool.Pool, viewerID uint, posts []*model.PostListItem) {
+func applyPostInteractions(ctx context.Context, db *pgxpool.Pool, viewerID uint, posts []*model.PostListItem) {
 	ids := make([]int64, len(posts))
 	for i, p := range posts {
 		ids[i] = int64(p.ID)
@@ -292,7 +292,7 @@ func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*mo
 	detail := &model.PostDetail{}
 	err := s.DB.QueryRow(ctx, `
 		SELECT p.id, p.title, p.content, p.author_id, u.username, p.board_id, b.name,
-		       p.status, p.is_pinned, p.is_featured, p.like_count, p.comment_count,
+		       p.status, p.is_pinned, p.is_featured, p.like_count, p.dislike_count, p.comment_count,
 		       p.created_at, p.updated_at
 		FROM schema_forum.posts p
 		JOIN schema_auth.users u ON p.author_id = u.id
@@ -301,7 +301,7 @@ func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*mo
 	`, id).Scan(
 		&detail.ID, &detail.Title, &detail.Content, &detail.AuthorID, &detail.AuthorName,
 		&detail.BoardID, &detail.BoardName, &detail.Status, &detail.IsPinned, &detail.IsFeatured,
-		&detail.LikeCount, &detail.CommentCount, &detail.CreatedAt, &detail.UpdatedAt,
+		&detail.LikeCount, &detail.DislikeCount, &detail.CommentCount, &detail.CreatedAt, &detail.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("post not found")
@@ -328,6 +328,10 @@ func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*mo
 			"SELECT EXISTS(SELECT 1 FROM schema_forum.likes WHERE post_id = $1 AND user_id = $2)",
 			id, viewerID,
 		).Scan(&detail.Liked)
+		_ = s.DB.QueryRow(ctx,
+			"SELECT EXISTS(SELECT 1 FROM schema_forum.dislikes WHERE post_id = $1 AND user_id = $2)",
+			id, viewerID,
+		).Scan(&detail.Disliked)
 		_ = s.DB.QueryRow(ctx,
 			"SELECT EXISTS(SELECT 1 FROM schema_forum.collections WHERE post_id = $1 AND user_id = $2)",
 			id, viewerID,
@@ -569,6 +573,36 @@ func (s *ForumService) LikePost(ctx context.Context, userID, postID uint) (*mode
 	return resp, nil
 }
 
+
+// DislikePost toggles a dislike on a post
+func (s *ForumService) DislikePost(ctx context.Context, userID, postID uint) (*model.DislikeResponse, error) {
+	// Check if dislike exists
+	var dislikeID uint
+	err := s.DB.QueryRow(ctx, "SELECT id FROM schema_forum.dislikes WHERE post_id = $1 AND user_id = $2", postID, userID).Scan(&dislikeID)
+
+	resp := &model.DislikeResponse{}
+	if err == nil {
+		// Dislike exists, toggle off
+		_, err = s.DB.Exec(ctx, "DELETE FROM schema_forum.dislikes WHERE id = $1", dislikeID)
+		if err != nil {
+			return nil, err
+		}
+		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.posts SET dislike_count = dislike_count - 1 WHERE id = $1", postID)
+		resp.Disliked = false
+	} else {
+		// Dislike does not exist, toggle on
+		_, err = s.DB.Exec(ctx, "INSERT INTO schema_forum.dislikes (post_id, user_id) VALUES ($1, $2)", postID, userID)
+		if err != nil {
+			return nil, err
+		}
+		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.posts SET dislike_count = dislike_count + 1 WHERE id = $1", postID)
+		resp.Disliked = true
+	}
+
+	// Get current dislike count
+	_ = s.DB.QueryRow(ctx, "SELECT dislike_count FROM schema_forum.posts WHERE id = $1", postID).Scan(&resp.DislikeCount)
+	return resp, nil
+}
 // CollectPost toggles a collection on a post
 func (s *ForumService) CollectPost(ctx context.Context, userID, postID uint) (*model.CollectResponse, error) {
 	var collID uint

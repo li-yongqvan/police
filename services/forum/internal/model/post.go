@@ -96,8 +96,10 @@ type PostListItem struct {
 	IsPinned     bool      `json:"is_pinned"`
 	IsFeatured   bool      `json:"is_featured"`
 	LikeCount    int       `json:"like_count"`
+	DislikeCount int       `json:"dislike_count"`
 	CommentCount int       `json:"comment_count"`
 	Liked        bool      `json:"liked,omitempty"`
+	Disliked     bool      `json:"disliked,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 
@@ -114,8 +116,10 @@ type PostDetail struct {
 	IsPinned     bool         `json:"is_pinned"`
 	IsFeatured   bool         `json:"is_featured"`
 	LikeCount    int          `json:"like_count"`
+	DislikeCount int       `json:"dislike_count"`
 	CommentCount int          `json:"comment_count"`
 	Liked        bool         `json:"liked,omitempty"`
+	Disliked     bool      `json:"disliked,omitempty"`
 	Collected    bool         `json:"collected,omitempty"`
 	Attachments  []Attachment `json:"attachments"`
 	CreatedAt    time.Time    `json:"created_at"`
@@ -152,3 +156,9 @@ type LikeResponse struct {
 type CollectResponse struct {
 	Collected bool `json:"collected"`
 }
+// DislikeResponse represents the response for dislike toggle
+type DislikeResponse struct {
+	Disliked     bool `json:"disliked"`
+	DislikeCount int  `json:"dislike_count"`
+}
+

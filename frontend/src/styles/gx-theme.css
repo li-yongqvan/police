@@ -3781,8 +3781,13 @@ a.gx-author-chip__name:hover {
   color: var(--color-brand);
 }
 .gx-vote-rail__btn--down {
-  opacity: 0.35;
-  cursor: not-allowed;
+  color: var(--color-muted);
+}
+.gx-vote-rail__btn--down:hover:not(:disabled) {
+  color: var(--color-danger, #e74c3c);
+}
+.gx-vote-rail__btn--down.is-active {
+  color: var(--color-danger, #e74c3c);
 }
 .gx-vote-rail__score {
   font-size: 12px;

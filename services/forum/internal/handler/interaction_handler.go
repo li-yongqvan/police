@@ -35,6 +35,23 @@ func (h *InteractionHandler) LikePost(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, resp)
 }
+// DislikePost handles disliking a post
+func (h *InteractionHandler) DislikePost(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	postID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的帖子ID"})
+		return
+	}
+
+	resp, err := h.Service.DislikePost(c.Request.Context(), userID, uint(postID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "点踩操作失败"})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
 
 // CollectPost handles collecting/bookmarking a post
 func (h *InteractionHandler) CollectPost(c *gin.Context) {
@@ -52,6 +69,23 @@ func (h *InteractionHandler) CollectPost(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, resp)
 }
+// DislikePost handles disliking a post
+func (h *InteractionHandler) DislikePost(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	postID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的帖子ID"})
+		return
+	}
+
+	resp, err := h.Service.DislikePost(c.Request.Context(), userID, uint(postID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "点踩操作失败"})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
 
 // ListMyCollections returns the current user's collected posts.
 func (h *InteractionHandler) ListMyCollections(c *gin.Context) {

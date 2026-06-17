@@ -54,7 +54,9 @@ function mapPostListItem(post) {
     isFeatured: post.is_featured,
     isPinned: post.is_pinned,
     likeCount: post.like_count ?? 0,
+    dislikeCount: post.dislike_count ?? 0,
     liked: !!post.liked,
+    disliked: !!post.disliked,
     commentCount: post.comment_count ?? 0,
     createdAtIso: post.created_at,
     createdAt: formatDisplayDate(post.created_at),
@@ -300,6 +302,13 @@ export const forumApi = {
       headers: authHeaders(),
     })
     return { likeCount: resp.like_count ?? 0, liked: resp.liked }
+  },
+  async dislikePost(id) {
+    const resp = await request('/forum-api', `/api/v1/posts/${id}/dislike`, {
+      method: 'POST',
+      headers: authHeaders(),
+    })
+    return { dislikeCount: resp.dislike_count ?? 0, disliked: resp.disliked }
   },
   async collectPost(id) {
     return request('/forum-api', `/api/v1/posts/${id}/collect`, {

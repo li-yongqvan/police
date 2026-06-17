@@ -28,6 +28,7 @@ const replyToId = ref('')
 const commentSubmitting = ref(false)
 const actionLoading = ref(false)
 const liked = ref(false)
+const disliked = ref(false)
 const collected = ref(false)
 const dialog = ref({ open: false, mode: 'report', reason: '' })
 
@@ -55,6 +56,7 @@ async function loadPost() {
   const p = payload.value.post
   if (p) {
     liked.value = !!p.liked
+    disliked.value = !!p.disliked
     collected.value = !!p.collected
     recordBrowseHistory(p)
   }
@@ -67,6 +69,21 @@ async function likePost() {
     liked.value = resp.liked
     if (payload.value.post) payload.value.post.likeCount = resp.likeCount
     session.setFlash(`点赞已记录（${resp.likeCount} 赞）`, 'success')
+  } catch (error) {
+    session.setFlash(formatApiError(error), 'info')
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+
+async function dislikePost() {
+  actionLoading.value = true
+  try {
+    const resp = await forumApi.dislikePost(route.params.id)
+    disliked.value = resp.disliked
+    if (payload.value.post) payload.value.post.dislikeCount = resp.dislikeCount
+    session.setFlash(`点踩已记录（${resp.dislikeCount} 踩）`, 'success')
   } catch (error) {
     session.setFlash(formatApiError(error), 'info')
   } finally {
@@ -149,8 +166,10 @@ onMounted(loadPost)
           <GxVoteRail
             :score="post.likeCount"
             :liked="liked"
+            :disliked="disliked"
             :loading="actionLoading"
             @vote="likePost"
+            @dislike="dislikePost"
           />
           <GxReadingColumn class="gx-post-detail__vote-content">
           <GxBreadcrumb :items="breadcrumbItems" />
@@ -191,12 +210,15 @@ onMounted(loadPost)
           <GxActionToolbar
             class="gx-action-row--in-article"
             :liked="liked"
+            :disliked="disliked"
             :collected="collected"
             :loading="actionLoading"
             :is-author="isAuthor"
             :post-id="post.id"
             :like-count="post.likeCount"
+            :dislike-count="post.dislikeCount"
             @like="likePost"
+            @dislike="dislikePost"
             @collect="collectPost"
             @report="openReport"
             @delete="openDelete"
@@ -252,12 +274,15 @@ onMounted(loadPost)
         <GxActionToolbar
           layout="vertical"
           :liked="liked"
+          :disliked="disliked"
           :collected="collected"
           :loading="actionLoading"
           :is-author="isAuthor"
           :post-id="post.id"
           :like-count="post.likeCount"
+          :dislike-count="post.dislikeCount"
           @like="likePost"
+          @dislike="dislikePost"
           @collect="collectPost"
           @report="openReport"
           @delete="openDelete"
