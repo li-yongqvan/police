@@ -1,4 +1,4 @@
-/* 广西警察学院校内交流论坛 �?Design Tokens v1.1 */
+/* 楠炶儻銈跨拃锕€鐧傜€涳箓娅岄弽鈥冲敶娴溿倖绁︾拋鍝勬涧 閿?Design Tokens v1.1 */
 :root {
   --color-primary: #0f2b5b;
   --color-primary-dark: #0a2249;
@@ -67,7 +67,7 @@ textarea {
   font: inherit;
 }
 
-/* 原生 select 在固定高�?+ 纵向 padding 下易裁切字形（尤其中文） */
+/* 閸樼喓鏁?select 閸︺劌娴愮€规岸鐝敓?+ 缁鹃潧鎮?padding 娑撳妲楃憗浣稿瀼鐎涙鑸伴敍鍫濇尐閸忔湹鑵戦弬鍥风礆 */
 select {
   line-height: 1.5;
   box-sizing: border-box;
@@ -1154,7 +1154,7 @@ select {
   color: var(--color-brand, #3d7eef);
 }
 
-/* Messages �?Discord-inspired inbox */
+/* Messages 閿?Discord-inspired inbox */
 .gx-messages-page {
   width: 100%;
   max-width: var(--gx-content-max, 72rem);
@@ -1559,7 +1559,7 @@ select {
   }
 }
 
-/* Compose �?Discord-inspired post editor */
+/* Compose 閿?Discord-inspired post editor */
 .gx-compose-page {
   width: 100%;
   max-width: var(--gx-content-max, 72rem);
@@ -1632,6 +1632,27 @@ select {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+/* board selector dropdown (mobile only) */
+.gx-compose-select-board {
+  display: none;
+}
+.gx-compose-select-board__select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
 }
 .gx-compose-channel {
   position: relative;
@@ -1910,6 +1931,12 @@ select {
   }
   .gx-compose-rail__section {
     display: block; font-size: 10px; margin: 0 0 2px; padding: 0 4px; text-align: center;
+  }  .gx-compose-rail__block--boards {
+    display: none;
+  }
+  .gx-compose-select-board {
+    display: block;
+    margin-bottom: 4px;
   }
   .gx-compose-channel {
     flex: 0 0 auto;
@@ -1954,7 +1981,7 @@ select {
   width: 100%;
   max-width: none;
 }
-/* 运营指标：始终横向一排（避免窄容器下 grid 单列竖排�?*/
+/* 鏉╂劘鎯€閹稿洦鐖ｉ敍姘潗缂佸牊铆閸氭垳绔撮幒鎺炵礄闁灝鍘ょ粣鍕啇閸ｃ劋绗?grid 閸楁洖鍨粩鏍ㄥ笓閿?*/
 .gx-admin-hero .gx-stat-grid {
   display: flex;
   flex-direction: row;
@@ -2654,7 +2681,7 @@ select {
     display: block;
   }
 
-  /* 窄屏：禁止横向溢出，主列对称铺满（勿�?both-edges 沟槽，易视觉偏右�?*/
+  /* 缁愬嫬鐫嗛敍姘鳖洣濮濄垺铆閸氭垶瀛╅崙鐚寸礉娑撹鍨€靛湱袨闁剧儤寮ч敍鍫濆瑏閿?both-edges 濞岀喐蝎閿涘本妲楃憴鍡氼潕閸嬪繐褰搁敓?*/
   html {
     scrollbar-gutter: auto;
   }
@@ -2669,7 +2696,7 @@ select {
     overflow-x: clip;
   }
 
-  /* 社区移动端：底栏页隐藏页脚��减少双�?padding */
+  /* 缁€鎯у隘缁夎濮╃粩顖ょ窗鎼存洘鐖い鐢告閽樺繘銆夐懘姘ヮ潿浣稿櫤鐏忔垵寮婚敓?padding */
   .gx-community-shell .gx-footer {
     display: none;
   }
@@ -2701,7 +2728,7 @@ select {
     box-sizing: border-box;
   }
 
-  /* 消息 / 发帖 / 关于：移动端单栏精简 */
+  /* 濞戝牊浼?/ 閸欐垵绗?/ 閸忓厖绨敍姘毙╅崝銊ь伂閸楁洘鐖划鍓х暆 */
   .gx-messages-shell,
   .gx-compose-shell {
     min-height: auto;
@@ -2799,6 +2826,12 @@ select {
   }
   .gx-compose-rail__section {
     display: block; font-size: 10px; margin: 0 0 2px; padding: 0 4px; text-align: center;
+  }  .gx-compose-rail__block--boards {
+    display: none;
+  }
+  .gx-compose-select-board {
+    display: block;
+    margin-bottom: 4px;
   }
   .gx-compose-channel {
     flex: 0 0 auto;
@@ -2832,7 +2865,7 @@ select {
     gap: 10px;
   }
 
-  /* 消息中心：超窄屏空��避免被裁切（减�?py-12 的占位，并允许纵向滚动） */
+  /* 濞戝牊浼呮稉顓炵妇閿涙俺绉寸粣鍕潌缁岀儤顫線浼╅崗宥堫潶鐟佷礁鍨忛敍鍫濆櫤閿?py-12 閻ㄥ嫬宕版担宥忕礉楠炶泛鍘戠拋鍝ユ棻閸氭垶绮撮崝顭掔礆 */
   .gx-messages-panel__body.is-empty {
     place-items: start center;
     padding: 12px;
@@ -3082,7 +3115,7 @@ a.gx-author-chip__name:hover {
   text-decoration: underline;
 }
 
-/* 评论时间与正文字体一�?*/
+/* 鐠囧嫯顔戦弮鍫曟？娑撳孩顒滈弬鍥х摟娴ｆ挷绔撮懛?*/
 .gx-author-chip__time {
   font-size: 14px;
   color: var(--color-muted);
@@ -3985,7 +4018,7 @@ a.gx-author-chip__name:hover {
   background: rgba(15, 43, 91, 0.06);
 }
 
-/* —�?概念稿对齐（警院论坛 · 高保真） —�?*/
+/* 閳ユ棑鎷?濮掑倸搴风粙鍨嚠姒绘劧绱欑拃锕傛珜鐠佸搫娼?璺?妤傛ü绻氶惇鐕傜礆 閳ユ棑鎷?*/
 .gx-community-shell {
   --mockup-header: #001529;
   --mockup-page: #f5f7fa;
@@ -4484,7 +4517,7 @@ a.gx-author-chip__name:hover {
     display: none;
   }
 }
-/* ===== 评论点赞/点踩按钮 ===== */
+/* ===== 鐠囧嫯顔戦悙纭呯/閻愮淇幐澶愭尦 ===== */
 .gx-comment-node__actions {
   display: flex;
   align-items: center;
@@ -4518,7 +4551,7 @@ a.gx-author-chip__name:hover {
   color: var(--color-brand);
   border-color: rgba(61, 126, 239, 0.25);
 }
-/* 点踩 active 用红�?*/
+/* 閻愮淇?active 閻劎瀛╅懝?*/
 .gx-comment-node__vote--down.is-active {
   background: rgba(200, 22, 35, 0.08);
   color: var(--color-danger);

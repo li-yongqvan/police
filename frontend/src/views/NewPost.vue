@@ -147,7 +147,22 @@ async function submit() {
           </div>
         </header>
 
-        <nav class="gx-compose-rail__block">
+        <div class="gx-compose-select-board">
+          <select
+            v-model="form.boardId"
+            class="gx-compose-select-board__select"
+          >
+            <option value="" disabled>选择发布分区</option>
+            <option
+              v-for="board in boards"
+              :key="board.id"
+              :value="board.id"
+            >
+              {{ board.name }}
+            </option>
+          </select>
+        </div>
+        <nav class="gx-compose-rail__block gx-compose-rail__block--boards">
           <p class="gx-compose-rail__section">发布到</p>
           <button
             v-for="board in boards"
