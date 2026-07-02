@@ -1,5 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi, forumApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
@@ -7,6 +9,11 @@ const session = useSessionStore()
 const items = ref([])
 const preview = ref(null)
 const selected = ref(new Set())
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '内容审核' },
+]
+
 const rejectReason = ref('不符合社区规范')
 const batchReason = ref('批量清理违规内容')
 
@@ -55,10 +62,8 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">内容审核</p>
-      <h1>待审核帖子</h1>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="内容审核" title="待审核帖子" />
 
     <div class="gx-audit-workbench">
       <section class="gx-card">

@@ -5,6 +5,7 @@ import GxAdminFab from '../components/gx/GxAdminFab.vue'
 import GxMobileTabBar from '../components/gx/GxMobileTabBar.vue'
 import GxSiteFooter from '../components/gx/GxSiteFooter.vue'
 import GxSiteHeader from '../components/gx/GxSiteHeader.vue'
+import GxSearchPanel from '../components/gx/GxSearchPanel.vue'
 import GxSiteSidebar from '../components/gx/GxSiteSidebar.vue'
 import { useDrawerNav } from '../composables/useDrawerNav'
 import { useSessionStore } from '../stores/session'
@@ -57,5 +58,6 @@ onMounted(async () => {
     </main>
     <GxMobileTabBar />
     <GxAdminFab />
+    <GxSearchPanel />
   </div>
 </template>

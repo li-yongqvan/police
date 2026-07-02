@@ -1,9 +1,16 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi, userApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
 const session = useSessionStore()
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '用户管理' },
+]
+
 const users = ref([])
 const page = ref(1)
 const total = ref(0)
@@ -48,11 +55,8 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">用户管理</p>
-      <h1>封禁、解封与等级</h1>
-      <p class="gx-muted">第 {{ page }} / {{ totalPages() }} 页</p>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="用户管理" title="封禁、解封与等级" :description="`第 ${page} / ${totalPages()} 页`" />
 
     <section class="gx-card">
       <div class="gx-section-head">

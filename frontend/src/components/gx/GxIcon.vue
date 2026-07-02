@@ -1,21 +1,31 @@
 <script setup>
 import { computed } from 'vue'
 import {
+  ArrowLeft,
+  Award,
+  BarChart3,
   Bell,
   BookOpen,
+  Check,
+  ChevronDown,
   Circle,
   Clock,
+  FileText,
   Flag,
   Home,
   Info,
+  KeyRound,
+  Lock,
   LogOut,
   MessageSquare,
   Pencil,
   Search,
+  Settings,
   Shield,
   ShieldOff,
   Star,
   User,
+  Users,
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -33,12 +43,22 @@ const ICON_MAP = {
   message: MessageSquare,
   user: User,
   home: Home,
+  award: Award,
+  'bar-chart': BarChart3,
+  settings: Settings,
+  'arrow-left': ArrowLeft,
+  key: KeyRound,
+  lock: Lock,
   info: Info,
   edit: Pencil,
   'shield-empty': ShieldOff,
   logout: LogOut,
   star: Star,
   clock: Clock,
+  file: FileText,
+  users: Users,
+  check: Check,
+  'chevron-down': ChevronDown,
 }
 
 const IconComponent = computed(() => ICON_MAP[props.name] || Circle)

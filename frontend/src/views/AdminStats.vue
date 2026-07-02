@@ -11,10 +11,8 @@ onMounted(async () => {
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">趋势统计</p>
-      <h1>近 7 日运营数据</h1>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="趋势统计" title="近 7 日运营数据" />
 
     <section class="gx-card gx-table-wrap">
       <table class="gx-table">

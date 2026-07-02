@@ -1,10 +1,17 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi, userApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
 const session = useSessionStore()
 const roles = ref([])
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '角色权限' },
+]
+
 const users = ref([])
 const selectedUserId = ref('')
 const selectedRoleId = ref('')
@@ -42,10 +49,8 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">角色权限</p>
-      <h1>为用户分配中台角色</h1>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="角色权限" title="为用户分配中台角色" />
 
     <section class="gx-card gx-form">
       <label>

@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxComposeShell from '../components/gx/GxComposeShell.vue'
 import GxIcon from '../components/gx/GxIcon.vue'
+import Dialog from '../components/ui/Dialog.vue'
 import Input from '../components/ui/Input.vue'
 import Textarea from '../components/ui/Textarea.vue'
 import { forumApi } from '../api'
@@ -12,7 +14,13 @@ const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 const saving = ref(false)
+const sensWordDialog = ref({ open: false, words: [] })
 const form = ref({ title: '', content: '' })
+
+const breadcrumbItems = [
+  { label: '首页', to: '/community' },
+  { label: '编辑帖子' },
+]
 
 const editTips = [
   '仅修改必要内容，避免重复发帖。',
@@ -27,6 +35,16 @@ onMounted(async () => {
 })
 
 async function save() {
+  try {
+    const check = await forumApi.checkSensitiveWords(`${form.value.title} ${form.value.content}`)
+    if (!check.clean) {
+      sensWordDialog.value = { open: true, words: check.matched_words || [] }
+      return
+    }
+  } catch {
+    // Backend still validates content if the pre-check is unavailable.
+  }
+
   saving.value = true
   try {
     await forumApi.updatePost(route.params.id, form.value)
@@ -39,58 +57,73 @@ async function save() {
 </script>
 
 <template>
-  <GxComposeShell panel-title="编辑帖子" panel-subtitle="更新标题与正文内容">
-    <template #rail>
-      <header class="gx-compose-rail__head">
-        <div class="gx-compose-rail__brand">
-          <span class="gx-compose-rail__logo gx-compose-rail__logo--edit" aria-hidden="true">
-            <GxIcon name="edit" :size="20" />
-          </span>
-          <div>
-            <h1 class="gx-compose-rail__title">编辑帖子</h1>
-            <p class="gx-compose-rail__meta">修改后保存即可生效</p>
+  <div class="gx-page">
+    <GxBreadcrumb :items="breadcrumbItems" />
+
+    <GxComposeShell panel-title="编辑帖子" panel-subtitle="更新标题与正文内容">
+      <template #rail>
+        <header class="gx-compose-rail__head">
+          <div class="gx-compose-rail__brand">
+            <span class="gx-compose-rail__logo gx-compose-rail__logo--edit" aria-hidden="true">
+              <GxIcon name="edit" :size="20" />
+            </span>
+            <div>
+              <h1 class="gx-compose-rail__title">编辑帖子</h1>
+              <p class="gx-compose-rail__meta">修改后保存即可生效</p>
+            </div>
           </div>
+        </header>
+
+        <div class="gx-compose-rail__tips">
+          <p class="gx-compose-rail__section">编辑提示</p>
+          <ul class="gx-compose-tips">
+            <li v-for="tip in editTips" :key="tip">{{ tip }}</li>
+          </ul>
         </div>
-      </header>
 
-      <div class="gx-compose-rail__tips">
-        <p class="gx-compose-rail__section">编辑提示</p>
-        <ul class="gx-compose-tips">
-          <li v-for="tip in editTips" :key="tip">{{ tip }}</li>
-        </ul>
-      </div>
+        <RouterLink :to="`/community/posts/${route.params.id}`" class="gx-compose-rail__back">
+          <GxIcon name="home" :size="16" />
+          返回帖子详情
+        </RouterLink>
+      </template>
 
-      <RouterLink :to="`/community/posts/${route.params.id}`" class="gx-compose-rail__back">
-        <GxIcon name="home" :size="16" />
-        返回帖子详情
-      </RouterLink>
-    </template>
+      <template #panel-icon>
+        <GxIcon name="edit" :size="20" />
+      </template>
 
-    <template #panel-icon>
-      <GxIcon name="edit" :size="20" />
-    </template>
+      <form id="edit-post-form" class="gx-compose-form" @submit.prevent="save">
+        <div class="gx-compose-field">
+          <label class="gx-compose-field__label" for="edit-title">帖子标题</label>
+          <Input id="edit-title" v-model="form.title" class="gx-compose-field__title" />
+        </div>
+        <div class="gx-compose-field gx-compose-field--grow">
+          <label class="gx-compose-field__label" for="edit-content">正文内容</label>
+          <Textarea id="edit-content" v-model="form.content" class="gx-compose-field__body" :rows="12" />
+        </div>
+      </form>
 
-    <form id="edit-post-form" class="gx-compose-form" @submit.prevent="save">
-      <div class="gx-compose-field">
-        <label class="gx-compose-field__label" for="edit-title">帖子标题</label>
-        <Input id="edit-title" v-model="form.title" class="gx-compose-field__title" />
-      </div>
-      <div class="gx-compose-field gx-compose-field--grow">
-        <label class="gx-compose-field__label" for="edit-content">正文内容</label>
-        <Textarea id="edit-content" v-model="form.content" class="gx-compose-field__body" :rows="12" />
-      </div>
-    </form>
+      <template #footer>
+        <p class="gx-compose-footer__hint">{{ form.content.length }} 字</p>
+        <button
+          type="submit"
+          form="edit-post-form"
+          class="gx-compose-submit"
+          :disabled="saving || !form.title.trim() || !form.content.trim()"
+        >
+          {{ saving ? '保存中…' : '保存修改' }}
+        </button>
+      </template>
+    </GxComposeShell>
 
-    <template #footer>
-      <p class="gx-compose-footer__hint">{{ form.content.length }} 字</p>
-      <button
-        type="submit"
-        form="edit-post-form"
-        class="gx-compose-submit"
-        :disabled="saving || !form.title.trim() || !form.content.trim()"
-      >
-        {{ saving ? '保存中…' : '保存修改' }}
-      </button>
-    </template>
-  </GxComposeShell>
+    <Dialog
+      :open="sensWordDialog.open"
+      title="内容违规提示"
+      @update:open="(value) => { if (!value) sensWordDialog.open = false }"
+    >
+      <p class="text-body text-gx-muted">该内容含有违规词，请修改后重新发送。</p>
+      <template #footer>
+        <button type="button" class="gx-btn gx-btn--primary" @click="sensWordDialog.open = false">我知道了</button>
+      </template>
+    </Dialog>
+  </div>
 </template>

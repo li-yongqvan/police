@@ -4,6 +4,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import GxAvatarInitial from './GxAvatarInitial.vue'
 import GxIcon from './GxIcon.vue'
 import { GX_HEADER_NAV } from '../../composables/useGxNav'
+import { useSearchPanel } from '../../composables/useSearchPanel'
 import { formatUserChipLabel } from '../../utils/displayName'
 import { useSessionStore } from '../../stores/session'
 
@@ -17,7 +18,7 @@ const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 const showDropdown = ref(false)
-const searchQ = ref(route.query.q || '')
+const { open: openSearch } = useSearchPanel()
 
 const displayName = computed(() =>
   session.currentUser ? formatUserChipLabel(session.currentUser) : '同学',
@@ -25,11 +26,6 @@ const displayName = computed(() =>
 
 function isHeaderActive(item) {
   return item.match?.(route) ?? route.path.startsWith(item.to)
-}
-
-function submitSearch() {
-  const q = searchQ.value.trim()
-  router.push(q ? { path: '/community', query: { q } } : { path: '/community' })
 }
 
 function toggleDropdown() {
@@ -59,6 +55,8 @@ function doLogout() {
         type="button"
         class="gx-header__menu gx-tap"
         aria-label="打开菜单"
+        aria-controls="gx-community-sidebar"
+        :aria-expanded="drawerOpen"
         @click="emit('toggle-drawer')"
       >
         <span class="gx-header__menu-bar" />
@@ -90,10 +88,24 @@ function doLogout() {
       </nav>
 
       <div class="gx-header__actions">
-        <form class="gx-header__search hidden md:flex" @submit.prevent="submitSearch">
+        <!-- Search: desktop shows styled bar, mobile shows icon -->
+        <button
+          type="button"
+          class="gx-header__search-btn hidden md:flex"
+          aria-label="搜索页面和功能"
+          @click="openSearch"
+        >
           <GxIcon name="search" :size="18" />
-          <input v-model="searchQ" type="search" placeholder="搜索帖子、板块或用户" aria-label="搜索" />
-        </form>
+          <span class="gx-header__search-placeholder">Ctrl+K</span>
+        </button>
+        <button
+          type="button"
+          class="gx-header__icon-btn md:hidden"
+          aria-label="搜索页面和功能"
+          @click="openSearch"
+        >
+          <GxIcon name="search" :size="20" />
+        </button>
 
         <RouterLink
           to="/community/messages"
@@ -194,6 +206,38 @@ function doLogout() {
   inset: 0;
   z-index: 55;
   background: transparent;
+}
+
+/* Search button styles */
+.gx-header__search-btn {
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg, #f5f5f5);
+  color: var(--color-muted, #9ca3af);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.gx-header__search-btn:hover {
+  border-color: var(--color-primary, #3d7c73);
+}
+
+.gx-header__search-placeholder {
+  font-size: 13px;
+  color: var(--color-muted, #9ca3af);
+  padding: 1px 6px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* Mobile search icon button */
+@media (max-width: 767.98px) {
+  .gx-header__icon-btn {
+    min-height: var(--mw-tap-min, 44px);
+  }
 }
 
 .gx-dropdown-enter-active,

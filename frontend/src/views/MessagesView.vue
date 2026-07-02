@@ -79,6 +79,7 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-messages-page">
+    <GxBreadcrumb :items="breadcrumbItems" />
     <div class="gx-messages-shell">
       <aside class="gx-messages-rail" aria-label="消息分类">
         <header class="gx-messages-rail__head">

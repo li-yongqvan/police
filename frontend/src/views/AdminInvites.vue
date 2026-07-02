@@ -43,10 +43,8 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">邀请码</p>
-      <h1>注册准入控制</h1>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="邀请码" title="注册准入控制" />
 
     <section class="gx-card">
       <div class="gx-section-head">

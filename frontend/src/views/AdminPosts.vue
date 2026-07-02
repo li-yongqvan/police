@@ -5,6 +5,11 @@ import { useSessionStore } from '../stores/session'
 
 const session = useSessionStore()
 const posts = ref([])
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '内容管理' },
+]
+
 const page = ref(1)
 const total = ref(0)
 const limit = 20
@@ -46,11 +51,8 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">内容管理</p>
-      <h1>全站帖子运营</h1>
-      <p class="gx-muted">第 {{ page }} / {{ totalPages() }} 页</p>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="内容管理" title="全站帖子运营" :description="`第 ${page} / ${totalPages()} 页`" />
 
     <section class="gx-card">
       <div class="gx-section-head">

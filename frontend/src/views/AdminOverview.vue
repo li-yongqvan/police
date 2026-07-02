@@ -1,11 +1,18 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { adminApi } from '../api'
 import { formatApiError } from '../api/errors'
 import { useSessionStore } from '../stores/session'
 
 const router = useRouter()
+
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '管理概览' },
+]
 const session = useSessionStore()
 
 const overview = ref(null)
@@ -33,6 +40,7 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page gx-admin-overview">
+      <GxBreadcrumb :items="breadcrumbItems" />
     <p v-if="loading" class="gx-muted">正在加载管理数据…</p>
     <div v-else-if="error" class="gx-card gx-admin-error">
       <p class="gx-error">{{ error }}</p>
@@ -57,11 +65,7 @@ onMounted(load)
     </div>
 
     <template v-else-if="overview">
-      <header class="gx-page-head">
-        <p class="gx-eyebrow">管理概览</p>
-        <h1>AI智联平台 · 运营数据</h1>
-        <p class="gx-muted">可控、可管、可展示的管理闭环</p>
-      </header>
+      <GxAdminPageHeader eyebrow="管理概览" title="AI智联平台 · 运营数据" description="可控、可管、可展示的管理闭环" />
 
       <section class="gx-card gx-admin-hero">
         <div class="gx-stat-grid gx-stat-grid--metrics">

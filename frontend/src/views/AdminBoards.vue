@@ -1,11 +1,18 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
 const session = useSessionStore()
 const boards = ref([])
 const form = ref({ name: '', slug: '', description: '', sortOrder: 0 })
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '板块管理' },
+]
+
 const editingId = ref('')
 const editForm = ref({ name: '', slug: '', description: '', sortOrder: 0, enabled: true })
 
@@ -54,10 +61,8 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">板块管理</p>
-      <h1>扩展社区结构</h1>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="板块管理" title="扩展社区结构" />
 
     <section class="gx-card gx-form">
       <h3 class="gx-panel__title">新建板块</h3>

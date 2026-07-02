@@ -1,9 +1,16 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
 const session = useSessionStore()
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '敏感词库' },
+]
+
 const words = ref([])
 const newWord = ref('')
 const category = ref('general')
@@ -31,10 +38,8 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">敏感词库</p>
-      <h1>内容合规关键词</h1>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="敏感词库" title="内容合规关键词" />
 
     <section class="gx-card gx-form">
       <label>

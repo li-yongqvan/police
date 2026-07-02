@@ -1,5 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
@@ -36,10 +38,8 @@ onMounted(load)
 
 <template>
   <div class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">举报处理</p>
-      <h1>用户举报</h1>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="举报处理" title="用户举报" />
 
     <section class="gx-card">
       <div class="gx-toolbar">

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import GxSidebarUserCard from './GxSidebarUserCard.vue'
 import GxIcon from './GxIcon.vue'
 import {
   GX_NAV_ITEMS,
@@ -54,6 +55,7 @@ function logout() {
 
 <template>
   <aside
+    id="gx-community-sidebar"
     class="gx-community-sidebar gx-sidebar-mockup flex flex-col"
     :class="{ 'is-open': open }"
     aria-label="社区导航"
@@ -88,6 +90,8 @@ function logout() {
         <span>{{ item.label }}</span>
       </RouterLink>
     </nav>
+
+    <GxSidebarUserCard />
 
     <nav v-if="session.canAccessAdmin" class="gx-sidebar-nav gx-sidebar-nav--admin mt-auto">
       <RouterLink to="/admin" class="gx-sidebar-nav__link" @click="onNav">

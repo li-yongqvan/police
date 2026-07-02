@@ -7,6 +7,7 @@ import GxFeedLayout from '../components/gx/GxFeedLayout.vue'
 import GxFeedPagination from '../components/gx/GxFeedPagination.vue'
 import GxFeedPostCard from '../components/gx/GxFeedPostCard.vue'
 import GxHomeHero from '../components/gx/GxHomeHero.vue'
+import GxCarousel from '../components/gx/GxCarousel.vue'
 import GxFeedSortBar from '../components/gx/GxFeedSortBar.vue'
 import { forumApi } from '../api'
 import { loadPage } from '../composables/usePageLoad'
@@ -82,6 +83,7 @@ function onPageChange(n) {
 
     <GxFeedLayout v-else :show-aside="true">
       <template #header>
+        <GxCarousel class="mb-4" />
         <GxHomeHero :stats="stats" />
       </template>
       <template #sort>

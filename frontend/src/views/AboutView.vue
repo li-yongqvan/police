@@ -1,7 +1,13 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 import GxIcon from '../components/gx/GxIcon.vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import { GX_NAV_ITEMS } from '../composables/useGxNav'
+
+const breadcrumbItems = [
+  { label: '首页', to: '/community' },
+  { label: '关于' },
+]
 
 const boardIntro = {
   study: '课程学习、备考与学术讨论',
@@ -32,6 +38,7 @@ const reportTips = [
 
 <template>
   <div class="gx-page gx-about-page">
+    <GxBreadcrumb :items="breadcrumbItems" />
     <div class="gx-about-layout">
       <section class="gx-about-hero" aria-labelledby="about-hero-title">
         <div class="gx-about-hero__badge" aria-hidden="true">

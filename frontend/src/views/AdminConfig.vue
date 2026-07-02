@@ -1,11 +1,18 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi, forumApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
 const session = useSessionStore()
 const config = ref(null)
 const boards = ref([])
+
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '系统配置' },
+]
 
 onMounted(async () => {
   config.value = await adminApi.getConfig()
@@ -21,10 +28,8 @@ async function save() {
 
 <template>
   <div v-if="config" class="gx-page gx-admin-page">
-    <header class="gx-page-head">
-      <p class="gx-eyebrow">系统配置</p>
-      <h1>基础控制能力</h1>
-    </header>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="系统配置" title="基础控制能力" />
 
     <section class="gx-card gx-form">
       <label class="gx-admin-row">
