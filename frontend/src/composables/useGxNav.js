@@ -86,13 +86,15 @@ export function isNavActive(route, item) {
 }
 
 export function resolveBoardByKey(boards, key) {
+  if (!boards?.length || !key) return null
+  const direct = boards.find((b) => b.slug === key)
+  if (direct) return direct
   const item = GX_NAV_ITEMS.find((n) => n.key === key)
-  if (!item || !boards?.length) return null
-  return (
-    boards.find((b) => item.keywords.some((k) => b.name.includes(k))) ||
-    boards.find((b) => b.slug === key) ||
-    boards[0]
-  )
+  if (item) {
+    const matched = boards.find((b) => item.keywords.some((k) => b.name?.includes(k)))
+    if (matched) return matched
+  }
+  return null
 }
 
 export function resolveCircleBoard(boards) {

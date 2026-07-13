@@ -31,6 +31,7 @@ const loading = ref(false)
 
 const navItem = computed(() => GX_NAV_ITEMS.find((n) => n.key === route.params.slug))
 const board = computed(() => resolveBoardByKey(boards.value, route.params.slug))
+const hasBoard = computed(() => !!board.value)
 
 async function load(resetPage = false) {
   if (resetPage) page.value = 1
@@ -78,7 +79,12 @@ function onPageChange(n) {
         <GxFeedSortBar v-model="sort" />
       </template>
       <GxEmptyState
-        v-if="!loading && !posts.length"
+        v-if="!loading && !posts.length && !hasBoard"
+        title="板块不存在或已下线"
+        description="换个板块看看，或回到首页浏览最新动态"
+      />
+      <GxEmptyState
+        v-else-if="!loading && !posts.length"
         title="该板块暂无帖子"
         description="成为第一个在本板块发帖的同学"
       />
