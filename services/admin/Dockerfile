@@ -1,11 +1,14 @@
-FROM golang:1.23-alpine AS builder
+ARG GO_IMAGE=golang:1.23-alpine
+ARG ALPINE_IMAGE=alpine:3.19
+FROM ${GO_IMAGE} AS builder
+ENV GOPROXY=https://goproxy.cn,direct
 WORKDIR /app
 COPY go.mod go.sum* ./
 RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /admin-service ./cmd/main.go
 
-FROM alpine:3.19
+FROM ${ALPINE_IMAGE}
 RUN apk --no-cache add ca-certificates wget
 WORKDIR /root/
 COPY --from=builder /admin-service .

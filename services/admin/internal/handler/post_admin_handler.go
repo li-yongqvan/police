@@ -170,20 +170,20 @@ func (h *PostAdminHandler) SetPostFeatured(c *gin.Context) {
 	}
 
 	var req struct {
-		Featured bool `json:"featured" binding:"required"`
+		Featured *bool `json:"featured"`
 	}
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil || req.Featured == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
 
 	operatorID, operatorName := getOperatorInfo(c)
-	if err := h.PostAdminService.SetPostFeatured(c.Request.Context(), uint(postID), req.Featured, operatorID, operatorName); err != nil {
+	if err := h.PostAdminService.SetPostFeatured(c.Request.Context(), uint(postID), *req.Featured, operatorID, operatorName); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	msg := "post set as featured"
-	if !req.Featured {
+	if !*req.Featured {
 		msg = "post unset as featured"
 	}
 	c.JSON(http.StatusOK, gin.H{"message": msg})
@@ -198,20 +198,20 @@ func (h *PostAdminHandler) SetPostPinned(c *gin.Context) {
 	}
 
 	var req struct {
-		Pinned bool `json:"pinned" binding:"required"`
+		Pinned *bool `json:"pinned"`
 	}
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil || req.Pinned == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
 
 	operatorID, operatorName := getOperatorInfo(c)
-	if err := h.PostAdminService.SetPostPinned(c.Request.Context(), uint(postID), req.Pinned, operatorID, operatorName); err != nil {
+	if err := h.PostAdminService.SetPostPinned(c.Request.Context(), uint(postID), *req.Pinned, operatorID, operatorName); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	msg := "post set as pinned"
-	if !req.Pinned {
+	if !*req.Pinned {
 		msg = "post unset as pinned"
 	}
 	c.JSON(http.StatusOK, gin.H{"message": msg})
