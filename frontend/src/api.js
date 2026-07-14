@@ -27,6 +27,15 @@ function attachmentUrl(pathOrId) {
   return `/forum-api/api/v1/attachments/${pathOrId}`
 }
 
+function userAssetUrl(path) {
+  if (!path) return ''
+  const value = String(path)
+  if (value.startsWith('http') || value.startsWith('blob:') || value.startsWith('data:')) return value
+  if (value.startsWith('/user-api/')) return value
+  if (value.startsWith('/uploads/')) return `/user-api${value}`
+  return value
+}
+
 function mapBoard(board) {
   return {
     id: String(board.id),
@@ -114,7 +123,7 @@ function mapUser(user, roleFallback) {
     id: String(user.id),
     username: user.username || '',
     name: user.name || user.nickname || user.username,
-    avatar: user.avatar || '',
+    avatar: userAssetUrl(user.avatar),
     role: user.role || roleFallback || 'student',
     level: user.level ?? 1,
     department: user.department || '',
@@ -216,8 +225,8 @@ export const userApi = {
   async uploadAvatar(id, file) {
     const form = new FormData()
     form.append('avatar', file)
-    const payload = await apiUpload('/user-api', `/api/v1/users/${id}/avatar`, form)
-    return mapUser({ ...payload, role: (await userApi.me()).role })
+    await apiUpload('/user-api', `/api/v1/users/${id}/avatar`, form)
+    return userApi.me()
   },
   async listUsers(page = 1, limit = 20) {
     const payload = await request(

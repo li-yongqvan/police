@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import Badge from '../components/ui/Badge.vue'
@@ -23,6 +23,7 @@ const form = ref({
 })
 const avatarFile = ref(null)
 const avatarFileName = ref('')
+const avatarPreviewUrl = ref('')
 const saving = ref(false)
 const uploadingAvatar = ref(false)
 
@@ -32,6 +33,7 @@ const breadcrumbItems = [
 ]
 
 const displayName = computed(() => formatAuthorLabel(session.currentUser))
+const visibleAvatar = computed(() => avatarPreviewUrl.value || session.currentUser?.avatar || '')
 const avatarInitial = computed(() => {
   const raw = session.currentUser?.name || session.currentUser?.username || '?'
   return String(raw).trim()[0]?.toUpperCase() || '?'
@@ -42,10 +44,21 @@ const profileComplete = computed(() => {
   return Math.round((filled / fields.length) * 100)
 })
 
+function clearAvatarPreview() {
+  if (avatarPreviewUrl.value) {
+    URL.revokeObjectURL(avatarPreviewUrl.value)
+    avatarPreviewUrl.value = ''
+  }
+}
+
 function onAvatarPick(event) {
   const file = event.target.files?.[0]
+  clearAvatarPreview()
   avatarFile.value = file || null
   avatarFileName.value = file?.name || ''
+  if (file) {
+    avatarPreviewUrl.value = URL.createObjectURL(file)
+  }
 }
 
 async function saveProfile() {
@@ -72,11 +85,14 @@ async function saveAvatar() {
     localStorage.setItem('ai-forum-user', JSON.stringify(user))
     avatarFile.value = null
     avatarFileName.value = ''
+    clearAvatarPreview()
     session.setFlash('头像已更新', 'success')
   } finally {
     uploadingAvatar.value = false
   }
 }
+
+onBeforeUnmount(clearAvatarPreview)
 </script>
 
 <template>
@@ -93,7 +109,13 @@ async function saveAvatar() {
           <div class="gx-profile-card__banner" aria-hidden="true" />
           <div class="gx-profile-card__body">
             <div class="gx-profile-avatar gx-profile-avatar--page" aria-hidden="true">
-              {{ avatarInitial }}
+              <img
+                v-if="visibleAvatar"
+                class="gx-profile-avatar__image"
+                :src="visibleAvatar"
+                :alt="`${displayName} 的头像`"
+              />
+              <span v-else>{{ avatarInitial }}</span>
             </div>
             <h1 class="gx-profile-card__name">{{ displayName }}</h1>
             <p class="gx-profile-card__meta">学号 {{ session.currentUser?.username }}</p>

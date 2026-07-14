@@ -80,6 +80,7 @@ func main() {
 
 	// Initialize Gin router
 	router := gin.Default()
+	router.Static("/uploads", "/data/uploads")
 
 	// Register routes
 	router.GET("/health", handler.HealthCheck)

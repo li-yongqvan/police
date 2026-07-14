@@ -813,6 +813,13 @@ select {
   font-weight: 700;
   color: var(--color-primary);
   background: var(--color-bg);
+  overflow: hidden;
+}
+.gx-profile-avatar__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Footer */
