@@ -8,7 +8,7 @@ import { useSearchPanel } from '../../composables/useSearchPanel'
 import { formatUserChipLabel } from '../../utils/displayName'
 import { useSessionStore } from '../../stores/session'
 
-defineProps({
+const props = defineProps({
   drawerOpen: { type: Boolean, default: false },
   unreadCount: { type: Number, default: 0 },
 })
@@ -22,6 +22,9 @@ const { open: openSearch } = useSearchPanel()
 
 const displayName = computed(() =>
   session.currentUser ? formatUserChipLabel(session.currentUser) : '同学',
+)
+const notificationLabel = computed(() =>
+  props.unreadCount > 0 ? `通知，${props.unreadCount > 99 ? '99+' : props.unreadCount} 条未读` : '通知',
 )
 
 function isHeaderActive(item) {
@@ -88,11 +91,10 @@ function doLogout() {
       </nav>
 
       <div class="gx-header__actions">
-        <!-- Search: desktop shows styled bar, mobile shows icon -->
         <button
           type="button"
           class="gx-header__search-btn hidden md:flex"
-          aria-label="搜索页面和功能"
+          aria-label="搜索帖子"
           @click="openSearch"
         >
           <GxIcon name="search" :size="18" />
@@ -101,7 +103,7 @@ function doLogout() {
         <button
           type="button"
           class="gx-header__icon-btn md:hidden"
-          aria-label="搜索页面和功能"
+          aria-label="搜索帖子"
           @click="openSearch"
         >
           <GxIcon name="search" :size="20" />
@@ -110,7 +112,7 @@ function doLogout() {
         <RouterLink
           to="/community/messages"
           class="gx-header__icon-btn gx-header__icon-btn--badge"
-          aria-label="通知"
+          :aria-label="notificationLabel"
           @click="closeDropdown"
         >
           <GxIcon name="bell" :size="20" />
@@ -170,13 +172,13 @@ function doLogout() {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
+  z-index: 70;
   min-width: 148px;
   padding: 4px;
-  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  background: var(--color-surface);
   box-shadow: 0 8px 24px rgba(15, 43, 91, 0.18);
-  z-index: 70;
 }
 
 .gx-avatar-dropdown__item {
@@ -189,8 +191,8 @@ function doLogout() {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-primary);
-  font-size: 14px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .gx-avatar-dropdown__item:hover {
@@ -208,7 +210,6 @@ function doLogout() {
   background: transparent;
 }
 
-/* Search button styles */
 .gx-header__search-btn {
   align-items: center;
   gap: 8px;
@@ -220,20 +221,20 @@ function doLogout() {
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
+
 .gx-header__search-btn:hover {
   border-color: var(--color-primary, #3d7c73);
 }
 
 .gx-header__search-placeholder {
-  font-size: 13px;
-  color: var(--color-muted, #9ca3af);
   padding: 1px 6px;
   border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 4px;
+  color: var(--color-muted, #9ca3af);
   font-family: monospace;
+  font-size: 13px;
 }
 
-/* Mobile search icon button */
 @media (max-width: 767.98px) {
   .gx-header__icon-btn {
     min-height: var(--mw-tap-min, 44px);

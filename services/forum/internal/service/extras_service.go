@@ -62,6 +62,15 @@ func (s *ExtrasService) ListNotifications(ctx context.Context, userID uint, page
 	return items, total, nil
 }
 
+func (s *ExtrasService) CountUnreadNotifications(ctx context.Context, userID uint) (int, error) {
+	var total int
+	err := s.DB.QueryRow(ctx,
+		`SELECT COUNT(*) FROM schema_forum.notifications WHERE user_id = $1 AND is_read = false`,
+		userID,
+	).Scan(&total)
+	return total, err
+}
+
 func (s *ExtrasService) MarkNotificationRead(ctx context.Context, userID, id uint) error {
 	_, err := s.DB.Exec(ctx,
 		`UPDATE schema_forum.notifications SET is_read = true WHERE id = $1 AND user_id = $2`,

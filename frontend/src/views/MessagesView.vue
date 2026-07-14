@@ -1,13 +1,24 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxEmptyState from '../components/gx/GxEmptyState.vue'
 import GxIcon from '../components/gx/GxIcon.vue'
+import { useUnreadNotifications } from '../composables/useUnreadNotifications'
 import { forumApi } from '../api'
+import { formatApiError } from '../api/errors'
 
 const tab = ref('all')
 const items = ref([])
 const activeId = ref('')
+const loading = ref(false)
+const error = ref('')
+const { setUnreadCount } = useUnreadNotifications()
+
+const breadcrumbItems = [
+  { label: '首页', to: '/community' },
+  { label: '消息中心' },
+]
 
 const tabDefs = [
   { id: 'all', label: '全部消息', icon: 'message', desc: '所有通知' },
@@ -50,10 +61,21 @@ function typeLabel(type) {
 }
 
 async function load() {
-  const data = await forumApi.listNotifications()
-  items.value = data.items
-  if (!activeId.value && data.items.length) {
-    activeId.value = data.items[0].id
+  loading.value = true
+  error.value = ''
+  try {
+    const data = await forumApi.listNotifications()
+    items.value = data.items
+    setUnreadCount(unreadTotal.value)
+    if (!activeId.value && data.items.length) {
+      activeId.value = data.items[0].id
+    }
+  } catch (err) {
+    items.value = []
+    activeId.value = ''
+    error.value = formatApiError(err, '消息暂时无法加载，请稍后重试')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -61,6 +83,7 @@ async function markRead(item) {
   if (!item.is_read) {
     await forumApi.markNotificationRead(item.id)
     item.is_read = true
+    setUnreadCount(unreadTotal.value)
   }
 }
 
@@ -80,6 +103,10 @@ onMounted(load)
 <template>
   <div class="gx-page gx-messages-page">
     <GxBreadcrumb :items="breadcrumbItems" />
+    <section v-if="error" class="gx-card mb-4">
+      <p class="gx-error">{{ error }}</p>
+      <button type="button" class="gx-btn gx-btn--secondary" @click="load">重试</button>
+    </section>
     <div class="gx-messages-shell">
       <aside class="gx-messages-rail" aria-label="消息分类">
         <header class="gx-messages-rail__head">
@@ -136,7 +163,12 @@ onMounted(load)
 
         <div class="gx-messages-panel__body" :class="{ 'is-empty': !filteredItems.length }">
           <GxEmptyState
-            v-if="!filteredItems.length"
+            v-if="loading"
+            title="正在加载消息"
+            description="请稍候"
+          />
+          <GxEmptyState
+            v-else-if="!filteredItems.length"
             title="暂无消息"
             description="回复与系统通知会显示在这里"
           />

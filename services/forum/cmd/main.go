@@ -104,9 +104,7 @@ func main() {
 		postRead.Use(middleware.OptionalAuthMiddleware())
 		postRead.GET("/posts", forumHandler.ListPosts)
 		postRead.GET("/posts/:id", forumHandler.GetPost)
-
-		// Comment routes (read only)
-		v1.GET("/posts/:id/comments", commentHandler.ListComments)
+		postRead.GET("/posts/:id/comments", commentHandler.ListComments)
 
 		// Attachment download (read only)
 		v1.GET("/attachments/:id", attachmentHandler.DownloadAttachment)
@@ -117,6 +115,22 @@ func main() {
 	// Authenticated routes
 	auth := v1.Group("")
 	auth.Use(middleware.AuthMiddleware())
+	// Sensitive words check (pre-flight for frontend)
+	auth.POST("/moderation/check", func(c *gin.Context) {
+		var req struct {
+			Text string `json:"text" binding:"required"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"error": "invalid request"})
+			return
+		}
+		clean, matched, err := adminClient.CheckSensitiveWords(req.Text)
+		if err != nil {
+			c.JSON(502, gin.H{"error": "moderation service unavailable"})
+			return
+		}
+		c.JSON(200, gin.H{"clean": clean, "matched_words": matched})
+	})
 	{
 		// Post routes (write)
 		auth.POST("/posts", middleware.RequireLevel(1), middleware.RateLimitByUser(rdb, "create_post", 10, time.Hour), forumHandler.CreatePost)
@@ -129,6 +143,8 @@ func main() {
 		// Interaction routes
 		auth.POST("/posts/:id/like", interactionHandler.LikePost)
 		auth.POST("/posts/:id/dislike", interactionHandler.DislikePost)
+		auth.POST("/comments/:id/like", interactionHandler.LikeComment)
+		auth.POST("/comments/:id/dislike", interactionHandler.DislikeComment)
 		auth.POST("/posts/:id/collect", interactionHandler.CollectPost)
 		auth.GET("/me/collections", interactionHandler.ListMyCollections)
 
@@ -136,6 +152,7 @@ func main() {
 		auth.POST("/attachments/upload", middleware.RequireLevel(1), attachmentHandler.UploadAttachment)
 
 		auth.GET("/notifications", notificationHandler.List)
+		auth.GET("/notifications/unread-count", notificationHandler.UnreadCount)
 		auth.PUT("/notifications/:id/read", notificationHandler.MarkRead)
 		auth.POST("/posts/:id/report", reportHandler.ReportPost)
 	}
@@ -151,7 +168,7 @@ func main() {
 				c.JSON(400, gin.H{"error": "invalid request"})
 				return
 			}
-			clean, err := adminClient.CheckSensitiveWords(req.Text)
+			clean, _, err := adminClient.CheckSensitiveWords(req.Text)
 			if err != nil {
 				c.JSON(502, gin.H{"error": "moderation service unavailable"})
 				return

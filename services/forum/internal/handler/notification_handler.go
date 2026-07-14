@@ -29,6 +29,16 @@ func (h *NotificationHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"notifications": items, "total": total, "page": page, "limit": limit})
 }
 
+func (h *NotificationHandler) UnreadCount(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	total, err := h.Service.CountUnreadNotifications(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取未读消息失败"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"unread_count": total})
+}
+
 func (h *NotificationHandler) MarkRead(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)

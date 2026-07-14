@@ -24,7 +24,6 @@ function viewerRequest(base, path, options = {}) {
 function attachmentUrl(pathOrId) {
   if (!pathOrId) return '#'
   if (String(pathOrId).startsWith('http')) return pathOrId
-  if (String(pathOrId).startsWith('/')) return `/forum-api${pathOrId}`
   return `/forum-api/api/v1/attachments/${pathOrId}`
 }
 
@@ -73,7 +72,8 @@ function mapPostDetail(post, comments = []) {
         id: String(item.id),
         type: item.file_type,
         title: item.filename || item.title || '附件',
-        url: attachmentUrl(item.file_path || item.id),
+        url: item.file_type === 'link' ? attachmentUrl(item.file_path) : attachmentUrl(item.id),
+        fileSize: item.file_size ?? 0,
       })),
       tags: post.tags || [],
       collected: !!post.collected,
@@ -86,6 +86,10 @@ function mapPostDetail(post, comments = []) {
       authorId: String(item.author_id),
       authorName: item.author_name || item.author_id,
       content: item.content,
+      likeCount: item.like_count ?? 0,
+      dislikeCount: item.dislike_count ?? 0,
+      liked: !!item.liked,
+      disliked: !!item.disliked,
       createdAtIso: item.created_at,
       createdAt: formatDisplayTime(item.created_at),
     })),
@@ -296,6 +300,28 @@ export const forumApi = {
       body: JSON.stringify(body),
     })
   },
+  async likeComment(id) {
+    const resp = await request('/forum-api', `/api/v1/comments/${id}/like`, {
+      method: 'POST',
+      headers: authHeaders(),
+    })
+    return { likeCount: resp.like_count ?? 0, liked: resp.liked }
+  },
+  async dislikeComment(id) {
+    const resp = await request('/forum-api', `/api/v1/comments/${id}/dislike`, {
+      method: 'POST',
+      headers: authHeaders(),
+    })
+    return { dislikeCount: resp.dislike_count ?? 0, disliked: resp.disliked }
+  },
+  async checkSensitiveWords(text) {
+    const result = await request('/forum-api', '/api/v1/moderation/check', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ text }),
+    })
+    return result
+  },
   async likePost(id) {
     const resp = await request('/forum-api', `/api/v1/posts/${id}/like`, {
       method: 'POST',
@@ -342,6 +368,12 @@ export const forumApi = {
       items,
       total: payload.total ?? items.length,
     }
+  },
+  async getUnreadNotificationCount() {
+    const payload = await request('/forum-api', '/api/v1/notifications/unread-count', {
+      headers: authHeaders(),
+    })
+    return Number(payload.unread_count ?? payload.unreadCount ?? 0)
   },
   async markNotificationRead(id) {
     await request('/forum-api', `/api/v1/notifications/${id}/read`, {

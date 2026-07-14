@@ -16,7 +16,9 @@ FILES = [
     "services/forum/Dockerfile",
     "services/forum/cmd/main.go",
     "services/forum/internal/middleware/auth.go",
+    "services/forum/internal/handler/notification_handler.go",
     "services/forum/internal/handler/post_handler.go",
+    "services/forum/internal/service/extras_service.go",
     "services/forum/internal/service/forum_service.go",
     "services/forum/internal/model/post.go",
 ]
