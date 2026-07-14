@@ -30,6 +30,24 @@ const AdminStats = () => import('./views/AdminStats.vue')
 const AdminReports = () => import('./views/AdminReports.vue')
 const OAuthQQ = () => import('./views/OAuthQQ.vue')
 
+const dynamicImportErrorPattern =
+  /Failed to fetch dynamically imported module|Importing a module script failed|Unable to preload CSS|error loading dynamically imported module/i
+
+function isDynamicImportError(error) {
+  const message = error?.message || String(error || '')
+  return dynamicImportErrorPattern.test(message)
+}
+
+function recoverFromDynamicImportError(to) {
+  const target = to?.fullPath || window.location.pathname + window.location.search + window.location.hash
+  const reloadKey = `ai-forum:dynamic-import-reload:${target}`
+  if (sessionStorage.getItem(reloadKey)) return false
+
+  sessionStorage.setItem(reloadKey, '1')
+  window.location.assign(target)
+  return true
+}
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -96,6 +114,15 @@ const router = createRouter({
       ],
     },
   ],
+})
+
+router.onError((error, to) => {
+  if (!isDynamicImportError(error)) return
+  recoverFromDynamicImportError(to)
+})
+
+router.afterEach((to) => {
+  sessionStorage.removeItem(`ai-forum:dynamic-import-reload:${to.fullPath}`)
 })
 
 router.beforeEach((to) => {

@@ -7,6 +7,11 @@ import { useSessionStore } from './stores/session'
 import './style.css'
 import '../../mobile-web/styles/index.css'
 
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault()
+  window.location.reload()
+})
+
 const app = createApp(App)
 const pinia = createPinia()
 
