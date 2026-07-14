@@ -51,7 +51,7 @@ func (s *ForumAdminService) ListPendingPosts(ctx context.Context, page, limit in
 	}
 
 	query := `
-		SELECT p.id, p.title, p.content, p.author_id, u.username, p.board_id, b.name, p.status, p.created_at
+		SELECT p.id, p.title, p.content, p.author_id, u.username, p.board_id, b.name, p.status, p.matched_words, p.created_at
 		FROM schema_forum.posts p
 		JOIN schema_auth.users u ON p.author_id = u.id
 		JOIN schema_forum.boards b ON p.board_id = b.id
@@ -68,7 +68,7 @@ func (s *ForumAdminService) ListPendingPosts(ctx context.Context, page, limit in
 	var posts []PendingPostRow
 	for rows.Next() {
 		var p PendingPostRow
-		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName, &p.BoardID, &p.BoardName, &p.Status, &p.CreatedAt); err != nil {
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName, &p.BoardID, &p.BoardName, &p.Status, &p.MatchedWords, &p.CreatedAt); err != nil {
 			continue
 		}
 		posts = append(posts, p)

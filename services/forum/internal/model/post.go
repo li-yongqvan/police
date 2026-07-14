@@ -18,6 +18,7 @@ type Post struct {
 	CommentCount int       `json:"comment_count" db:"comment_count"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+	MatchedWords []string  `json:"matched_words,omitempty" db:"matched_words"`
 }
 
 // Board represents a forum board/category

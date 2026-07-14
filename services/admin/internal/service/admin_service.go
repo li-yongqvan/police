@@ -1,8 +1,9 @@
-package service
+﻿package service
 
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 
@@ -34,13 +35,16 @@ func (s *AdminService) LoadSensitiveWords(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.sensitiveWords = make(map[string]string)
+	count := 0
 	for rows.Next() {
 		var word, category string
 		if err := rows.Scan(&word, &category); err != nil {
 			continue
 		}
 		s.sensitiveWords[word] = category
+		count++
 	}
+	log.Printf("[sensitive] loaded %d words into cache", count)
 	return nil
 }
 
@@ -53,13 +57,19 @@ func (s *AdminService) CheckSensitiveWords(ctx context.Context, text string) (bo
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var matched []string
-	for word := range s.sensitiveWords {
-		word = strings.TrimSpace(word)
-		if word != "" && strings.Contains(text, word) {
-			matched = append(matched, word)
-		}
-	}
+					log.Printf("[sensitive] checking text=%q against %d words", text, len(s.sensitiveWords))
+				var matched []string
+				for word := range s.sensitiveWords {
+					word = strings.TrimSpace(word)
+					if word != "" && strings.Contains(text, word) {
+						matched = append(matched, word)
+					}
+				}
+				for w := range s.sensitiveWords {
+					if strings.Contains(w, "毒") || strings.Contains(w, "品") {
+						log.Printf("[sensitive] word=%q contains=%v", w, strings.Contains(text, w))
+					}
+				}
 	return len(matched) == 0, matched, nil
 }
 

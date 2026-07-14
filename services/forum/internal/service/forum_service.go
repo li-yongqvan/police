@@ -346,7 +346,7 @@ func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*mo
 // CreatePost creates a new post with sensitive word check
 func (s *ForumService) CreatePost(ctx context.Context, authorID uint, req *model.CreatePostRequest) (*model.Post, error) {
 	// Check sensitive words
-	clean, _, err := s.AdminClient.CheckSensitiveWords(req.Title + " " + req.Content)
+	clean, matchedWords, err := s.AdminClient.CheckSensitiveWords(req.Title + " " + req.Content)
 	if err != nil {
 		// If moderation is unavailable, send the post to manual review.
 		clean = false
@@ -359,13 +359,13 @@ func (s *ForumService) CreatePost(ctx context.Context, authorID uint, req *model
 
 	post := &model.Post{}
 	err = s.DB.QueryRow(ctx, `
-		INSERT INTO schema_forum.posts (title, content, author_id, board_id, status)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, title, content, author_id, board_id, status, is_pinned, is_featured, like_count, comment_count, created_at, updated_at
-	`, req.Title, req.Content, authorID, req.BoardID, status).Scan(
+		INSERT INTO schema_forum.posts (title, content, author_id, board_id, status, matched_words)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, title, content, author_id, board_id, status, is_pinned, is_featured, like_count, comment_count, matched_words, created_at, updated_at
+	`, req.Title, req.Content, authorID, req.BoardID, status, matchedWords).Scan(
 		&post.ID, &post.Title, &post.Content, &post.AuthorID, &post.BoardID,
 		&post.Status, &post.IsPinned, &post.IsFeatured, &post.LikeCount,
-		&post.CommentCount, &post.CreatedAt, &post.UpdatedAt,
+		&post.CommentCount, &post.MatchedWords, &post.CreatedAt, &post.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create post: %w", err)
@@ -400,7 +400,7 @@ func (s *ForumService) UpdatePost(ctx context.Context, authorID, postID uint, re
 		return nil, fmt.Errorf("post not found")
 	}
 	if existing.AuthorID != authorID {
-		return nil, fmt.Errorf("无权修改他人帖子")
+		return nil, fmt.Errorf("閺冪姵娼堟穱顔芥暭娴犳牔姹夌敮鏍х摍")
 	}
 
 	// Check sensitive words on updated content
@@ -412,7 +412,7 @@ func (s *ForumService) UpdatePost(ctx context.Context, authorID, postID uint, re
 	if content == "" {
 		content = existing.Content
 	}
-	clean, _, _ := s.AdminClient.CheckSensitiveWords(title + " " + content)
+	clean, matchedWords, _ := s.AdminClient.CheckSensitiveWords(title + " " + content)
 	newStatus := existing.Status
 	if !clean {
 		newStatus = "pending_review"
@@ -423,13 +423,14 @@ func (s *ForumService) UpdatePost(ctx context.Context, authorID, postID uint, re
 		SET title = COALESCE(NULLIF($1, ''), title),
 		    content = COALESCE(NULLIF($2, ''), content),
 		    status = $3,
+		    matched_words = $4,
 		    updated_at = NOW()
-		WHERE id = $4
-		RETURNING id, title, content, author_id, board_id, status, is_pinned, is_featured, like_count, comment_count, created_at, updated_at
-	`, title, content, newStatus, postID).Scan(
+		WHERE id = $5
+		RETURNING id, title, content, author_id, board_id, status, is_pinned, is_featured, like_count, comment_count, matched_words, created_at, updated_at
+	`, title, content, newStatus, matchedWords, postID).Scan(
 		&existing.ID, &existing.Title, &existing.Content, &existing.AuthorID,
 		&existing.BoardID, &existing.Status, &existing.IsPinned, &existing.IsFeatured,
-		&existing.LikeCount, &existing.CommentCount, &existing.CreatedAt, &existing.UpdatedAt,
+		&existing.LikeCount, &existing.CommentCount, &existing.MatchedWords, &existing.CreatedAt, &existing.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update post: %w", err)
@@ -445,7 +446,7 @@ func (s *ForumService) DeletePost(ctx context.Context, authorID, postID uint) er
 		return fmt.Errorf("post not found")
 	}
 	if existingAuthor != authorID {
-		return fmt.Errorf("无权删除他人帖子")
+		return fmt.Errorf("閺冪姵娼堥崚鐘绘珟娴犳牔姹夌敮鏍х摍")
 	}
 
 	_, err = s.DB.Exec(ctx,
