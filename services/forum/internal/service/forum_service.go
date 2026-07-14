@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"ai-forum/forum-service/internal/client"
 	"ai-forum/forum-service/internal/model"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -344,7 +346,7 @@ func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*mo
 // CreatePost creates a new post with sensitive word check
 func (s *ForumService) CreatePost(ctx context.Context, authorID uint, req *model.CreatePostRequest) (*model.Post, error) {
 	// Check sensitive words
-	clean, err := s.AdminClient.CheckSensitiveWords(req.Title + " " + req.Content)
+	clean, _, err := s.AdminClient.CheckSensitiveWords(req.Title + " " + req.Content)
 	if err != nil {
 		// If admin service is unavailable, allow post through
 		clean = true
@@ -410,7 +412,7 @@ func (s *ForumService) UpdatePost(ctx context.Context, authorID, postID uint, re
 	if content == "" {
 		content = existing.Content
 	}
-	clean, _ := s.AdminClient.CheckSensitiveWords(title + " " + content)
+	clean, _, _ := s.AdminClient.CheckSensitiveWords(title + " " + content)
 	newStatus := existing.Status
 	if !clean {
 		newStatus = "pending_review"
@@ -457,7 +459,7 @@ func (s *ForumService) DeletePost(ctx context.Context, authorID, postID uint) er
 }
 
 // ListComments returns paginated comments for a post
-func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limit int) ([]*model.Comment, int, error) {
+func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limit int, viewerID uint) ([]*model.Comment, int, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -472,14 +474,19 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 		return nil, 0, err
 	}
 
+	viewer := int64(viewerID)
 	rows, err := s.DB.Query(ctx, `
-		SELECT c.id, c.post_id, c.parent_id, c.depth, c.author_id, u.username, c.content, c.created_at
+		SELECT c.id, c.post_id, c.parent_id, c.depth, c.author_id, u.username, c.content,
+		       c.like_count, c.dislike_count,
+		       EXISTS(SELECT 1 FROM schema_forum.comment_likes    WHERE comment_id = c.id AND user_id = $4) AS liked,
+		       EXISTS(SELECT 1 FROM schema_forum.comment_dislikes WHERE comment_id = c.id AND user_id = $4) AS disliked,
+		       c.created_at
 		FROM schema_forum.comments c
 		JOIN schema_auth.users u ON c.author_id = u.id
 		WHERE c.post_id = $1
 		ORDER BY c.created_at ASC
 		LIMIT $2 OFFSET $3`,
-		postID, limit, offset,
+		postID, limit, offset, viewer,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -489,7 +496,8 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 	var comments []*model.Comment
 	for rows.Next() {
 		c := &model.Comment{}
-		if err := rows.Scan(&c.ID, &c.PostID, &c.ParentID, &c.Depth, &c.AuthorID, &c.AuthorName, &c.Content, &c.CreatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.PostID, &c.ParentID, &c.Depth, &c.AuthorID, &c.AuthorName, &c.Content,
+			&c.LikeCount, &c.DislikeCount, &c.Liked, &c.Disliked, &c.CreatedAt); err != nil {
 			return nil, 0, err
 		}
 		comments = append(comments, c)
@@ -499,7 +507,7 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 
 // CreateComment creates a new comment with sensitive word check and optional parent reply.
 func (s *ForumService) CreateComment(ctx context.Context, authorID, postID uint, content string, parentID *uint) (*model.Comment, error) {
-	clean, err := s.AdminClient.CheckSensitiveWords(content)
+	clean, _, err := s.AdminClient.CheckSensitiveWords(content)
 	if err != nil {
 		clean = true
 	}
@@ -545,64 +553,118 @@ func (s *ForumService) CreateComment(ctx context.Context, authorID, postID uint,
 
 // LikePost toggles a like on a post
 func (s *ForumService) LikePost(ctx context.Context, userID, postID uint) (*model.LikeResponse, error) {
-	// Check if like exists
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
 	var likeID uint
-	err := s.DB.QueryRow(ctx, "SELECT id FROM schema_forum.likes WHERE post_id = $1 AND user_id = $2", postID, userID).Scan(&likeID)
+	err = tx.QueryRow(ctx, "SELECT id FROM schema_forum.likes WHERE post_id = $1 AND user_id = $2", postID, userID).Scan(&likeID)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("failed to query like state: %w", err)
+	}
 
 	resp := &model.LikeResponse{}
 	if err == nil {
-		// Like exists, toggle off
-		_, err = s.DB.Exec(ctx, "DELETE FROM schema_forum.likes WHERE id = $1", likeID)
+		_, err = tx.Exec(ctx, "DELETE FROM schema_forum.likes WHERE id = $1", likeID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to delete like: %w", err)
 		}
-		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.posts SET like_count = like_count - 1 WHERE id = $1", postID)
+		if _, err = tx.Exec(ctx, "UPDATE schema_forum.posts SET like_count = GREATEST(like_count - 1, 0) WHERE id = $1", postID); err != nil {
+			return nil, fmt.Errorf("failed to decrement like count: %w", err)
+		}
 		resp.Liked = false
 	} else {
-		// Like does not exist, toggle on
-		_, err = s.DB.Exec(ctx, "INSERT INTO schema_forum.likes (post_id, user_id) VALUES ($1, $2)", postID, userID)
+		_, err = tx.Exec(ctx, "INSERT INTO schema_forum.likes (post_id, user_id) VALUES ($1, $2)", postID, userID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to insert like: %w", err)
 		}
-		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.posts SET like_count = like_count + 1 WHERE id = $1", postID)
+		if _, err = tx.Exec(ctx, "UPDATE schema_forum.posts SET like_count = like_count + 1 WHERE id = $1", postID); err != nil {
+			return nil, fmt.Errorf("failed to increment like count: %w", err)
+		}
 		resp.Liked = true
+		tag, err := tx.Exec(ctx, "DELETE FROM schema_forum.dislikes WHERE post_id = $1 AND user_id = $2", postID, userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to clear dislike: %w", err)
+		}
+		if tag.RowsAffected() > 0 {
+			if _, err = tx.Exec(ctx, "UPDATE schema_forum.posts SET dislike_count = GREATEST(dislike_count - 1, 0) WHERE id = $1", postID); err != nil {
+				return nil, fmt.Errorf("failed to decrement dislike count: %w", err)
+			}
+		}
 	}
 
-	// Get current like count
-	_ = s.DB.QueryRow(ctx, "SELECT like_count FROM schema_forum.posts WHERE id = $1", postID).Scan(&resp.LikeCount)
+	if err := tx.QueryRow(ctx, `
+		SELECT like_count, dislike_count,
+		       EXISTS(SELECT 1 FROM schema_forum.dislikes WHERE post_id = $1 AND user_id = $2)
+		FROM schema_forum.posts WHERE id = $1
+	`, postID, userID).Scan(&resp.LikeCount, &resp.DislikeCount, &resp.Disliked); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
 	return resp, nil
 }
-
 
 // DislikePost toggles a dislike on a post
 func (s *ForumService) DislikePost(ctx context.Context, userID, postID uint) (*model.DislikeResponse, error) {
-	// Check if dislike exists
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
 	var dislikeID uint
-	err := s.DB.QueryRow(ctx, "SELECT id FROM schema_forum.dislikes WHERE post_id = $1 AND user_id = $2", postID, userID).Scan(&dislikeID)
+	err = tx.QueryRow(ctx, "SELECT id FROM schema_forum.dislikes WHERE post_id = $1 AND user_id = $2", postID, userID).Scan(&dislikeID)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("failed to query dislike state: %w", err)
+	}
 
 	resp := &model.DislikeResponse{}
 	if err == nil {
-		// Dislike exists, toggle off
-		_, err = s.DB.Exec(ctx, "DELETE FROM schema_forum.dislikes WHERE id = $1", dislikeID)
+		_, err = tx.Exec(ctx, "DELETE FROM schema_forum.dislikes WHERE id = $1", dislikeID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to delete dislike: %w", err)
 		}
-		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.posts SET dislike_count = dislike_count - 1 WHERE id = $1", postID)
+		if _, err = tx.Exec(ctx, "UPDATE schema_forum.posts SET dislike_count = GREATEST(dislike_count - 1, 0) WHERE id = $1", postID); err != nil {
+			return nil, fmt.Errorf("failed to decrement dislike count: %w", err)
+		}
 		resp.Disliked = false
 	} else {
-		// Dislike does not exist, toggle on
-		_, err = s.DB.Exec(ctx, "INSERT INTO schema_forum.dislikes (post_id, user_id) VALUES ($1, $2)", postID, userID)
+		_, err = tx.Exec(ctx, "INSERT INTO schema_forum.dislikes (post_id, user_id) VALUES ($1, $2)", postID, userID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to insert dislike: %w", err)
 		}
-		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.posts SET dislike_count = dislike_count + 1 WHERE id = $1", postID)
+		if _, err = tx.Exec(ctx, "UPDATE schema_forum.posts SET dislike_count = dislike_count + 1 WHERE id = $1", postID); err != nil {
+			return nil, fmt.Errorf("failed to increment dislike count: %w", err)
+		}
 		resp.Disliked = true
+		tag, err := tx.Exec(ctx, "DELETE FROM schema_forum.likes WHERE post_id = $1 AND user_id = $2", postID, userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to clear like: %w", err)
+		}
+		if tag.RowsAffected() > 0 {
+			if _, err = tx.Exec(ctx, "UPDATE schema_forum.posts SET like_count = GREATEST(like_count - 1, 0) WHERE id = $1", postID); err != nil {
+				return nil, fmt.Errorf("failed to decrement like count: %w", err)
+			}
+		}
 	}
 
-	// Get current dislike count
-	_ = s.DB.QueryRow(ctx, "SELECT dislike_count FROM schema_forum.posts WHERE id = $1", postID).Scan(&resp.DislikeCount)
+	if err := tx.QueryRow(ctx, `
+		SELECT like_count, dislike_count,
+		       EXISTS(SELECT 1 FROM schema_forum.likes WHERE post_id = $1 AND user_id = $2)
+		FROM schema_forum.posts WHERE id = $1
+	`, postID, userID).Scan(&resp.LikeCount, &resp.DislikeCount, &resp.Liked); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
 	return resp, nil
 }
+
 // CollectPost toggles a collection on a post
 func (s *ForumService) CollectPost(ctx context.Context, userID, postID uint) (*model.CollectResponse, error) {
 	var collID uint
@@ -684,4 +746,56 @@ func (s *ForumService) GetPostAttachments(ctx context.Context, postID uint) ([]*
 // Level checking is done via middleware on route level, not in service layer.
 func (s *ForumService) GetUserLevel(_ context.Context, _ uint) (int, error) {
 	return 0, fmt.Errorf("level check should be done via middleware, not service layer")
+}
+
+// LikeComment toggles a like on a comment
+func (s *ForumService) LikeComment(ctx context.Context, userID, commentID uint) (*model.CommentLikeResponse, error) {
+	var likeID uint
+	err := s.DB.QueryRow(ctx, "SELECT id FROM schema_forum.comment_likes WHERE comment_id = $1 AND user_id = $2", commentID, userID).Scan(&likeID)
+
+	resp := &model.CommentLikeResponse{}
+	if err == nil {
+		_, err = s.DB.Exec(ctx, "DELETE FROM schema_forum.comment_likes WHERE id = $1", likeID)
+		if err != nil {
+			return nil, err
+		}
+		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.comments SET like_count = like_count - 1 WHERE id = $1", commentID)
+		resp.Liked = false
+	} else {
+		_, err = s.DB.Exec(ctx, "INSERT INTO schema_forum.comment_likes (comment_id, user_id) VALUES ($1, $2)", commentID, userID)
+		if err != nil {
+			return nil, err
+		}
+		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.comments SET like_count = like_count + 1 WHERE id = $1", commentID)
+		resp.Liked = true
+	}
+
+	_ = s.DB.QueryRow(ctx, "SELECT like_count FROM schema_forum.comments WHERE id = $1", commentID).Scan(&resp.LikeCount)
+	return resp, nil
+}
+
+// DislikeComment toggles a dislike on a comment
+func (s *ForumService) DislikeComment(ctx context.Context, userID, commentID uint) (*model.CommentDislikeResponse, error) {
+	var dislikeID uint
+	err := s.DB.QueryRow(ctx, "SELECT id FROM schema_forum.comment_dislikes WHERE comment_id = $1 AND user_id = $2", commentID, userID).Scan(&dislikeID)
+
+	resp := &model.CommentDislikeResponse{}
+	if err == nil {
+		_, err = s.DB.Exec(ctx, "DELETE FROM schema_forum.comment_dislikes WHERE id = $1", dislikeID)
+		if err != nil {
+			return nil, err
+		}
+		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.comments SET dislike_count = dislike_count - 1 WHERE id = $1", commentID)
+		resp.Disliked = false
+	} else {
+		_, err = s.DB.Exec(ctx, "INSERT INTO schema_forum.comment_dislikes (comment_id, user_id) VALUES ($1, $2)", commentID, userID)
+		if err != nil {
+			return nil, err
+		}
+		_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.comments SET dislike_count = dislike_count + 1 WHERE id = $1", commentID)
+		resp.Disliked = true
+	}
+
+	_ = s.DB.QueryRow(ctx, "SELECT dislike_count FROM schema_forum.comments WHERE id = $1", commentID).Scan(&resp.DislikeCount)
+	return resp, nil
 }

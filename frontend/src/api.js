@@ -336,14 +336,24 @@ export const forumApi = {
       method: 'POST',
       headers: authHeaders(),
     })
-    return { likeCount: resp.like_count ?? 0, liked: resp.liked }
+    return {
+      likeCount: resp.like_count ?? 0,
+      dislikeCount: resp.dislike_count ?? 0,
+      liked: !!resp.liked,
+      disliked: !!resp.disliked,
+    }
   },
   async dislikePost(id) {
     const resp = await request('/forum-api', `/api/v1/posts/${id}/dislike`, {
       method: 'POST',
       headers: authHeaders(),
     })
-    return { dislikeCount: resp.dislike_count ?? 0, disliked: resp.disliked }
+    return {
+      likeCount: resp.like_count ?? 0,
+      dislikeCount: resp.dislike_count ?? 0,
+      liked: !!resp.liked,
+      disliked: !!resp.disliked,
+    }
   },
   async collectPost(id) {
     return request('/forum-api', `/api/v1/posts/${id}/collect`, {

@@ -31,8 +31,11 @@ const liked = ref(false)
 const disliked = ref(false)
 const collected = ref(false)
 const dialog = ref({ open: false, mode: 'report', reason: '' })
+const sensWordDialog = ref({ open: false, words: [] })
 
 const attachments = computed(() => payload.value.post?.attachments ?? [])
+const imageAttachments = computed(() => attachments.value.filter((item) => item.type === 'image'))
+const fileAttachments = computed(() => attachments.value.filter((item) => item.type !== 'image'))
 const isAuthor = computed(() => payload.value.post?.authorId === session.currentUser?.id)
 const post = computed(() => payload.value.post)
 
@@ -67,7 +70,11 @@ async function likePost() {
   try {
     const resp = await forumApi.likePost(route.params.id)
     liked.value = resp.liked
-    if (payload.value.post) payload.value.post.likeCount = resp.likeCount
+    disliked.value = resp.disliked
+    if (payload.value.post) {
+      payload.value.post.likeCount = resp.likeCount
+      payload.value.post.dislikeCount = resp.dislikeCount
+    }
     session.setFlash(`点赞已记录（${resp.likeCount} 赞）`, 'success')
   } catch (error) {
     session.setFlash(formatApiError(error), 'info')
@@ -81,8 +88,12 @@ async function dislikePost() {
   actionLoading.value = true
   try {
     const resp = await forumApi.dislikePost(route.params.id)
+    liked.value = resp.liked
     disliked.value = resp.disliked
-    if (payload.value.post) payload.value.post.dislikeCount = resp.dislikeCount
+    if (payload.value.post) {
+      payload.value.post.likeCount = resp.likeCount
+      payload.value.post.dislikeCount = resp.dislikeCount
+    }
     session.setFlash(`点踩已记录（${resp.dislikeCount} 踩）`, 'success')
   } catch (error) {
     session.setFlash(formatApiError(error), 'info')
@@ -137,7 +148,62 @@ function cancelReply() {
   replyToId.value = ''
 }
 
+function updateCommentInTree(commentId, updater) {
+  const walk = (items) => {
+    for (const item of items) {
+      if (item.id === commentId) {
+        updater(item)
+        return true
+      }
+      if (item.children?.length && walk(item.children)) return true
+    }
+    return false
+  }
+  walk(payload.value.comments || [])
+}
+
+async function likeComment(comment) {
+  try {
+    const resp = await forumApi.likeComment(comment.id)
+    updateCommentInTree(comment.id, (item) => {
+      item.likeCount = resp.likeCount
+      item.liked = resp.liked
+      if (resp.liked) {
+        item.disliked = false
+      }
+    })
+  } catch (error) {
+    session.setFlash(formatApiError(error), 'info')
+  }
+}
+
+async function dislikeComment(comment) {
+  try {
+    const resp = await forumApi.dislikeComment(comment.id)
+    updateCommentInTree(comment.id, (item) => {
+      item.dislikeCount = resp.dislikeCount
+      item.disliked = resp.disliked
+      if (resp.disliked) {
+        item.liked = false
+      }
+    })
+  } catch (error) {
+    session.setFlash(formatApiError(error), 'info')
+  }
+}
+
 async function submitComment() {
+  // Pre-check sensitive words
+  try {
+    const check = await forumApi.checkSensitiveWords(commentText.value)
+    if (!check.clean) {
+      sensWordDialog.value = { open: true, words: check.matched_words || [] }
+      return
+    }
+  } catch (e) {
+    // If check fails, proceed to submit (backend will handle)
+  }
+
   commentSubmitting.value = true
   try {
     await forumApi.createComment(route.params.id, {
@@ -194,17 +260,33 @@ onMounted(loadPost)
 
           <div class="gx-post-body">{{ post.content }}</div>
 
-          <div v-if="attachments.length" class="gx-attachments mt-4 flex flex-wrap gap-2">
-            <a
-              v-for="item in attachments"
-              :key="item.id"
-              :href="item.url"
-              target="_blank"
-              rel="noopener"
-              class="rounded-gx-sm border border-gx-border px-3 py-1 text-body text-gx-primary hover:bg-gx-bg"
-            >
-              {{ item.title }}
-            </a>
+          <div v-if="attachments.length" class="gx-attachments">
+            <div v-if="imageAttachments.length" class="gx-attachments__images">
+              <a
+                v-for="item in imageAttachments"
+                :key="item.id"
+                :href="item.url"
+                target="_blank"
+                rel="noopener"
+                class="gx-attachment-image"
+              >
+                <img :src="item.url" :alt="item.title" loading="lazy" />
+                <span>{{ item.title }}</span>
+              </a>
+            </div>
+
+            <div v-if="fileAttachments.length" class="gx-attachments__files">
+              <a
+                v-for="item in fileAttachments"
+                :key="item.id"
+                :href="item.url"
+                target="_blank"
+                rel="noopener"
+                class="gx-attachment-file"
+              >
+                {{ item.title }}
+              </a>
+            </div>
           </div>
 
           <GxActionToolbar
@@ -238,57 +320,13 @@ onMounted(loadPost)
             @submit="submitComment"
             @reply="onReply"
             @cancel-reply="cancelReply"
+            @like="likeComment"
+            @dislike="dislikeComment"
           />
         </GxReadingColumn>
       </Card>
     </div>
 
-    <aside class="gx-post-detail__aside">
-      <Card class="gx-post-detail__aside-card p-5">
-        <h3 class="gx-post-detail__aside-title">关于本帖</h3>
-        <dl class="gx-meta-list gx-meta-list--compact">
-          <div class="gx-meta-list__row">
-            <dt>板块</dt>
-            <dd>{{ post.boardName }}</dd>
-          </div>
-          <div class="gx-meta-list__row">
-            <dt>作者</dt>
-            <dd>
-              <RouterLink class="text-gx-accent hover:underline" :to="`/community/users/${post.authorId}`">
-                {{ post.authorName }}
-              </RouterLink>
-            </dd>
-          </div>
-          <div class="gx-meta-list__row">
-            <dt>发布</dt>
-            <dd>
-              <time :datetime="post.createdAtIso">{{ post.createdAt }}</time>
-            </dd>
-          </div>
-        </dl>
-
-        <RouterLink :to="`/community/users/${post.authorId}`" class="gx-post-detail__author-link">
-          查看作者主页
-        </RouterLink>
-
-        <GxActionToolbar
-          layout="vertical"
-          :liked="liked"
-          :disliked="disliked"
-          :collected="collected"
-          :loading="actionLoading"
-          :is-author="isAuthor"
-          :post-id="post.id"
-          :like-count="post.likeCount"
-          :dislike-count="post.dislikeCount"
-          @like="likePost"
-          @dislike="dislikePost"
-          @collect="collectPost"
-          @report="openReport"
-          @delete="openDelete"
-        />
-      </Card>
-    </aside>
 
     <Dialog
       :open="dialog.open"
@@ -308,6 +346,16 @@ onMounted(loadPost)
         >
           {{ dialog.mode === 'delete' ? '确认删除' : '提交举报' }}
         </Button>
+      </template>
+    </Dialog>
+    <Dialog
+      :open="sensWordDialog.open"
+      title="内容违规提示"
+      @update:open="(v) => { if (!v) sensWordDialog.open = false }"
+    >
+      <p class="text-body text-gx-muted">该评论含有违规字体，请修改后重新发送。</p>
+      <template #footer>
+        <button type="button" class="gx-btn gx-btn--primary" @click="sensWordDialog.open = false">我知道了</button>
       </template>
     </Dialog>
   </div>

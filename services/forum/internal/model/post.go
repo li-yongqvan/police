@@ -33,14 +33,18 @@ type Board struct {
 
 // Comment represents a reply to a post
 type Comment struct {
-	ID         uint      `json:"id" db:"id"`
-	PostID     uint      `json:"post_id" db:"post_id"`
-	ParentID   *uint     `json:"parent_id,omitempty" db:"parent_id"`
-	Depth      int       `json:"depth" db:"depth"`
-	AuthorID   uint      `json:"author_id" db:"author_id"`
-	AuthorName string    `json:"author_name,omitempty" db:"-"`
-	Content    string    `json:"content" db:"content"`
-	CreatedAt  time.Time `json:"created_at" db:"created_at"`
+	ID           uint      `json:"id" db:"id"`
+	PostID       uint      `json:"post_id" db:"post_id"`
+	ParentID     *uint     `json:"parent_id,omitempty" db:"parent_id"`
+	Depth        int       `json:"depth" db:"depth"`
+	AuthorID     uint      `json:"author_id" db:"author_id"`
+	AuthorName   string    `json:"author_name,omitempty" db:"-"`
+	Content      string    `json:"content" db:"content"`
+	LikeCount    int       `json:"like_count" db:"like_count"`
+	DislikeCount int       `json:"dislike_count" db:"dislike_count"`
+	Liked        bool      `json:"liked,omitempty" db:"liked"`
+	Disliked     bool      `json:"disliked,omitempty" db:"disliked"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 }
 
 // Like represents a post like
@@ -116,10 +120,10 @@ type PostDetail struct {
 	IsPinned     bool         `json:"is_pinned"`
 	IsFeatured   bool         `json:"is_featured"`
 	LikeCount    int          `json:"like_count"`
-	DislikeCount int       `json:"dislike_count"`
+	DislikeCount int          `json:"dislike_count"`
 	CommentCount int          `json:"comment_count"`
 	Liked        bool         `json:"liked,omitempty"`
-	Disliked     bool      `json:"disliked,omitempty"`
+	Disliked     bool         `json:"disliked,omitempty"`
 	Collected    bool         `json:"collected,omitempty"`
 	Attachments  []Attachment `json:"attachments"`
 	CreatedAt    time.Time    `json:"created_at"`
@@ -148,17 +152,33 @@ type CreateCommentRequest struct {
 
 // LikeResponse represents the response for like toggle
 type LikeResponse struct {
-	Liked     bool `json:"liked"`
-	LikeCount int  `json:"like_count"`
+	Liked        bool `json:"liked"`
+	LikeCount    int  `json:"like_count"`
+	Disliked     bool `json:"disliked"`
+	DislikeCount int  `json:"dislike_count"`
 }
 
 // CollectResponse represents the response for collection toggle
 type CollectResponse struct {
 	Collected bool `json:"collected"`
 }
+
 // DislikeResponse represents the response for dislike toggle
 type DislikeResponse struct {
+	Liked        bool `json:"liked"`
+	LikeCount    int  `json:"like_count"`
 	Disliked     bool `json:"disliked"`
 	DislikeCount int  `json:"dislike_count"`
 }
 
+// CommentLikeResponse represents the response for comment like toggle
+type CommentLikeResponse struct {
+	Liked     bool `json:"liked"`
+	LikeCount int  `json:"like_count"`
+}
+
+// CommentDislikeResponse represents the response for comment dislike toggle
+type CommentDislikeResponse struct {
+	Disliked     bool `json:"disliked"`
+	DislikeCount int  `json:"dislike_count"`
+}

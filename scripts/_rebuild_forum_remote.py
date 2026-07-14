@@ -21,6 +21,8 @@ FILES = [
     "services/forum/internal/service/extras_service.go",
     "services/forum/internal/service/forum_service.go",
     "services/forum/internal/model/post.go",
+    "services/forum/migrations/011_ensure_post_dislikes.up.sql",
+    "services/forum/migrations/011_ensure_post_dislikes.down.sql",
 ]
 
 
