@@ -17,6 +17,12 @@ services:
       args:
         GO_IMAGE: docker.m.daocloud.io/library/golang:1.23-alpine
         ALPINE_IMAGE: docker.m.daocloud.io/library/alpine:3.19
+  user-service:
+    build:
+      args:
+        GO_IMAGE: docker.m.daocloud.io/library/golang:1.23-alpine
+        ALPINE_IMAGE: docker.m.daocloud.io/library/alpine:3.19
+
   nginx:
     image: docker.m.daocloud.io/library/nginx:alpine
   postgres:

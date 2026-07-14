@@ -2,6 +2,7 @@ ARG GO_IMAGE=golang:1.23-alpine
 ARG ALPINE_IMAGE=alpine:3.19
 
 FROM ${GO_IMAGE} AS builder
+ENV GOPROXY=https://goproxy.cn,direct
 WORKDIR /app
 COPY go.mod go.sum* ./
 RUN go mod download
