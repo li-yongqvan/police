@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi } from '../api'
@@ -14,6 +14,7 @@ const breadcrumbItems = [
 const words = ref([])
 const newWord = ref('')
 const category = ref('general')
+const categoryCount = computed(() => new Set(words.value.map((item) => item.category || 'general')).size)
 
 async function load() {
   words.value = await adminApi.listSensitiveWords()
@@ -41,6 +42,21 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
     <GxAdminPageHeader eyebrow="敏感词库" title="内容合规关键词" />
 
+    <section class="gx-admin-summary">
+      <article class="gx-admin-summary__item">
+        <span>词条总数</span>
+        <strong>{{ words.length }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>分类数量</span>
+        <strong>{{ categoryCount }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>新增分类</span>
+        <strong>{{ category || 'general' }}</strong>
+      </article>
+    </section>
+
     <section class="gx-card gx-form">
       <label>
         <span>词条</span>
@@ -54,6 +70,11 @@ onMounted(load)
     </section>
 
     <section class="gx-card">
+      <div class="gx-section-head">
+        <strong>敏感词列表</strong>
+        <span class="gx-muted">{{ words.length }} 条记录</span>
+      </div>
+      <div v-if="!words.length" class="gx-empty">当前还没有敏感词。</div>
       <div class="gx-admin-list">
         <article v-for="item in words" :key="item.id" class="gx-admin-row">
           <div>

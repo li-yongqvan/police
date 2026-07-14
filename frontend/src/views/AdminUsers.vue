@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi, userApi } from '../api'
@@ -18,6 +18,8 @@ const limit = 20
 const logsUserId = ref('')
 const logs = ref([])
 const levelDraft = ref({})
+const activeCount = computed(() => users.value.filter((user) => user.status === 'active').length)
+const bannedCount = computed(() => users.value.filter((user) => user.status && user.status !== 'active').length)
 
 async function load() {
   const data = await userApi.listUsers(page.value, limit)
@@ -58,9 +60,28 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
     <GxAdminPageHeader eyebrow="用户管理" title="封禁、解封与等级" :description="`第 ${page} / ${totalPages()} 页`" />
 
+    <section class="gx-admin-summary gx-admin-summary--four">
+      <article class="gx-admin-summary__item">
+        <span>用户总数</span>
+        <strong>{{ total }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>当前页用户</span>
+        <strong>{{ users.length }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>本页正常</span>
+        <strong>{{ activeCount }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>本页异常</span>
+        <strong>{{ bannedCount }}</strong>
+      </article>
+    </section>
+
     <section class="gx-card">
       <div class="gx-section-head">
-        <span class="gx-muted">共 {{ total }} 人</span>
+        <strong>用户列表</strong>
         <div class="gx-admin-actions">
           <button type="button" class="gx-btn gx-btn--secondary" :disabled="page <= 1" @click="changePage(page - 1)">
             上一页
@@ -76,6 +97,7 @@ onMounted(load)
         </div>
       </div>
 
+      <div v-if="!users.length" class="gx-empty">当前没有用户数据。</div>
       <div class="gx-admin-list">
         <article v-for="user in users" :key="user.id" class="gx-admin-row">
           <div>
@@ -100,9 +122,13 @@ onMounted(load)
     </section>
 
     <section v-if="logsUserId" class="gx-card">
-      <h3 class="gx-panel__title">操作日志 · 用户 {{ logsUserId }}</h3>
+      <div class="gx-section-head">
+        <strong>操作日志</strong>
+        <span class="gx-muted">用户 {{ logsUserId }}</span>
+      </div>
+      <div v-if="!logs.length" class="gx-empty">当前用户暂无操作日志。</div>
       <div class="gx-admin-list">
-        <article v-for="(log, i) in logs" :key="i" class="gx-comment">
+        <article v-for="(log, i) in logs" :key="i" class="gx-admin-row gx-admin-row--stack">
           <strong>{{ log.action || log.operation }}</strong>
           <p class="gx-muted">{{ log.created_at || log.timestamp }} — {{ log.detail || log.message || '' }}</p>
         </article>

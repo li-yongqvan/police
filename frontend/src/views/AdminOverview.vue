@@ -67,29 +67,30 @@ onMounted(load)
     <template v-else-if="overview">
       <GxAdminPageHeader eyebrow="管理概览" title="AI智联平台 · 运营数据" description="可控、可管、可展示的管理闭环" />
 
-      <section class="gx-card gx-admin-hero">
-        <div class="gx-stat-grid gx-stat-grid--metrics">
-          <div class="gx-stat-card">
-            <strong>{{ overview.userCount }}</strong>
-            <span>注册用户数</span>
-          </div>
-          <div class="gx-stat-card">
-            <strong>{{ overview.todayPostCount }}</strong>
-            <span>今日发帖量</span>
-          </div>
-          <div class="gx-stat-card">
-            <strong>{{ overview.pendingAuditCount }}</strong>
-            <span>待审核数</span>
-          </div>
-          <div class="gx-stat-card">
-            <strong>{{ overview.postCount }}</strong>
-            <span>公开帖子量</span>
-          </div>
-        </div>
+      <section class="gx-admin-summary gx-admin-summary--four">
+        <article class="gx-admin-summary__item">
+          <span>注册用户数</span>
+          <strong>{{ overview.userCount }}</strong>
+        </article>
+        <article class="gx-admin-summary__item">
+          <span>今日发帖量</span>
+          <strong>{{ overview.todayPostCount }}</strong>
+        </article>
+        <article class="gx-admin-summary__item">
+          <span>待审核数</span>
+          <strong>{{ overview.pendingAuditCount }}</strong>
+        </article>
+        <article class="gx-admin-summary__item">
+          <span>公开帖子量</span>
+          <strong>{{ overview.postCount }}</strong>
+        </article>
       </section>
 
       <section class="gx-card">
-        <h3 class="gx-panel__title">板块活跃度</h3>
+        <div class="gx-section-head">
+          <strong>板块活跃度</strong>
+          <span class="gx-muted">{{ overview.boardActivity.length }} 个板块</span>
+        </div>
         <div class="gx-stat-grid gx-stat-grid--boards">
           <article v-for="item in overview.boardActivity" :key="item.boardId" class="gx-stat-card">
             <strong>{{ item.count }}</strong>

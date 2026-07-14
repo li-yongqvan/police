@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi, forumApi } from '../api'
@@ -16,6 +16,8 @@ const breadcrumbItems = [
 
 const rejectReason = ref('不符合社区规范')
 const batchReason = ref('批量清理违规内容')
+const selectedCount = computed(() => selected.value.size)
+const previewTitle = computed(() => preview.value?.post?.title || '未选择')
 
 async function load() {
   items.value = await adminApi.getPendingAudit()
@@ -65,9 +67,25 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
     <GxAdminPageHeader eyebrow="内容审核" title="待审核帖子" />
 
+    <section class="gx-admin-summary">
+      <article class="gx-admin-summary__item">
+        <span>待审核</span>
+        <strong>{{ items.length }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>已选中</span>
+        <strong>{{ selectedCount }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>当前预览</span>
+        <strong>{{ previewTitle }}</strong>
+      </article>
+    </section>
+
     <div class="gx-audit-workbench">
       <section class="gx-card">
         <div class="gx-toolbar">
+          <strong>审核队列</strong>
           <button type="button" class="gx-btn gx-btn--danger" :disabled="!selected.size" @click="batchDelete">
             批量删除 ({{ selected.size }})
           </button>
@@ -76,8 +94,8 @@ onMounted(load)
         <div v-if="!items.length" class="gx-empty">当前没有待审核内容，社区流转正常。</div>
 
         <div v-else class="gx-audit-grid">
-          <article v-for="item in items" :key="item.id" class="gx-card">
-            <label class="gx-muted">
+          <article v-for="item in items" :key="item.id" class="gx-admin-row gx-admin-row--stack">
+            <label class="gx-muted gx-admin-check">
               <input type="checkbox" :checked="selected.has(item.postId)" @change="toggleSelect(item.postId)" />
               选中
             </label>

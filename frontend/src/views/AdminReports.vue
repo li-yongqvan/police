@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi } from '../api'
@@ -10,6 +10,15 @@ const items = ref([])
 const statusFilter = ref('pending')
 const adminNote = ref('')
 const loading = ref(false)
+const breadcrumbItems = [
+  { label: '管理后台', to: '/admin' },
+  { label: '举报处理' },
+]
+const statusLabel = computed(() => {
+  if (statusFilter.value === 'resolved') return '已处理'
+  if (statusFilter.value === 'dismissed') return '已驳回'
+  return '待处理'
+})
 
 async function load() {
   loading.value = true
@@ -41,6 +50,21 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
     <GxAdminPageHeader eyebrow="举报处理" title="用户举报" />
 
+    <section class="gx-admin-summary">
+      <article class="gx-admin-summary__item">
+        <span>当前筛选</span>
+        <strong>{{ statusLabel }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>举报数量</span>
+        <strong>{{ items.length }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>处理备注</span>
+        <strong>{{ adminNote ? '已填写' : '未填写' }}</strong>
+      </article>
+    </section>
+
     <section class="gx-card">
       <div class="gx-toolbar">
         <label class="gx-field gx-field--inline">
@@ -60,21 +84,25 @@ onMounted(load)
 
       <div v-if="!items.length" class="gx-empty">当前没有{{ statusFilter === 'pending' ? '待处理' : '' }}举报。</div>
 
-      <article v-for="item in items" :key="item.id" class="gx-card" style="margin-top: 1rem">
-        <h4>{{ item.postTitle }}</h4>
-        <p class="gx-muted">
-          举报人：{{ item.reporterName }} · {{ item.createdAt }}
-        </p>
-        <p>{{ item.reason }}</p>
-        <p v-if="item.adminNote" class="gx-muted">备注：{{ item.adminNote }}</p>
-        <div v-if="statusFilter === 'pending'" class="gx-admin-actions">
-          <RouterLink class="gx-btn gx-btn--secondary" :to="`/community/posts/${item.postId}`" target="_blank">
-            查看帖子
-          </RouterLink>
-          <button type="button" class="gx-btn gx-btn--primary" @click="resolve(item, 'resolved')">确认违规</button>
-          <button type="button" class="gx-btn gx-btn--ghost" @click="resolve(item, 'dismissed')">驳回举报</button>
-        </div>
-      </article>
+      <div class="gx-admin-list">
+        <article v-for="item in items" :key="item.id" class="gx-admin-row gx-admin-row--stack">
+          <div>
+            <strong>{{ item.postTitle }}</strong>
+            <p class="gx-muted">
+              举报人：{{ item.reporterName }} · {{ item.createdAt }}
+            </p>
+          </div>
+          <p>{{ item.reason }}</p>
+          <p v-if="item.adminNote" class="gx-muted">备注：{{ item.adminNote }}</p>
+          <div v-if="statusFilter === 'pending'" class="gx-admin-actions">
+            <RouterLink class="gx-btn gx-btn--secondary" :to="`/community/posts/${item.postId}`" target="_blank">
+              查看帖子
+            </RouterLink>
+            <button type="button" class="gx-btn gx-btn--primary" @click="resolve(item, 'resolved')">确认违规</button>
+            <button type="button" class="gx-btn gx-btn--ghost" @click="resolve(item, 'dismissed')">驳回举报</button>
+          </div>
+        </article>
+      </div>
     </section>
   </div>
 </template>

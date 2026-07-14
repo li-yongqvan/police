@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi, userApi } from '../api'
@@ -16,6 +16,7 @@ const users = ref([])
 const selectedUserId = ref('')
 const selectedRoleId = ref('')
 const userRoles = ref([])
+const selectedUser = computed(() => users.value.find((user) => user.id === selectedUserId.value))
 
 async function load() {
   roles.value = await adminApi.listRoles()
@@ -52,7 +53,23 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
     <GxAdminPageHeader eyebrow="角色权限" title="为用户分配中台角色" />
 
+    <section class="gx-admin-summary">
+      <article class="gx-admin-summary__item">
+        <span>用户数量</span>
+        <strong>{{ users.length }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>角色数量</span>
+        <strong>{{ roles.length }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>当前用户角色</span>
+        <strong>{{ userRoles.length }}</strong>
+      </article>
+    </section>
+
     <section class="gx-card gx-form">
+      <h3 class="gx-panel__title">角色分配</h3>
       <label>
         <span>用户</span>
         <select v-model="selectedUserId" @change="loadUserRoles">
@@ -69,6 +86,11 @@ onMounted(load)
     </section>
 
     <section class="gx-card">
+      <div class="gx-section-head">
+        <strong>已分配角色</strong>
+        <span class="gx-muted">{{ selectedUser?.name || '未选择用户' }}</span>
+      </div>
+      <div v-if="!userRoles.length" class="gx-empty">当前用户还没有分配中台角色。</div>
       <div class="gx-admin-list">
         <article v-for="r in userRoles" :key="r.id || r.role_id" class="gx-admin-row">
           <strong>{{ r.name || r.role_name }}</strong>

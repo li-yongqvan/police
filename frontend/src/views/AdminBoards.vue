@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi } from '../api'
@@ -15,6 +15,8 @@ const breadcrumbItems = [
 
 const editingId = ref('')
 const editForm = ref({ name: '', slug: '', description: '', sortOrder: 0, enabled: true })
+const enabledCount = computed(() => boards.value.filter((board) => board.enabled !== false).length)
+const disabledCount = computed(() => boards.value.length - enabledCount.value)
 
 async function load() {
   boards.value = await adminApi.listBoards()
@@ -64,6 +66,21 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
     <GxAdminPageHeader eyebrow="板块管理" title="扩展社区结构" />
 
+    <section class="gx-admin-summary">
+      <article class="gx-admin-summary__item">
+        <span>板块总数</span>
+        <strong>{{ boards.length }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>启用板块</span>
+        <strong>{{ enabledCount }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>停用板块</span>
+        <strong>{{ disabledCount }}</strong>
+      </article>
+    </section>
+
     <section class="gx-card gx-form">
       <h3 class="gx-panel__title">新建板块</h3>
       <label>
@@ -82,7 +99,11 @@ onMounted(load)
     </section>
 
     <section class="gx-card">
-      <h3 class="gx-panel__title">{{ boards.length }} 个板块</h3>
+      <div class="gx-section-head">
+        <strong>板块列表</strong>
+        <span class="gx-muted">{{ boards.length }} 个板块</span>
+      </div>
+      <div v-if="!boards.length" class="gx-empty">当前还没有板块。</div>
       <div class="gx-admin-list">
         <article v-for="board in boards" :key="board.id" class="gx-admin-row">
           <div v-if="editingId === board.id" class="gx-form" style="width: 100%">
@@ -98,7 +119,7 @@ onMounted(load)
               <span>排序</span>
               <input v-model.number="editForm.sortOrder" type="number" />
             </label>
-            <label class="gx-admin-row">
+            <label class="gx-admin-check">
               <span>启用</span>
               <input v-model="editForm.enabled" type="checkbox" />
             </label>

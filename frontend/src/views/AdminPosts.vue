@@ -1,5 +1,7 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
+import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
@@ -13,6 +15,8 @@ const breadcrumbItems = [
 const page = ref(1)
 const total = ref(0)
 const limit = 20
+const featuredCount = computed(() => posts.value.filter((post) => post.isFeatured).length)
+const pinnedCount = computed(() => posts.value.filter((post) => post.isPinned).length)
 
 async function load() {
   const data = await adminApi.listPosts(page.value, limit)
@@ -54,9 +58,28 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
     <GxAdminPageHeader eyebrow="内容管理" title="全站帖子运营" :description="`第 ${page} / ${totalPages()} 页`" />
 
+    <section class="gx-admin-summary gx-admin-summary--four">
+      <article class="gx-admin-summary__item">
+        <span>帖子总数</span>
+        <strong>{{ total }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>当前页</span>
+        <strong>{{ page }} / {{ totalPages() }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>本页精华</span>
+        <strong>{{ featuredCount }}</strong>
+      </article>
+      <article class="gx-admin-summary__item">
+        <span>本页置顶</span>
+        <strong>{{ pinnedCount }}</strong>
+      </article>
+    </section>
+
     <section class="gx-card">
       <div class="gx-section-head">
-        <span class="gx-muted">{{ total }} 篇</span>
+        <strong>帖子列表</strong>
         <div class="gx-admin-actions">
           <button type="button" class="gx-btn gx-btn--secondary" :disabled="page <= 1" @click="changePage(page - 1)">
             上一页
@@ -72,6 +95,7 @@ onMounted(load)
         </div>
       </div>
 
+      <div v-if="!posts.length" class="gx-empty">当前没有可管理的帖子。</div>
       <div class="gx-admin-list">
         <article v-for="post in posts" :key="post.id" class="gx-admin-row">
           <div>
