@@ -8,6 +8,7 @@ import (
 	"ai-forum/forum-service/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // ForumHandler holds the service dependency
@@ -121,6 +122,10 @@ func (h *ForumHandler) CreatePost(c *gin.Context) {
 		return
 	}
 
+	p := bluemonday.UGCPolicy()
+	req.Title = p.Sanitize(req.Title)
+	req.Content = p.Sanitize(req.Content)
+
 	post, err := h.Service.CreatePost(c.Request.Context(), authorID, &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -144,6 +149,10 @@ func (h *ForumHandler) UpdatePost(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
 		return
 	}
+
+	p := bluemonday.UGCPolicy()
+	req.Title = p.Sanitize(req.Title)
+	req.Content = p.Sanitize(req.Content)
 
 	post, err := h.Service.UpdatePost(c.Request.Context(), authorID, uint(id), &req)
 	if err != nil {

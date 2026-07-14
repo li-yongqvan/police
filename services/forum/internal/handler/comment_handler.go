@@ -8,6 +8,7 @@ import (
 	"ai-forum/forum-service/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // CommentHandler handles comment operations
@@ -61,6 +62,9 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
 		return
 	}
+
+	p := bluemonday.UGCPolicy()
+	req.Content = p.Sanitize(req.Content)
 
 	comment, err := h.Service.CreateComment(c.Request.Context(), authorID, uint(postID), req.Content, req.ParentID)
 	if err != nil {

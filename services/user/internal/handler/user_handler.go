@@ -12,6 +12,7 @@ import (
 	"ai-forum/user-service/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // UserHandler holds the service dependency
@@ -122,6 +123,10 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
 		return
 	}
+
+	p := bluemonday.UGCPolicy()
+	req.Nickname = p.Sanitize(req.Nickname)
+	req.Bio = p.Sanitize(req.Bio)
 
 	user, err := h.Service.UpdateUserProfile(c.Request.Context(), uint(id), &req)
 	if err != nil {
