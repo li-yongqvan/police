@@ -17,6 +17,7 @@ type PendingPost struct {
 	Title        string    `json:"title"`
 	AuthorName   string    `json:"author_name"`
 	BoardName    string    `json:"board_name"`
+	Status       string    `json:"status"`
 	CreatedAt    time.Time `json:"created_at"`
 	Content      string    `json:"content"`
 	AuthorID     uint      `json:"author_id"`
@@ -26,8 +27,8 @@ type PendingPost struct {
 
 // AuditService handles audit workflow operations
 type AuditService struct {
-	DB           *pgxpool.Pool
-	ForumClient  *client.ForumClient
+	DB          *pgxpool.Pool
+	ForumClient *client.ForumClient
 }
 
 // NewAuditService creates a new AuditService
@@ -45,14 +46,16 @@ func (s *AuditService) ListPendingAudit(ctx context.Context, page, limit int) ([
 	var posts []PendingPost
 	for _, p := range clientPosts {
 		posts = append(posts, PendingPost{
-			ID:         p.ID,
-			Title:      p.Title,
-			AuthorName: p.AuthorName,
-			BoardName:  p.BoardName,
-			CreatedAt:  p.CreatedAt,
-			Content:    p.Content,
-			AuthorID:   p.AuthorID,
-			BoardID:    p.BoardID,
+			ID:           p.ID,
+			Title:        p.Title,
+			AuthorName:   p.AuthorName,
+			BoardName:    p.BoardName,
+			Status:       "pending_review",
+			CreatedAt:    p.CreatedAt,
+			Content:      p.Content,
+			AuthorID:     p.AuthorID,
+			BoardID:      p.BoardID,
+			MatchedWords: p.MatchedWords,
 		})
 	}
 	return posts, total, nil

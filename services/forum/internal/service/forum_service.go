@@ -348,8 +348,8 @@ func (s *ForumService) CreatePost(ctx context.Context, authorID uint, req *model
 	// Check sensitive words
 	clean, _, err := s.AdminClient.CheckSensitiveWords(req.Title + " " + req.Content)
 	if err != nil {
-		// If admin service is unavailable, allow post through
-		clean = true
+		// If moderation is unavailable, send the post to manual review.
+		clean = false
 	}
 
 	status := "published"
@@ -509,7 +509,7 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 func (s *ForumService) CreateComment(ctx context.Context, authorID, postID uint, content string, parentID *uint) (*model.Comment, error) {
 	clean, _, err := s.AdminClient.CheckSensitiveWords(content)
 	if err != nil {
-		clean = true
+		return nil, fmt.Errorf("moderation service unavailable")
 	}
 	if !clean {
 		return nil, fmt.Errorf("comment contains sensitive words, rejected")

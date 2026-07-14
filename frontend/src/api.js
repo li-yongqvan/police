@@ -491,7 +491,7 @@ export const adminApi = {
       authorName: post.author_name,
       boardName: post.board_name,
       status: post.status,
-      reason: post.reject_reason || '',
+      reason: post.matched_words?.length ? `命中敏感词：${post.matched_words.join('、')}` : '',
     }))
   },
   async approveAudit(id) {

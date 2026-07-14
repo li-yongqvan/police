@@ -50,7 +50,11 @@ func (h *ModerationHandler) CheckSensitiveWords(c *gin.Context) {
 		return
 	}
 
-	clean, matched := h.AdminService.CheckSensitiveWords(req.Text)
+	clean, matched, err := h.AdminService.CheckSensitiveWords(c.Request.Context(), req.Text)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	if !clean {
 		c.JSON(http.StatusOK, gin.H{"clean": false, "matched_words": matched})
 		return

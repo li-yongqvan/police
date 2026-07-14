@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -25,11 +26,11 @@ func NewAdminClient(baseURL string) *AdminClient {
 }
 
 // CheckSensitiveWords sends text to admin-service for sensitive word check
-func (c *AdminClient) CheckSensitiveWords(text string) (bool, error) {
+func (c *AdminClient) CheckSensitiveWords(text string) (bool, []string, error) {
 	payload := map[string]string{"text": text}
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		return false, fmt.Errorf("failed to marshal request: %w", err)
+		return false, nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
 	resp, err := c.HTTPClient.Post(
@@ -38,20 +39,22 @@ func (c *AdminClient) CheckSensitiveWords(text string) (bool, error) {
 		bytes.NewBuffer(jsonPayload),
 	)
 	if err != nil {
-		return false, fmt.Errorf("failed to call admin-service: %w", err)
+		return false, nil, fmt.Errorf("failed to call admin-service: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("admin-service returned status %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return false, nil, fmt.Errorf("admin-service returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {
-		Clean bool `json:"clean"`
+		Clean        bool     `json:"clean"`
+		MatchedWords []string `json:"matched_words"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return false, fmt.Errorf("failed to decode response: %w", err)
+		return false, nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return result.Clean, nil
+	return result.Clean, result.MatchedWords, nil
 }

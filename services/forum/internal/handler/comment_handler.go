@@ -33,7 +33,8 @@ func (h *CommentHandler) ListComments(c *gin.Context) {
 	page, _ := strconv.Atoi(pageStr)
 	limit, _ := strconv.Atoi(limitStr)
 
-	comments, total, err := h.Service.ListComments(c.Request.Context(), uint(postID), page, limit)
+	viewerID := c.GetUint("user_id")
+	comments, total, err := h.Service.ListComments(c.Request.Context(), uint(postID), page, limit, viewerID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取评论失败"})
 		return

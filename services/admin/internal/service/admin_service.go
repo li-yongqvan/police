@@ -45,17 +45,22 @@ func (s *AdminService) LoadSensitiveWords(ctx context.Context) error {
 }
 
 // CheckSensitiveWords checks if text contains any sensitive words
-func (s *AdminService) CheckSensitiveWords(text string) (bool, []string) {
+func (s *AdminService) CheckSensitiveWords(ctx context.Context, text string) (bool, []string, error) {
+	if err := s.LoadSensitiveWords(ctx); err != nil {
+		return false, nil, err
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	var matched []string
 	for word := range s.sensitiveWords {
-		if strings.Contains(text, word) {
+		word = strings.TrimSpace(word)
+		if word != "" && strings.Contains(text, word) {
 			matched = append(matched, word)
 		}
 	}
-	return len(matched) == 0, matched
+	return len(matched) == 0, matched, nil
 }
 
 // AddSensitiveWord adds a new sensitive word
@@ -100,11 +105,7 @@ func (s *AdminService) DeleteSensitiveWord(ctx context.Context, id uint) error {
 		return fmt.Errorf("failed to delete sensitive word: %w", err)
 	}
 
-	s.mu.Lock()
-	// Reload cache to remove the word
-	s.LoadSensitiveWords(ctx)
-	s.mu.Unlock()
-	return nil
+	return s.LoadSensitiveWords(ctx)
 }
 
 // GetConfig retrieves system configuration
