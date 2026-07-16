@@ -223,7 +223,7 @@ var demoRoleFromUsername = map[string]string{
 	"demo_platform_admin":  "platform_admin",
 }
 
-// DemoLogin supports MVP one-click role login (password: demo123456).
+// DemoLogin supports MVP one-click role login (password: 123456).
 func (h *UserHandler) DemoLogin(c *gin.Context) {
 	var req struct {
 		Role string `json:"role" binding:"required"`
@@ -239,7 +239,7 @@ func (h *UserHandler) DemoLogin(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.Service.Login(c.Request.Context(), username, "demo123456")
+	resp, err := h.Service.Login(c.Request.Context(), username, "123456")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

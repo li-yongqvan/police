@@ -1,14 +1,8 @@
 <script setup>
 import { computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import GxSidebarUserCard from './GxSidebarUserCard.vue'
 import GxIcon from './GxIcon.vue'
-import {
-  GX_NAV_ITEMS,
-  GX_SIDEBAR_PERSONAL,
-  isNavActive,
-  resolveBoardByKey,
-} from '../../composables/useGxNav'
+import { GX_NAV_ITEMS } from '../../composables/useGxNav'
 import { useSessionStore } from '../../stores/session'
 
 const props = defineProps({
@@ -21,25 +15,56 @@ const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 
-const boardLinks = computed(() =>
-  GX_NAV_ITEMS.map((nav) => {
-    const board = resolveBoardByKey(props.boards, nav.key)
-    return {
-      key: nav.key,
-      label: board?.name || nav.label,
-      to: `/community/boards/${nav.key}`,
-      postCount: board?.postCount ?? 0,
-    }
-  }),
-)
+const HOME_LINK = { id: 'home', name: 'community-home', label: '首页', icon: 'home', to: '/community' }
+
+const boardLinks = computed(() => {
+  const enabledBoards = props.boards
+    .filter((board) => board?.enabled !== false && board?.slug)
+    .slice()
+    .sort((a, b) => {
+      const order = (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
+      if (order !== 0) return order
+      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hans-CN')
+    })
+
+  if (enabledBoards.length) {
+    return enabledBoards.map((board) => ({
+      key: board.slug,
+      label: board.name,
+      to: `/community/boards/${board.slug}`,
+      postCount: board.postCount ?? 0,
+      icon: iconForBoard(board),
+      description: board.description || '',
+    }))
+  }
+
+  return GX_NAV_ITEMS.map((nav) => ({
+    key: nav.key,
+    label: nav.label,
+    to: `/community/boards/${nav.key}`,
+    postCount: 0,
+    icon: nav.icon,
+    description: '',
+  }))
+})
+
+function iconForBoard(board) {
+  const name = board?.name || ''
+  const navMatch = GX_NAV_ITEMS.find(
+    (nav) => nav.key === board?.slug || nav.keywords?.some((keyword) => name.includes(keyword)),
+  )
+  if (navMatch?.icon) return navMatch.icon
+  if (/公告|通知|活动/.test(name)) return 'bell'
+  if (/实训|警务|治理|安全/.test(name)) return 'shield'
+  if (/社团|风采|校园|圈/.test(name)) return 'flag'
+  if (/排行|榜单|数据/.test(name)) return 'bar-chart'
+  if (/问答|交流|讨论|消息/.test(name)) return 'message'
+  if (/用户|同学|成员/.test(name)) return 'users'
+  return 'book'
+}
 
 function onNav() {
   emit('navigate')
-}
-
-function isPersonalActive(item) {
-  if (item.name) return route.name === item.name
-  return route.path === item.to
 }
 
 function isBoardActive(key) {
@@ -63,35 +88,42 @@ function logout() {
     <p class="gx-sidebar-nav__section">导航</p>
     <nav class="gx-sidebar-nav">
       <RouterLink
-        v-for="item in GX_SIDEBAR_PERSONAL"
-        :key="item.id"
-        :to="item.to"
+        :to="HOME_LINK.to"
         class="gx-sidebar-nav__link"
-        :class="{ 'is-active': isPersonalActive(item) }"
+        :class="{ 'is-active': route.name === HOME_LINK.name }"
         @click="onNav"
       >
-        <GxIcon :name="item.icon" :size="20" />
-        <span>{{ item.label }}</span>
+        <GxIcon :name="HOME_LINK.icon" :size="20" />
+        <span>{{ HOME_LINK.label }}</span>
       </RouterLink>
     </nav>
 
     <div class="gx-sidebar-nav__sep" />
 
-    <p class="gx-sidebar-nav__section">板块列表</p>
-    <nav class="gx-sidebar-boards">
+    <div class="gx-sidebar-board-head">
+      <p class="gx-sidebar-nav__section">板块列表</p>
+      <span>{{ boardLinks.length }} 个</span>
+    </div>
+    <nav class="gx-sidebar-boards" aria-label="板块列表">
       <RouterLink
         v-for="item in boardLinks"
         :key="item.key"
         :to="item.to"
         class="gx-sidebar-boards__link"
         :class="{ 'is-active': isBoardActive(item.key) }"
+        :title="item.description || item.label"
         @click="onNav"
       >
-        <span>{{ item.label }}</span>
+        <span class="gx-sidebar-boards__mark">
+          <GxIcon :name="item.icon" :size="18" />
+        </span>
+        <span class="gx-sidebar-boards__body">
+          <span class="gx-sidebar-boards__name">{{ item.label }}</span>
+          <span v-if="item.description" class="gx-sidebar-boards__desc">{{ item.description }}</span>
+        </span>
+        <span class="gx-sidebar-boards__count">{{ item.postCount }}</span>
       </RouterLink>
     </nav>
-
-    <GxSidebarUserCard />
 
     <nav v-if="session.canAccessAdmin" class="gx-sidebar-nav gx-sidebar-nav--admin mt-auto">
       <RouterLink to="/admin" class="gx-sidebar-nav__link" @click="onNav">

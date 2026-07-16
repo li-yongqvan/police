@@ -22,10 +22,8 @@ function redirectAfterLogin(user) {
 }
 
 function loginWithQQ() {
-  const returnTo = '/community'
-  const u = new URL('/user-api/api/v1/auth/qq/start', window.location.origin)
-  u.searchParams.set('return_to', returnTo)
-  window.location.assign(u.toString())
+  statusHint.value = '请在上方账号框输入 QQ 号，密码输入 123456 登录。'
+  error.value = ''
 }
 
 onMounted(() => {
@@ -56,8 +54,8 @@ async function submit() {
 <template>
   <GxAuthShell
     headline="万千帖子，齐聚 AI智联平台。"
-    form-title="学号登录"
-    form-hint="学生进入社区；管理员账号将自动进入管理端"
+    form-title="账号登录"
+    form-hint="支持学号、用户名或 QQ 号；默认密码为 123456"
     submit-label="登录"
     :loading="loading"
     :error="error"
@@ -65,13 +63,13 @@ async function submit() {
     @submit="submit"
   >
     <div class="gx-auth-field">
-      <label for="username">学号 / 用户名</label>
+      <label for="username">学号 / 用户名 / QQ号</label>
       <input
         id="username"
         v-model="username"
         type="text"
         autocomplete="username"
-        placeholder="例如 demo_student"
+        placeholder="例如 demo_student 或 QQ号"
       />
     </div>
     <div class="gx-auth-field">
@@ -81,7 +79,7 @@ async function submit() {
         v-model="password"
         type="password"
         autocomplete="current-password"
-        placeholder="请输入密码"
+        placeholder="请输入密码，默认 123456"
       />
     </div>
 
@@ -89,7 +87,7 @@ async function submit() {
       <p>首次使用？请用学校发放的邀请码注册账号</p>
       <RouterLink to="/register">邀请码注册</RouterLink>
       <div class="gx-auth-divider" />
-      <button class="gx-auth-qq" type="button" @click="loginWithQQ">QQ 一键登录</button>
+      <button class="gx-auth-qq" type="button" @click="loginWithQQ">QQ 号普通登录说明</button>
     </template>
   </GxAuthShell>
 </template>

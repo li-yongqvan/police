@@ -1,4 +1,4 @@
-﻿CREATE TABLE schema_auth.member_qq_records (
+CREATE TABLE schema_auth.member_qq_records (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     qq_number VARCHAR(20) NOT NULL,
