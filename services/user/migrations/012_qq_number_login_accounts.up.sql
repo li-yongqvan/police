@@ -52,3 +52,7 @@ ON CONFLICT (username) DO UPDATE
 SET password_hash = EXCLUDED.password_hash,
     status = 'active',
     updated_at = NOW();
+
+DELETE FROM schema_auth.users
+WHERE bio = U&'QQ\5B66\751F\7AEF\8D26\53F7'
+  AND username !~ '^[0-9]{5,20}$';
