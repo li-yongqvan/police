@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build:student-guide": "node build-docx.js"
+  },
+  "dependencies": {
+    "docx": "^9.7.1"
+  }
+}

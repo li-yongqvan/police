@@ -1,0 +1,11 @@
+# 开发时间线
+
+> 本文件由 `scripts/dev-record.ps1` 自动追加，也可以人工补充重要历史节点。
+
+| 时间 | 类型 | 标题 | 分支 | 提交 | 记录 |
+|------|------|------|------|------|------|
+| 2026-07-03 | decision | 建立开发记录制度 | phone | ADR | [ADR-0001](adr/0001-dev-record-system.md) |
+| 2026-07-14 10:07 | chore | fix(notifications): show unread count in site header | phone | 7395694 | [2026-07-14-100733-fix-notifications-show-unread-count-in-site-head.md](entries/2026-07-14-100733-fix-notifications-show-unread-count-in-site-head.md) |
+| 2026-07-14 10:30 | chore | fix(profile): render uploaded avatars | phone | 7b36f56 | [2026-07-14-103006-fix-profile-render-uploaded-avatars.md](entries/2026-07-14-103006-fix-profile-render-uploaded-avatars.md) |
+| 2026-07-14 10:56 | chore | fix(forum): make post dislikes mutually exclusive | phone | 87e0c2a | [2026-07-14-105655-fix-forum-make-post-dislikes-mutually-exclusive.md](entries/2026-07-14-105655-fix-forum-make-post-dislikes-mutually-exclusive.md) |
+| 2026-07-14 11:07 | chore | Fix frontend dynamic import recovery | phone | dd29567 | [2026-07-14-110740-fix-frontend-dynamic-import-recovery.md](entries/2026-07-14-110740-fix-frontend-dynamic-import-recovery.md) |
