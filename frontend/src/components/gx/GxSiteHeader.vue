@@ -23,6 +23,7 @@ const { open: openSearch } = useSearchPanel()
 const displayName = computed(() =>
   session.currentUser ? formatUserChipLabel(session.currentUser) : '同学',
 )
+const avatarSrc = computed(() => session.currentUser?.avatar || '')
 const notificationLabel = computed(() =>
   props.unreadCount > 0 ? `通知，${props.unreadCount > 99 ? '99+' : props.unreadCount} 条未读` : '通知',
 )
@@ -136,7 +137,7 @@ function doLogout() {
             :aria-expanded="showDropdown"
             @click="toggleDropdown"
           >
-            <GxAvatarInitial :name="displayName" :size="32" />
+            <GxAvatarInitial :name="displayName" :src="avatarSrc" :size="32" />
             <span class="gx-header__user-name hidden md:inline">{{ displayName }}</span>
             <span class="gx-header__caret" aria-hidden="true">▾</span>
           </button>

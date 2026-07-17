@@ -21,7 +21,7 @@ const xpPct = computed(() => Math.round((xpCurrent.value / xpMax) * 100))
 <template>
   <div v-if="user" class="gx-sidebar-user">
     <RouterLink to="/community/profile" class="gx-sidebar-user__head">
-      <GxAvatarInitial :name="user.name" :size="40" />
+      <GxAvatarInitial :name="user.name || user.username" :src="user.avatar" :size="40" />
       <div class="gx-sidebar-user__who">
         <strong>{{ user.name || user.username }}</strong>
         <span class="gx-sidebar-user__level">Lv.{{ level }}</span>

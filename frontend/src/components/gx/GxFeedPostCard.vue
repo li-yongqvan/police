@@ -46,6 +46,11 @@ const authorLevel = computed(() => {
 })
 
 const authorLabel = computed(() => formatAuthorLabel(null, props.post))
+const authorAvatar = computed(() => {
+  if (props.post.authorAvatar) return props.post.authorAvatar
+  if (String(props.post.authorId) === String(session.currentUser?.id)) return session.currentUser?.avatar || ''
+  return ''
+})
 
 async function onVote() {
   if (!session.currentUser) {
@@ -93,7 +98,7 @@ async function onVote() {
       <p v-if="excerpt" class="gx-feed-card__excerpt">{{ excerpt }}</p>
       <footer class="gx-feed-card__foot">
         <RouterLink :to="`/community/users/${post.authorId}`" class="gx-feed-card__author" @click.stop>
-          <GxAvatarInitial :name="authorLabel" :size="28" />
+          <GxAvatarInitial :name="authorLabel" :src="authorAvatar" :size="28" />
           <span class="gx-feed-card__author-name">{{ authorLabel }}</span>
           <span class="gx-feed-card__level">Lv.{{ authorLevel }}</span>
         </RouterLink>

@@ -38,6 +38,11 @@ const imageAttachments = computed(() => attachments.value.filter((item) => item.
 const fileAttachments = computed(() => attachments.value.filter((item) => item.type !== 'image'))
 const isAuthor = computed(() => payload.value.post?.authorId === session.currentUser?.id)
 const post = computed(() => payload.value.post)
+const postAuthorAvatar = computed(() => {
+  if (post.value?.authorAvatar) return post.value.authorAvatar
+  if (String(post.value?.authorId) === String(session.currentUser?.id)) return session.currentUser?.avatar || ''
+  return ''
+})
 
 const boardKey = computed(() => boardKeyFromName(post.value?.boardName || ''))
 
@@ -249,6 +254,7 @@ onMounted(loadPost)
               <GxAuthorChip
                 :author-id="post.authorId"
                 :author-name="post.authorName"
+                :author-avatar="postAuthorAvatar"
                 :created-at="post.createdAt"
               />
               <div class="gx-post-hero__stats">

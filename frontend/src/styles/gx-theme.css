@@ -318,6 +318,16 @@ select {
   font-weight: 600;
   font-size: 14px;
 }
+.gx-avatar-initial {
+  overflow: hidden;
+}
+.gx-avatar-initial__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
 
 /* Mobile drawer */
 .gx-drawer-backdrop {
@@ -3330,6 +3340,7 @@ select {
   color: #fff;
   font-weight: 700;
   text-decoration: none;
+  overflow: hidden;
 }
 .gx-author-chip--sm .gx-author-chip__avatar {
   width: 32px;
@@ -3839,6 +3850,43 @@ a.gx-author-chip__name:hover {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  margin-bottom: 18px;
+}
+.gx-comment-prompt {
+  width: 100%;
+  min-height: 48px;
+  margin-bottom: 18px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.gx-comment-prompt:hover,
+.gx-comment-prompt:focus-visible {
+  border-color: rgba(15, 43, 91, 0.12);
+  background: rgba(15, 43, 91, 0.04);
+  color: var(--color-primary);
+  outline: none;
+}
+.gx-comment-prompt__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gx-comment-prompt__action {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
 }
 .gx-comment-composer__label {
   display: block;
@@ -3850,14 +3898,8 @@ a.gx-author-chip__name:hover {
 .gx-comment-composer__actions {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
   margin-top: 12px;
-}
-@media (max-width: 991px) {
-  .gx-comment-composer {
-    position: sticky;
-    bottom: calc(var(--gx-mobile-tab-h, 56px) + 8px);
-    z-index: 5;
-  }
 }
 .gx-modal-backdrop {
   position: fixed;
@@ -5046,7 +5088,7 @@ a.gx-author-chip__name:hover {
 
   .gx-comment-tree textarea,
   .gx-compose-field__body {
-    min-height: min(42vh, 260px) !important;
+    min-height: 120px !important;
   }
 
   .gx-compose-page {

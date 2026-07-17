@@ -1,5 +1,7 @@
 <script setup>
+import { computed } from 'vue'
 import GxAuthorChip from './GxAuthorChip.vue'
+import { useSessionStore } from '../../stores/session'
 
 const props = defineProps({
   node: { type: Object, required: true },
@@ -7,9 +9,15 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['toggle', 'reply'])
+const session = useSessionStore()
 
 const collapsed = () => props.collapsedIds.has(props.node.id)
 const hasChildren = () => (props.node.children?.length ?? 0) > 0
+const authorAvatar = computed(() => {
+  if (props.node.authorAvatar) return props.node.authorAvatar
+  if (String(props.node.authorId) === String(session.currentUser?.id)) return session.currentUser?.avatar || ''
+  return ''
+})
 </script>
 
 <template>
@@ -19,6 +27,7 @@ const hasChildren = () => (props.node.children?.length ?? 0) > 0
         <GxAuthorChip
           :author-id="node.authorId"
           :author-name="node.authorName"
+          :author-avatar="authorAvatar"
           :created-at="node.createdAt"
           size="sm"
         />
