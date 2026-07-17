@@ -9,3 +9,4 @@
 | 2026-07-14 10:30 | chore | fix(profile): render uploaded avatars | phone | 7b36f56 | [2026-07-14-103006-fix-profile-render-uploaded-avatars.md](entries/2026-07-14-103006-fix-profile-render-uploaded-avatars.md) |
 | 2026-07-14 10:56 | chore | fix(forum): make post dislikes mutually exclusive | phone | 87e0c2a | [2026-07-14-105655-fix-forum-make-post-dislikes-mutually-exclusive.md](entries/2026-07-14-105655-fix-forum-make-post-dislikes-mutually-exclusive.md) |
 | 2026-07-14 11:07 | chore | Fix frontend dynamic import recovery | phone | dd29567 | [2026-07-14-110740-fix-frontend-dynamic-import-recovery.md](entries/2026-07-14-110740-fix-frontend-dynamic-import-recovery.md) |
+| 2026-07-17 14:47 | chore | docs: add student testing guide and dev records | phone | d19c5d6 | [2026-07-17-144732-docs-add-student-testing-guide-and-dev-records.md](entries/2026-07-17-144732-docs-add-student-testing-guide-and-dev-records.md) |
