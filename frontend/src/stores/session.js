@@ -13,10 +13,6 @@ export const useSessionStore = defineStore('session', () => {
     ['admin', 'platform_admin'].includes(currentUser.value?.role),
   )
 
-  const needsOnboarding = computed(
-    () => currentUser.value && !currentUser.value.profileCompleted && currentUser.value.role === 'student',
-  )
-
   function setFlash(message, type = 'info') {
     flashMessage.value = message
     flashType.value = type
@@ -67,7 +63,6 @@ export const useSessionStore = defineStore('session', () => {
     flashMessage,
     flashType,
     canAccessAdmin,
-    needsOnboarding,
     setFlash,
     persistSession,
     loginWithCredentials,

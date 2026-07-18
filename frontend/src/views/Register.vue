@@ -11,9 +11,6 @@ const form = ref({
   username: '',
   password: '',
   invitationCode: '',
-  department: '',
-  squad: '',
-  grade: '',
 })
 const loading = ref(false)
 const error = ref('')
@@ -30,9 +27,6 @@ async function submit() {
       username: form.value.username.trim(),
       password: form.value.password,
       invitationCode: form.value.invitationCode.trim(),
-      department: form.value.department,
-      squad: form.value.squad,
-      grade: form.value.grade,
     })
     session.persistSession(result)
     session.setFlash('注册成功，欢迎加入 AI智联平台', 'success')
@@ -49,7 +43,7 @@ async function submit() {
   <GxAuthShell
     headline="加入校园论坛，开启交流之旅。"
     form-title="创建账号"
-    form-hint="请填写学号、密码与邀请码；院系信息可在注册后补充"
+    form-hint="填写账号、密码与内部邀请码即可加入论坛"
     submit-label="注册并登录"
     :loading="loading"
     :error="error"
@@ -66,18 +60,6 @@ async function submit() {
     <div class="gx-auth-field">
       <label for="reg-invite">邀请码</label>
       <input id="reg-invite" v-model="form.invitationCode" type="text" placeholder="学校发放的邀请码" />
-    </div>
-    <div class="gx-auth-field">
-      <label for="reg-dept">院系</label>
-      <input id="reg-dept" v-model="form.department" type="text" placeholder="例如：刑事科学技术学院" />
-    </div>
-    <div class="gx-auth-field">
-      <label for="reg-squad">区队</label>
-      <input id="reg-squad" v-model="form.squad" type="text" placeholder="例如：一区队" />
-    </div>
-    <div class="gx-auth-field">
-      <label for="reg-grade">年级</label>
-      <input id="reg-grade" v-model="form.grade" type="text" placeholder="例如：2024" />
     </div>
 
     <template #footer>

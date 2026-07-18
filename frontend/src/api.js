@@ -158,7 +158,7 @@ function persistTokens(payload) {
 }
 
 export const userApi = {
-  async register({ username, password, invitationCode, department, squad, grade }) {
+  async register({ username, password, invitationCode }) {
     await request('/user-api', '/api/v1/register', {
       method: 'POST',
       headers: authHeaders(true, null),
@@ -166,9 +166,6 @@ export const userApi = {
         username,
         password,
         invitation_code: invitationCode,
-        department,
-        squad,
-        grade,
       }),
     })
     return userApi.login(username, password)
@@ -216,9 +213,6 @@ export const userApi = {
         nickname: data.name,
         bio: data.bio,
         username: data.username,
-        department: data.department,
-        squad: data.squad,
-        grade: data.grade,
         profile_completed: data.profileCompleted,
       }),
     })

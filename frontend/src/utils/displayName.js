@@ -1,8 +1,6 @@
-/** 顶栏 / 欢迎区：区队 · 姓名 */
+/** 顶栏 / 欢迎区：显示论坛昵称 */
 export function formatUserChipLabel(user) {
   const name = String(user?.name || user?.username || '同学').trim()
-  const squad = String(user?.squad || '').trim()
-  if (squad && name) return `${squad} · ${name}`
   return name || '同学'
 }
 

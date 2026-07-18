@@ -39,11 +39,6 @@ onMounted(async () => {
           <GxAuthorChip :user="profile" :author-id="profile.id" size="lg" :linkable="false" />
           <div class="min-w-0 flex-1">
             <p class="text-body text-gx-muted">@{{ profile.username }} · Lv.{{ profile.level }}</p>
-            <div class="mt-2 flex flex-wrap gap-2">
-              <span v-if="profile.department" class="gx-stat-chip">{{ profile.department }}</span>
-              <span v-if="profile.squad" class="gx-stat-chip">{{ profile.squad }}</span>
-              <span v-if="profile.grade" class="gx-stat-chip">{{ profile.grade }}</span>
-            </div>
             <p v-if="profile.bio" class="mt-4 text-body leading-relaxed">{{ profile.bio }}</p>
             <p v-if="profile.id === session.currentUser?.id" class="mt-4 text-body">
               <router-link class="text-gx-primary hover:underline" to="/community/profile">编辑我的资料</router-link>

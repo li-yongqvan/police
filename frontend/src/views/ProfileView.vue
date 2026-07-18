@@ -17,9 +17,6 @@ const form = ref({
   name: session.currentUser?.name || '',
   bio: session.currentUser?.bio || '',
   username: session.currentUser?.username || '',
-  department: session.currentUser?.department || '',
-  squad: session.currentUser?.squad || '',
-  grade: session.currentUser?.grade || '',
 })
 const avatarFile = ref(null)
 const avatarFileName = ref('')
@@ -38,12 +35,6 @@ const avatarInitial = computed(() => {
   const raw = session.currentUser?.name || session.currentUser?.username || '?'
   return String(raw).trim()[0]?.toUpperCase() || '?'
 })
-const profileComplete = computed(() => {
-  const fields = [form.value.name, form.value.department, form.value.squad, form.value.grade, form.value.bio]
-  const filled = fields.filter((v) => String(v || '').trim()).length
-  return Math.round((filled / fields.length) * 100)
-})
-
 function clearAvatarPreview() {
   if (avatarPreviewUrl.value) {
     URL.revokeObjectURL(avatarPreviewUrl.value)
@@ -71,8 +62,10 @@ async function saveProfile() {
   uploadingAvatar.value = !!avatarFile.value
   try {
     let user = await userApi.updateProfile(session.currentUser.id, {
-      ...form.value,
-      profileCompleted: !!(form.value.department && form.value.squad && form.value.grade),
+      name: form.value.name,
+      bio: form.value.bio,
+      username: form.value.username,
+      profileCompleted: true,
     })
     if (avatarFile.value) {
       user = await userApi.uploadAvatar(user.id, avatarFile.value)
@@ -110,9 +103,6 @@ onBeforeUnmount(clearAvatarPreview)
   <div class="gx-page gx-profile-page">
     <GxBreadcrumb :items="breadcrumbItems" />
 
-    <p v-if="session.needsOnboarding" class="gx-profile-onboard-hint" role="status">
-      建议在此完善院系、区队、年级信息，保存后即可正常使用社区功能。
-    </p>
 
     <div class="gx-profile-layout">
       <aside class="gx-profile-sidebar">
@@ -134,21 +124,7 @@ onBeforeUnmount(clearAvatarPreview)
               <Badge variant="secondary">Lv.{{ session.currentUser?.level ?? 1 }}</Badge>
               <Badge variant="outline">{{ session.currentUser?.role || 'student' }}</Badge>
             </div>
-            <div v-if="form.department" class="gx-profile-card__chips">
-              <span class="gx-stat-chip">{{ form.department }}</span>
-              <span class="gx-stat-chip">{{ form.squad }}</span>
-              <span class="gx-stat-chip">{{ form.grade }}</span>
-            </div>
-            <p v-else-if="form.bio" class="gx-profile-card__bio">{{ form.bio }}</p>
-            <div class="gx-profile-card__progress">
-              <div class="gx-profile-card__progress-head">
-                <span>资料完整度</span>
-                <strong>{{ profileComplete }}%</strong>
-              </div>
-              <div class="gx-profile-card__progress-bar" role="progressbar" :aria-valuenow="profileComplete">
-                <span :style="{ width: `${profileComplete}%` }" />
-              </div>
-            </div>
+            <p v-if="form.bio" class="gx-profile-card__bio">{{ form.bio }}</p>
             <RouterLink
               v-if="session.currentUser?.id"
               :to="`/community/users/${session.currentUser.id}`"
@@ -171,7 +147,7 @@ onBeforeUnmount(clearAvatarPreview)
             <div>
               <p class="gx-profile-form-head__eyebrow">账户设置</p>
               <h2 class="gx-profile-form-head__title">编辑资料</h2>
-              <p class="gx-profile-form-head__desc">完善院系与简介，便于同学识别与交流。</p>
+              <p class="gx-profile-form-head__desc">设置头像、昵称和简介，展示你在论坛里的公开形象。</p>
             </div>
           </header>
 
@@ -186,24 +162,6 @@ onBeforeUnmount(clearAvatarPreview)
                 <div class="gx-field">
                   <Label for="pf-user">用户名</Label>
                   <Input id="pf-user" v-model="form.username" placeholder="登录用用户名" />
-                </div>
-              </div>
-            </section>
-
-            <section class="gx-form-section">
-              <h3 class="gx-form-section__title">院系信息</h3>
-              <div class="gx-form-section__grid gx-form-section__grid--2">
-                <div class="gx-field">
-                  <Label for="pf-dept">院系</Label>
-                  <Input id="pf-dept" v-model="form.department" placeholder="例如：刑事科学技术学院" />
-                </div>
-                <div class="gx-field">
-                  <Label for="pf-squad">区队</Label>
-                  <Input id="pf-squad" v-model="form.squad" placeholder="例如：一区队" />
-                </div>
-                <div class="gx-field gx-field--full">
-                  <Label for="pf-grade">年级</Label>
-                  <Input id="pf-grade" v-model="form.grade" placeholder="例如：2024" />
                 </div>
               </div>
             </section>
