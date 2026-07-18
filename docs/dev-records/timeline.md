@@ -11,3 +11,4 @@
 | 2026-07-14 11:07 | chore | Fix frontend dynamic import recovery | phone | dd29567 | [2026-07-14-110740-fix-frontend-dynamic-import-recovery.md](entries/2026-07-14-110740-fix-frontend-dynamic-import-recovery.md) |
 | 2026-07-17 14:47 | chore | docs: add student testing guide and dev records | phone | d19c5d6 | [2026-07-17-144732-docs-add-student-testing-guide-and-dev-records.md](entries/2026-07-17-144732-docs-add-student-testing-guide-and-dev-records.md) |
 | 2026-07-18 10:09 | chore | fix: persist uploaded avatars | phone | c9719c4 | [2026-07-18-100928-fix-persist-uploaded-avatars.md](entries/2026-07-18-100928-fix-persist-uploaded-avatars.md) |
+| 2026-07-18 10:13 | chore | fix: allow level zero posting and comments | phone | 974991a | [2026-07-18-101314-fix-allow-level-zero-posting-and-comments.md](entries/2026-07-18-101314-fix-allow-level-zero-posting-and-comments.md) |
