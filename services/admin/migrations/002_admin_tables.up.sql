@@ -13,8 +13,8 @@ CREATE TABLE schema_admin.system_config (
 INSERT INTO schema_admin.system_config (key, value, description) VALUES
     ('post_max_title_length', '200', '帖子标题最大长度'),
     ('post_max_content_length', '50000', '帖子内容最大长度'),
-    ('post_requires_level', '1', '发帖所需最低等级'),
-    ('comment_requires_level', '1', '评论所需最低等级'),
+    ('post_requires_level', '0', '发帖所需最低等级'),
+    ('comment_requires_level', '0', '评论所需最低等级'),
     ('upload_requires_level', '2', '上传附件所需最低等级'),
     ('max_attachment_size_mb', '20', '单个附件最大大小（MB）'),
     ('board_ai-learning_enabled', 'true', 'AI学习交流区开关'),

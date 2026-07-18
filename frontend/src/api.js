@@ -462,7 +462,7 @@ export const adminApi = {
   async updateConfig(config) {
     const updates = []
     if (typeof config.postingEnabled === 'boolean') {
-      updates.push(['post_requires_level', config.postingEnabled ? '1' : '99'])
+      updates.push(['post_requires_level', config.postingEnabled ? '0' : '99'])
     }
     if (config.moderationMode) {
       updates.push([

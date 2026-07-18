@@ -133,12 +133,12 @@ func main() {
 	})
 	{
 		// Post routes (write)
-		auth.POST("/posts", middleware.RequireLevel(1), middleware.RateLimitByUser(rdb, "create_post", 10, time.Hour), forumHandler.CreatePost)
+		auth.POST("/posts", middleware.RequireLevel(0), middleware.RateLimitByUser(rdb, "create_post", 10, time.Hour), forumHandler.CreatePost)
 		auth.PUT("/posts/:id", forumHandler.UpdatePost)
 		auth.DELETE("/posts/:id", forumHandler.DeletePost)
 
 		// Comment routes (write)
-		auth.POST("/posts/:id/comments", middleware.RequireLevel(1), commentHandler.CreateComment)
+		auth.POST("/posts/:id/comments", middleware.RequireLevel(0), commentHandler.CreateComment)
 
 		// Interaction routes
 		auth.POST("/posts/:id/like", interactionHandler.LikePost)
@@ -149,7 +149,7 @@ func main() {
 		auth.GET("/me/collections", interactionHandler.ListMyCollections)
 
 		// Attachment upload (requires level 2 for files)
-		auth.POST("/attachments/upload", middleware.RequireLevel(1), attachmentHandler.UploadAttachment)
+		auth.POST("/attachments/upload", middleware.RequireLevel(2), attachmentHandler.UploadAttachment)
 
 		auth.GET("/notifications", notificationHandler.List)
 		auth.GET("/notifications/unread-count", notificationHandler.UnreadCount)

@@ -19,7 +19,7 @@ const session = useSessionStore()
 const boards = ref([])
 const uploading = ref(false)
 const sensWordDialog = ref({ open: false, words: [] })
-const needsLevelForAttachment = computed(() => (session.currentUser?.level ?? 1) < 1)
+const needsLevelForAttachment = computed(() => (session.currentUser?.level ?? 0) < 2)
 
 const breadcrumbItems = [
   { label: '首页', to: '/community' },
