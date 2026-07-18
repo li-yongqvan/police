@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { maskStudentLabel } from '../../utils/displayName'
 
 const props = defineProps({
@@ -10,19 +10,51 @@ const props = defineProps({
 })
 
 const imageFailed = ref(false)
+const retryCount = ref(0)
 const label = computed(() => maskStudentLabel(props.name))
-const imageSrc = computed(() => (imageFailed.value ? '' : props.src))
+let retryTimer = 0
+
+function retryableSrc(src) {
+  if (!retryCount.value || src.startsWith('blob:') || src.startsWith('data:')) return src
+  const separator = src.includes('?') ? '&' : '?'
+  return `${src}${separator}avatar_retry=${retryCount.value}`
+}
+
+const imageSrc = computed(() => (imageFailed.value || !props.src ? '' : retryableSrc(props.src)))
 const initial = computed(() => {
   const t = label.value.replace(/[·*]/g, '').trim()
   return t ? t.charAt(0).toUpperCase() : '?'
 })
 
+function clearRetryTimer() {
+  if (!retryTimer) return
+  window.clearTimeout(retryTimer)
+  retryTimer = 0
+}
+
+function resetImageState() {
+  clearRetryTimer()
+  imageFailed.value = false
+  retryCount.value = 0
+}
+
+function handleImageError() {
+  imageFailed.value = true
+  if (!props.src || retryCount.value >= 2) return
+  clearRetryTimer()
+  retryTimer = window.setTimeout(() => {
+    retryCount.value += 1
+    imageFailed.value = false
+    retryTimer = 0
+  }, 1200)
+}
+
 watch(
   () => props.src,
-  () => {
-    imageFailed.value = false
-  },
+  resetImageState,
 )
+
+onBeforeUnmount(clearRetryTimer)
 </script>
 
 <template>
@@ -38,7 +70,7 @@ watch(
       :src="imageSrc"
       :alt="alt || label"
       loading="lazy"
-      @error="imageFailed = true"
+      @error="handleImageError"
     />
     <span v-else>{{ initial }}</span>
   </span>

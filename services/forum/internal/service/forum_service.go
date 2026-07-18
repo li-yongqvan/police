@@ -113,7 +113,7 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID, authorID uint, pa
 
 	// Fetch posts
 	query := `
-		SELECT p.id, p.title, LEFT(p.content, 320), p.author_id, u.username, p.board_id, b.name, b.slug,
+		SELECT p.id, p.title, LEFT(p.content, 320), p.author_id, u.username, u.avatar, p.board_id, b.name, b.slug,
 		       p.status, p.is_pinned, p.is_featured, p.like_count, p.dislike_count, p.comment_count, p.created_at
 		FROM schema_forum.posts p
 		JOIN schema_auth.users u ON p.author_id = u.id
@@ -149,7 +149,7 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID, authorID uint, pa
 	var posts []*model.PostListItem
 	for rows.Next() {
 		p := &model.PostListItem{}
-		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName,
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName, &p.AuthorAvatar,
 			&p.BoardID, &p.BoardName, &p.BoardSlug, &p.Status, &p.IsPinned, &p.IsFeatured,
 			&p.LikeCount, &p.DislikeCount, &p.CommentCount, &p.CreatedAt); err != nil {
 			return nil, 0, fmt.Errorf("failed to scan post: %w", err)
@@ -183,7 +183,7 @@ func (s *ForumService) ListUserCollections(ctx context.Context, userID uint, pag
 	}
 
 	rows, err := s.DB.Query(ctx, `
-		SELECT p.id, p.title, LEFT(p.content, 320), p.author_id, u.username, p.board_id, b.name, b.slug,
+		SELECT p.id, p.title, LEFT(p.content, 320), p.author_id, u.username, u.avatar, p.board_id, b.name, b.slug,
 		       p.status, p.is_pinned, p.is_featured, p.like_count, p.dislike_count, p.comment_count, p.created_at
 		FROM schema_forum.collections c
 		JOIN schema_forum.posts p ON p.id = c.post_id
@@ -201,7 +201,7 @@ func (s *ForumService) ListUserCollections(ctx context.Context, userID uint, pag
 	var posts []*model.PostListItem
 	for rows.Next() {
 		p := &model.PostListItem{}
-		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName,
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID, &p.AuthorName, &p.AuthorAvatar,
 			&p.BoardID, &p.BoardName, &p.BoardSlug, &p.Status, &p.IsPinned, &p.IsFeatured,
 			&p.LikeCount, &p.DislikeCount, &p.CommentCount, &p.CreatedAt); err != nil {
 			return nil, 0, fmt.Errorf("failed to scan collection post: %w", err)
@@ -293,7 +293,7 @@ func (s *ForumService) GetPostNotifyMeta(ctx context.Context, id uint) (*PostNot
 func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*model.PostDetail, error) {
 	detail := &model.PostDetail{}
 	err := s.DB.QueryRow(ctx, `
-		SELECT p.id, p.title, p.content, p.author_id, u.username, p.board_id, b.name,
+		SELECT p.id, p.title, p.content, p.author_id, u.username, u.avatar, p.board_id, b.name,
 		       p.status, p.is_pinned, p.is_featured, p.like_count, p.dislike_count, p.comment_count,
 		       p.created_at, p.updated_at
 		FROM schema_forum.posts p
@@ -301,7 +301,7 @@ func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*mo
 		JOIN schema_forum.boards b ON p.board_id = b.id
 		WHERE p.id = $1 AND p.status IN ('published', 'pending_review')
 	`, id).Scan(
-		&detail.ID, &detail.Title, &detail.Content, &detail.AuthorID, &detail.AuthorName,
+		&detail.ID, &detail.Title, &detail.Content, &detail.AuthorID, &detail.AuthorName, &detail.AuthorAvatar,
 		&detail.BoardID, &detail.BoardName, &detail.Status, &detail.IsPinned, &detail.IsFeatured,
 		&detail.LikeCount, &detail.DislikeCount, &detail.CommentCount, &detail.CreatedAt, &detail.UpdatedAt,
 	)
@@ -477,7 +477,7 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 
 	viewer := int64(viewerID)
 	rows, err := s.DB.Query(ctx, `
-		SELECT c.id, c.post_id, c.parent_id, c.depth, c.author_id, u.username, c.content,
+		SELECT c.id, c.post_id, c.parent_id, c.depth, c.author_id, u.username, u.avatar, c.content,
 		       c.like_count, c.dislike_count,
 		       EXISTS(SELECT 1 FROM schema_forum.comment_likes    WHERE comment_id = c.id AND user_id = $4) AS liked,
 		       EXISTS(SELECT 1 FROM schema_forum.comment_dislikes WHERE comment_id = c.id AND user_id = $4) AS disliked,
@@ -497,7 +497,7 @@ func (s *ForumService) ListComments(ctx context.Context, postID uint, page, limi
 	var comments []*model.Comment
 	for rows.Next() {
 		c := &model.Comment{}
-		if err := rows.Scan(&c.ID, &c.PostID, &c.ParentID, &c.Depth, &c.AuthorID, &c.AuthorName, &c.Content,
+		if err := rows.Scan(&c.ID, &c.PostID, &c.ParentID, &c.Depth, &c.AuthorID, &c.AuthorName, &c.AuthorAvatar, &c.Content,
 			&c.LikeCount, &c.DislikeCount, &c.Liked, &c.Disliked, &c.CreatedAt); err != nil {
 			return nil, 0, err
 		}
@@ -545,7 +545,7 @@ func (s *ForumService) CreateComment(ctx context.Context, authorID, postID uint,
 		return nil, fmt.Errorf("failed to create comment: %w", err)
 	}
 
-	_ = s.DB.QueryRow(ctx, `SELECT username FROM schema_auth.users WHERE id = $1`, authorID).Scan(&comment.AuthorName)
+	_ = s.DB.QueryRow(ctx, `SELECT username, avatar FROM schema_auth.users WHERE id = $1`, authorID).Scan(&comment.AuthorName, &comment.AuthorAvatar)
 
 	_, _ = s.DB.Exec(ctx, "UPDATE schema_forum.posts SET comment_count = comment_count + 1 WHERE id = $1", postID)
 

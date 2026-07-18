@@ -40,6 +40,7 @@ type Comment struct {
 	Depth        int       `json:"depth" db:"depth"`
 	AuthorID     uint      `json:"author_id" db:"author_id"`
 	AuthorName   string    `json:"author_name,omitempty" db:"-"`
+	AuthorAvatar string    `json:"author_avatar,omitempty" db:"-"`
 	Content      string    `json:"content" db:"content"`
 	LikeCount    int       `json:"like_count" db:"like_count"`
 	DislikeCount int       `json:"dislike_count" db:"dislike_count"`
@@ -94,6 +95,7 @@ type PostListItem struct {
 	Content      string    `json:"content,omitempty"`
 	AuthorID     uint      `json:"author_id"`
 	AuthorName   string    `json:"author_name"`
+	AuthorAvatar string    `json:"author_avatar,omitempty"`
 	BoardID      uint      `json:"board_id"`
 	BoardName    string    `json:"board_name"`
 	BoardSlug    string    `json:"board_slug,omitempty"`
@@ -115,6 +117,7 @@ type PostDetail struct {
 	Content      string       `json:"content"`
 	AuthorID     uint         `json:"author_id"`
 	AuthorName   string       `json:"author_name"`
+	AuthorAvatar string       `json:"author_avatar,omitempty"`
 	BoardID      uint         `json:"board_id"`
 	BoardName    string       `json:"board_name"`
 	Status       string       `json:"status"`
