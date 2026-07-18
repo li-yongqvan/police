@@ -14,3 +14,4 @@
 | 2026-07-18 10:13 | chore | fix: allow level zero posting and comments | phone | 974991a | [2026-07-18-101314-fix-allow-level-zero-posting-and-comments.md](entries/2026-07-18-101314-fix-allow-level-zero-posting-and-comments.md) |
 | 2026-07-18 10:41 | chore | fix: anchor search panel below trigger | phone | af5cc0d | [2026-07-18-104118-fix-anchor-search-panel-below-trigger.md](entries/2026-07-18-104118-fix-anchor-search-panel-below-trigger.md) |
 | 2026-07-18 10:58 | chore | fix: simplify forum profile fields | phone | 844f664 | [2026-07-18-105840-fix-simplify-forum-profile-fields.md](entries/2026-07-18-105840-fix-simplify-forum-profile-fields.md) |
+| 2026-07-18 11:58 | chore | fix: return forum author avatars | phone | 0b013f4 | [2026-07-18-115839-fix-return-forum-author-avatars.md](entries/2026-07-18-115839-fix-return-forum-author-avatars.md) |
