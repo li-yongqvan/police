@@ -4984,12 +4984,23 @@ a.gx-author-chip__name:hover {
   .gx-community-shell .gx-header__user-chip {
     width: 44px;
     height: 44px;
+    min-width: 44px;
     justify-content: center;
     padding: 0;
   }
 
+  .gx-community-shell .gx-header__user-name {
+    display: none !important;
+  }
+
   .gx-community-shell .gx-header__caret {
     display: none;
+  }
+
+  .gx-community-shell .gx-header__user-chip .gx-avatar-initial {
+    width: 36px !important;
+    height: 36px !important;
+    flex: 0 0 36px;
   }
 
   .gx-community-shell .gx-admin-fab {
