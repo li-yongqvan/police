@@ -227,7 +227,9 @@ export const userApi = {
   async uploadAvatar(id, file) {
     const form = new FormData()
     form.append('avatar', file)
-    await apiUpload('/user-api', `/api/v1/users/${id}/avatar`, form)
+    const payload = await apiUpload('/user-api', `/api/v1/users/${id}/avatar`, form)
+    if (payload?.user) return mapUser(payload.user)
+    if (payload?.id || payload?.username) return mapUser(payload)
     return userApi.me()
   },
   async listUsers(page = 1, limit = 20) {

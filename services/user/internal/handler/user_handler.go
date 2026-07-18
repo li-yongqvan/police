@@ -205,22 +205,22 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "头像上传成功",
-		"avatar":  user.Avatar,
-	})
+	role := h.Service.ResolveAppRole(c.Request.Context(), uint(id))
+	payload := toUserJSON(user.ToResponse(), role)
+	payload["message"] = "头像上传成功"
+	c.JSON(http.StatusOK, payload)
 }
 
 var demoRoleUsernames = map[string]string{
-	"student":         "demo_student",
-	"admin":           "demo_admin",
-	"platform_admin":  "demo_platform_admin",
+	"student":        "demo_student",
+	"admin":          "demo_admin",
+	"platform_admin": "demo_platform_admin",
 }
 
 var demoRoleFromUsername = map[string]string{
-	"demo_student":         "student",
-	"demo_admin":           "admin",
-	"demo_platform_admin":  "platform_admin",
+	"demo_student":        "student",
+	"demo_admin":          "admin",
+	"demo_platform_admin": "platform_admin",
 }
 
 // DemoLogin supports MVP one-click role login (password: 123456).

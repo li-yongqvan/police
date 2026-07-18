@@ -61,18 +61,30 @@ function onAvatarPick(event) {
   }
 }
 
+function persistCurrentUser(user) {
+  session.currentUser = user
+  localStorage.setItem('ai-forum-user', JSON.stringify(user))
+}
+
 async function saveProfile() {
   saving.value = true
+  uploadingAvatar.value = !!avatarFile.value
   try {
-    const user = await userApi.updateProfile(session.currentUser.id, {
+    let user = await userApi.updateProfile(session.currentUser.id, {
       ...form.value,
       profileCompleted: !!(form.value.department && form.value.squad && form.value.grade),
     })
-    session.currentUser = user
-    localStorage.setItem('ai-forum-user', JSON.stringify(user))
+    if (avatarFile.value) {
+      user = await userApi.uploadAvatar(user.id, avatarFile.value)
+      avatarFile.value = null
+      avatarFileName.value = ''
+      clearAvatarPreview()
+    }
+    persistCurrentUser(user)
     session.setFlash('资料已保存', 'success')
   } finally {
     saving.value = false
+    uploadingAvatar.value = false
   }
 }
 
@@ -81,8 +93,7 @@ async function saveAvatar() {
   uploadingAvatar.value = true
   try {
     const user = await userApi.uploadAvatar(session.currentUser.id, avatarFile.value)
-    session.currentUser = user
-    localStorage.setItem('ai-forum-user', JSON.stringify(user))
+    persistCurrentUser(user)
     avatarFile.value = null
     avatarFileName.value = ''
     clearAvatarPreview()
@@ -228,7 +239,7 @@ onBeforeUnmount(clearAvatarPreview)
                   type="button"
                   variant="secondary"
                   size="sm"
-                  :disabled="!avatarFile || uploadingAvatar"
+                  :disabled="!avatarFile || uploadingAvatar || saving"
                   @click="saveAvatar"
                 >
                   {{ uploadingAvatar ? '上传中…' : '上传头像' }}
