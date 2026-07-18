@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { onKeyStroke } from '@vueuse/core'
 import { useSearchPanel } from '../../composables/useSearchPanel'
@@ -11,7 +11,65 @@ const session = useSessionStore()
 const { isOpen, close } = useSearchPanel()
 
 const keyword = ref('')
-const inputRef = ref(null)
+const desktopInputRef = ref(null)
+const mobileInputRef = ref(null)
+const panelStyle = ref({})
+
+function isMobileViewport() {
+  return window.matchMedia('(max-width: 767.98px)').matches
+}
+
+function visibleSearchTrigger() {
+  return Array.from(document.querySelectorAll('[data-search-trigger]')).find((el) => {
+    const rect = el.getBoundingClientRect()
+    const styles = window.getComputedStyle(el)
+    return rect.width > 0 && rect.height > 0 && styles.display !== 'none' && styles.visibility !== 'hidden'
+  })
+}
+
+function updatePanelPosition() {
+  const trigger = visibleSearchTrigger()
+  const mobile = isMobileViewport()
+  const margin = mobile ? 12 : 16
+  const gap = mobile ? 8 : 4
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight
+  let width = mobile ? viewportWidth - margin * 2 : Math.min(560, viewportWidth - margin * 2)
+  const fallbackTop = mobile ? 70 : 72
+
+  let top = fallbackTop
+  let left = mobile ? margin : Math.max(margin, viewportWidth - width - margin)
+
+  if (trigger) {
+    const rect = trigger.getBoundingClientRect()
+    top = rect.bottom + gap
+    if (mobile) {
+      left = margin
+      width = viewportWidth - margin * 2
+    } else {
+      left = Math.max(rect.left, margin)
+      width = Math.min(560, viewportWidth - left - margin)
+      if (width < 360) {
+        width = Math.min(560, viewportWidth - margin * 2)
+        left = Math.max(margin, viewportWidth - width - margin)
+      }
+    }
+  }
+
+  left = Math.min(Math.max(left, margin), Math.max(margin, viewportWidth - width - margin))
+  top = Math.min(Math.max(top, margin), Math.max(margin, viewportHeight - 160))
+
+  panelStyle.value = {
+    '--gx-search-panel-top': `${top}px`,
+    '--gx-search-panel-left': `${left}px`,
+    '--gx-search-panel-width': `${Math.max(0, width)}px`,
+  }
+}
+
+function focusActiveInput() {
+  const input = isMobileViewport() ? mobileInputRef.value : desktopInputRef.value
+  input?.focus()
+}
 
 const role = computed(() => session.currentUser?.role)
 const roleLabel = computed(() => {
@@ -91,12 +149,24 @@ function searchPosts() {
 watch(isOpen, async (val) => {
   if (val) {
     keyword.value = ''
+    updatePanelPosition()
+    window.addEventListener('resize', updatePanelPosition)
+    window.addEventListener('scroll', updatePanelPosition, true)
     await nextTick()
-    inputRef.value?.focus()
+    updatePanelPosition()
+    focusActiveInput()
     document.body.classList.add('mw-drawer-open')
   } else {
+    window.removeEventListener('resize', updatePanelPosition)
+    window.removeEventListener('scroll', updatePanelPosition, true)
     document.body.classList.remove('mw-drawer-open')
   }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updatePanelPosition)
+  window.removeEventListener('scroll', updatePanelPosition, true)
+  document.body.classList.remove('mw-drawer-open')
 })
 
 onKeyStroke('Escape', close)
@@ -114,13 +184,13 @@ onKeyStroke(['Control', 'k'], (e) => {
 <template>
   <Teleport to="body">
     <Transition name="search-panel">
-      <div v-if="isOpen" class="gx-search-overlay" @click.self="close">
-        <!-- Desktop: centered dialog -->
+      <div v-if="isOpen" class="gx-search-overlay" :style="panelStyle" @click.self="close">
+        <!-- Desktop: search-trigger anchored panel -->
         <div class="gx-search-panel">
           <div class="gx-search-panel__header">
             <GxIcon name="search" :size="18" class="text-gx-muted" />
             <input
-              ref="inputRef"
+              ref="desktopInputRef"
               v-model="keyword"
               type="search"
               placeholder="搜索页面、功能或帖子..."
@@ -159,13 +229,12 @@ onKeyStroke(['Control', 'k'], (e) => {
           </div>
         </div>
 
-        <!-- Mobile: bottom sheet -->
+        <!-- Mobile: search-trigger anchored panel -->
         <div class="gx-search-sheet">
-          <div class="gx-search-sheet__handle" />
           <div class="gx-search-sheet__header">
             <GxIcon name="search" :size="18" class="text-gx-muted shrink-0" />
             <input
-              ref="inputRef"
+              ref="mobileInputRef"
               v-model="keyword"
               type="search"
               placeholder="搜索页面、功能或帖子..."
@@ -215,9 +284,7 @@ onKeyStroke(['Control', 'k'], (e) => {
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  background: transparent;
 }
 
 .gx-search-panel__section {
@@ -285,13 +352,15 @@ onKeyStroke(['Control', 'k'], (e) => {
   font-size: 14px;
 }
 
-/* ====== Desktop: centered dialog ====== */
+/* ====== Desktop: search-trigger anchored dropdown ====== */
 .gx-search-panel {
+  position: fixed;
+  top: var(--gx-search-panel-top, 72px);
+  left: var(--gx-search-panel-left, 16px);
   display: none;
   flex-direction: column;
-  width: 480px;
-  max-height: 60vh;
-  margin: auto;
+  width: var(--gx-search-panel-width, min(560px, calc(100vw - 32px)));
+  max-height: min(70vh, calc(100vh - var(--gx-search-panel-top, 72px) - 16px));
   background: var(--color-surface, #fff);
   border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 12px;
@@ -333,26 +402,23 @@ onKeyStroke(['Control', 'k'], (e) => {
   padding: 4px;
 }
 
-/* ====== Mobile: bottom sheet ====== */
+/* ====== Mobile: search-trigger anchored dropdown ====== */
 .gx-search-sheet {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-height: 80vh;
+  top: var(--gx-search-panel-top, 70px);
+  left: var(--gx-search-panel-left, 12px);
+  width: var(--gx-search-panel-width, calc(100vw - 24px));
+  max-height: min(72vh, calc(100vh - var(--gx-search-panel-top, 70px) - 12px));
   display: flex;
   flex-direction: column;
   background: var(--color-surface, #fff);
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 24px rgba(15, 43, 91, 0.16);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 16px;
+  box-shadow: 0 18px 42px rgba(15, 43, 91, 0.22);
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
-  .gx-search-overlay {
-    align-items: center;
-  }
-
   .gx-search-panel {
     display: flex;
   }
@@ -360,15 +426,6 @@ onKeyStroke(['Control', 'k'], (e) => {
   .gx-search-sheet {
     display: none;
   }
-}
-
-.gx-search-sheet__handle {
-  width: 36px;
-  height: 5px;
-  margin: 10px auto 4px;
-  border-radius: 999px;
-  background: var(--color-border, #d1d5db);
-  flex-shrink: 0;
 }
 
 .gx-search-sheet__header {
@@ -418,7 +475,7 @@ onKeyStroke(['Control', 'k'], (e) => {
 /* ====== Touch ====== */
 @media (max-width: 767.98px) {
   .gx-search-overlay {
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(15, 43, 91, 0.12);
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
   }
@@ -441,7 +498,7 @@ onKeyStroke(['Control', 'k'], (e) => {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .search-panel-enter-active .gx-search-sheet {
-  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .search-panel-leave-active {
@@ -451,7 +508,7 @@ onKeyStroke(['Control', 'k'], (e) => {
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .search-panel-leave-active .gx-search-sheet {
-  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .search-panel-enter-from {
@@ -459,10 +516,11 @@ onKeyStroke(['Control', 'k'], (e) => {
 }
 .search-panel-enter-from .gx-search-panel {
   opacity: 0;
-  transform: scale(0.96);
+  transform: translateY(-8px) scale(0.98);
 }
 .search-panel-enter-from .gx-search-sheet {
-  transform: translateY(100%);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
 }
 
 .search-panel-leave-to {
@@ -470,9 +528,10 @@ onKeyStroke(['Control', 'k'], (e) => {
 }
 .search-panel-leave-to .gx-search-panel {
   opacity: 0;
-  transform: scale(0.96);
+  transform: translateY(-8px) scale(0.98);
 }
 .search-panel-leave-to .gx-search-sheet {
-  transform: translateY(100%);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
 }
 </style>

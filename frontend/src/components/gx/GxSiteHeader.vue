@@ -95,6 +95,7 @@ function doLogout() {
         <button
           type="button"
           class="gx-header__search-btn hidden md:flex"
+          data-search-trigger
           aria-label="搜索帖子"
           @click="openSearch"
         >
@@ -104,6 +105,7 @@ function doLogout() {
         <button
           type="button"
           class="gx-header__icon-btn md:hidden"
+          data-search-trigger
           aria-label="搜索帖子"
           @click="openSearch"
         >
