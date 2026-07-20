@@ -20,3 +20,4 @@
 | 2026-07-20 10:01 | chore | Add frontend and Go quality tooling | phone | d52fbd6 | [2026-07-20-100113-add-frontend-and-go-quality-tooling.md](entries/2026-07-20-100113-add-frontend-and-go-quality-tooling.md) |
 | 2026-07-20 11:31 | chore | Fix attachment draft reset on compose changes | phone | 5a234da | [2026-07-20-113147-fix-attachment-draft-reset-on-compose-changes.md](entries/2026-07-20-113147-fix-attachment-draft-reset-on-compose-changes.md) |
 | 2026-07-20 11:53 | chore | Fix board rules link navigation | phone | 1006365 | [2026-07-20-115317-fix-board-rules-link-navigation.md](entries/2026-07-20-115317-fix-board-rules-link-navigation.md) |
+| 2026-07-20 11:57 | chore | fix forum pilot regressions | phone | ffaf0bb | [2026-07-20-115714-fix-forum-pilot-regressions.md](entries/2026-07-20-115714-fix-forum-pilot-regressions.md) |
