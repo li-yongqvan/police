@@ -18,3 +18,4 @@
 | 2026-07-18 12:09 | chore | fix: prioritize mobile header avatar | phone | 69d18df | [2026-07-18-120917-fix-prioritize-mobile-header-avatar.md](entries/2026-07-18-120917-fix-prioritize-mobile-header-avatar.md) |
 | 2026-07-20 09:32 | chore | fix: disable search keyboard shortcut | phone | 9b13f2b | [2026-07-20-093226-fix-disable-search-keyboard-shortcut.md](entries/2026-07-20-093226-fix-disable-search-keyboard-shortcut.md) |
 | 2026-07-20 10:01 | chore | Add frontend and Go quality tooling | phone | d52fbd6 | [2026-07-20-100113-add-frontend-and-go-quality-tooling.md](entries/2026-07-20-100113-add-frontend-and-go-quality-tooling.md) |
+| 2026-07-20 11:31 | chore | Fix attachment draft reset on compose changes | phone | 5a234da | [2026-07-20-113147-fix-attachment-draft-reset-on-compose-changes.md](entries/2026-07-20-113147-fix-attachment-draft-reset-on-compose-changes.md) |
