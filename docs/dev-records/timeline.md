@@ -26,3 +26,4 @@
 | 2026-07-20 14:53 | chore | Show feed trend rail without vote arrows | phone | 3a5c95d | [2026-07-20-145314-show-feed-trend-rail-without-vote-arrows.md](entries/2026-07-20-145314-show-feed-trend-rail-without-vote-arrows.md) |
 | 2026-07-20 15:14 | chore | Use flame up icon for hot trend | phone | a6fb8a5 | [2026-07-20-151456-use-flame-up-icon-for-hot-trend.md](entries/2026-07-20-151456-use-flame-up-icon-for-hot-trend.md) |
 | 2026-07-20 15:26 | chore | fix repeated avatar uploads | phone | 2e765d1 | [2026-07-20-152637-fix-repeated-avatar-uploads.md](entries/2026-07-20-152637-fix-repeated-avatar-uploads.md) |
+| 2026-07-20 15:29 | chore | Fix trend fallback for missing scores | phone | d165d31 | [2026-07-20-152900-fix-trend-fallback-for-missing-scores.md](entries/2026-07-20-152900-fix-trend-fallback-for-missing-scores.md) |
