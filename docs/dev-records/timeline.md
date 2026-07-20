@@ -16,3 +16,4 @@
 | 2026-07-18 10:58 | chore | fix: simplify forum profile fields | phone | 844f664 | [2026-07-18-105840-fix-simplify-forum-profile-fields.md](entries/2026-07-18-105840-fix-simplify-forum-profile-fields.md) |
 | 2026-07-18 11:58 | chore | fix: return forum author avatars | phone | 0b013f4 | [2026-07-18-115839-fix-return-forum-author-avatars.md](entries/2026-07-18-115839-fix-return-forum-author-avatars.md) |
 | 2026-07-18 12:09 | chore | fix: prioritize mobile header avatar | phone | 69d18df | [2026-07-18-120917-fix-prioritize-mobile-header-avatar.md](entries/2026-07-18-120917-fix-prioritize-mobile-header-avatar.md) |
+| 2026-07-20 09:32 | chore | fix: disable search keyboard shortcut | phone | 9b13f2b | [2026-07-20-093226-fix-disable-search-keyboard-shortcut.md](entries/2026-07-20-093226-fix-disable-search-keyboard-shortcut.md) |
