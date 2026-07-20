@@ -170,15 +170,6 @@ onBeforeUnmount(() => {
 })
 
 onKeyStroke('Escape', close)
-
-onKeyStroke(['Meta', 'k'], (e) => {
-  e.preventDefault()
-  isOpen.value ? close() : (isOpen.value = true)
-})
-onKeyStroke(['Control', 'k'], (e) => {
-  e.preventDefault()
-  isOpen.value ? close() : (isOpen.value = true)
-})
 </script>
 
 <template>

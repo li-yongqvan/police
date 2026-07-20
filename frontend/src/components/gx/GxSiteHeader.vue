@@ -100,7 +100,7 @@ function doLogout() {
           @click="openSearch"
         >
           <GxIcon name="search" :size="18" />
-          <span class="gx-header__search-placeholder">Ctrl+K</span>
+          <span class="gx-header__search-placeholder">搜索</span>
         </button>
         <button
           type="button"
