@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxComposeShell from '../components/gx/GxComposeShell.vue'
@@ -20,6 +20,7 @@ const boards = ref([])
 const uploading = ref(false)
 const sensWordDialog = ref({ open: false, words: [] })
 const needsLevelForAttachment = computed(() => (session.currentUser?.level ?? 0) < 2)
+const attachmentFileInput = ref(null)
 
 const breadcrumbItems = [
   { label: '首页', to: '/community' },
@@ -67,6 +68,27 @@ function applyBoardFromQuery() {
   const match = boards.value.find((board) => board.slug === slug)
   if (match) form.value.boardId = match.id
 }
+
+function clearAttachmentDraft() {
+  form.value.attachmentUrl = ''
+  form.value.attachmentFile = null
+  if (attachmentFileInput.value) {
+    attachmentFileInput.value.value = ''
+  }
+}
+
+function selectAttachmentType(type) {
+  if (needsLevelForAttachment.value) return
+  form.value.attachmentType = type
+}
+
+watch(() => form.value.attachmentType, clearAttachmentDraft)
+watch(
+  () => form.value.boardId,
+  (next, prev) => {
+    if (prev && next !== prev) clearAttachmentDraft()
+  },
+)
 
 onMounted(async () => {
   boards.value = await forumApi.getBoards()
@@ -189,9 +211,10 @@ async function submit() {
             :key="type.id"
             type="button"
             class="gx-compose-channel"
+            :data-attachment-type="type.id"
             :class="{ 'is-active': form.attachmentType === type.id, 'is-disabled': needsLevelForAttachment }"
             :disabled="needsLevelForAttachment"
-            @click="form.attachmentType = type.id"
+            @click="selectAttachmentType(type.id)"
           >
             <span class="gx-compose-channel__icon" aria-hidden="true">
               <GxIcon :name="type.icon" :size="18" />
@@ -249,6 +272,7 @@ async function submit() {
           <label v-else class="gx-compose-file">
             <input
               id="attach-file"
+              ref="attachmentFileInput"
               type="file"
               class="gx-compose-file__input"
               @change="(event) => (form.attachmentFile = event.target.files?.[0])"
