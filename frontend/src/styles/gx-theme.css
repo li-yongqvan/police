@@ -4140,6 +4140,10 @@ a.gx-author-chip__name:hover {
 .gx-vote-rail--compact {
   padding-top: 10px;
 }
+.gx-vote-rail--trend-only {
+  justify-content: center;
+  padding: 0 4px;
+}
 .gx-vote-rail__btn {
   display: grid;
   place-items: center;
@@ -4179,22 +4183,22 @@ a.gx-author-chip__name:hover {
 .gx-vote-rail__trend {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: rgba(15, 43, 91, 0.06);
   color: var(--color-muted);
 }
 .gx-vote-rail__trend.is-hot {
-  background: rgba(232, 85, 45, 0.12);
+  background: rgba(232, 85, 45, 0.14);
   color: #d94d27;
 }
 .gx-vote-rail__trend.is-rise {
-  background: rgba(43, 132, 92, 0.12);
-  color: #218451;
+  background: rgba(245, 137, 39, 0.16);
+  color: #d26a13;
 }
 .gx-vote-rail__trend.is-warm {
-  background: rgba(244, 164, 56, 0.14);
+  background: rgba(244, 164, 56, 0.18);
   color: #b96b13;
 }
 .gx-vote-rail__trend.is-stable,
@@ -4203,13 +4207,13 @@ a.gx-author-chip__name:hover {
   color: var(--color-primary);
 }
 .gx-vote-rail__trend.is-cool {
-  background: rgba(64, 120, 192, 0.12);
-  color: #326eb8;
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
 }
 .gx-vote-rail__trend.is-fall,
 .gx-vote-rail__trend.is-fall-strong {
-  background: rgba(116, 93, 148, 0.12);
-  color: #664f91;
+  background: rgba(14, 116, 144, 0.12);
+  color: #0e7490;
 }
 .gx-feed-card__body {
   padding: 10px 12px 12px;

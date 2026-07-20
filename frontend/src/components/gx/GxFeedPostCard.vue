@@ -118,6 +118,7 @@ async function onVote() {
       :trend-tone="trendBadge.tone"
       :trend-label="trendBadge.label"
       compact
+      trend-only
       @vote="onVote"
     />
     <div class="gx-feed-card__body">

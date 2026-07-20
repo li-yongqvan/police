@@ -12,6 +12,7 @@ const props = defineProps({
   trendIcon: { type: String, default: '' },
   trendTone: { type: String, default: 'stable' },
   trendLabel: { type: String, default: '' },
+  trendOnly: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['vote', 'dislike'])
@@ -34,10 +35,16 @@ function onDislike() {
 <template>
   <div
     class="gx-vote-rail"
-    :class="{ 'gx-vote-rail--compact': compact, 'gx-vote-rail--liked': liked, 'gx-vote-rail--disliked': disliked }"
+    :class="{
+      'gx-vote-rail--compact': compact,
+      'gx-vote-rail--trend-only': trendOnly,
+      'gx-vote-rail--liked': liked,
+      'gx-vote-rail--disliked': disliked,
+    }"
     @click.stop
   >
     <button
+      v-if="!trendOnly"
       type="button"
       class="gx-vote-rail__btn"
       :class="{ 'is-active': liked }"
@@ -65,6 +72,7 @@ function onDislike() {
       {{ label }}
     </span>
     <button
+      v-if="!trendOnly"
       type="button"
       class="gx-vote-rail__btn gx-vote-rail__btn--down"
       :class="{ 'is-active': disliked }"
