@@ -21,6 +21,7 @@ const form = ref({
 const avatarFile = ref(null)
 const avatarFileName = ref('')
 const avatarPreviewUrl = ref('')
+const avatarInput = ref(null)
 const saving = ref(false)
 const uploadingAvatar = ref(false)
 
@@ -52,6 +53,14 @@ function onAvatarPick(event) {
   }
 }
 
+function clearAvatarFile() {
+  avatarFile.value = null
+  avatarFileName.value = ''
+  if (avatarInput.value) {
+    avatarInput.value.value = ''
+  }
+}
+
 function persistCurrentUser(user) {
   session.currentUser = user
   localStorage.setItem('ai-forum-user', JSON.stringify(user))
@@ -69,8 +78,7 @@ async function saveProfile() {
     })
     if (avatarFile.value) {
       user = await userApi.uploadAvatar(user.id, avatarFile.value)
-      avatarFile.value = null
-      avatarFileName.value = ''
+      clearAvatarFile()
       clearAvatarPreview()
     }
     persistCurrentUser(user)
@@ -87,8 +95,7 @@ async function saveAvatar() {
   try {
     const user = await userApi.uploadAvatar(session.currentUser.id, avatarFile.value)
     persistCurrentUser(user)
-    avatarFile.value = null
-    avatarFileName.value = ''
+    clearAvatarFile()
     clearAvatarPreview()
     session.setFlash('头像已更新', 'success')
   } finally {
@@ -185,6 +192,7 @@ onBeforeUnmount(clearAvatarPreview)
                 <label class="gx-file-upload__btn" for="pf-avatar">选择图片</label>
                 <input
                   id="pf-avatar"
+                  ref="avatarInput"
                   type="file"
                   accept="image/*"
                   class="gx-file-upload__input"

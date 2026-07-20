@@ -184,8 +184,7 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	}
 
 	// Save to local filesystem
-	ext := filepath.Ext(file.Filename)
-	filename := strconv.FormatUint(id, 10) + "_" + time.Now().Format("20060102150405") + ext
+	filename := avatarFilename(uint(id), file.Filename, time.Now())
 	uploadDir := "/data/uploads/avatars"
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		log.Printf("Failed to create avatar directory: %v", err)
@@ -213,6 +212,11 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	payload := toUserJSON(user.ToResponse(), role)
 	payload["message"] = "头像上传成功"
 	c.JSON(http.StatusOK, payload)
+}
+
+func avatarFilename(userID uint, originalName string, now time.Time) string {
+	ext := filepath.Ext(originalName)
+	return strconv.FormatUint(uint64(userID), 10) + "_" + strconv.FormatInt(now.UnixNano(), 10) + ext
 }
 
 var demoRoleUsernames = map[string]string{
