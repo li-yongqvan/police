@@ -21,3 +21,4 @@
 | 2026-07-20 11:31 | chore | Fix attachment draft reset on compose changes | phone | 5a234da | [2026-07-20-113147-fix-attachment-draft-reset-on-compose-changes.md](entries/2026-07-20-113147-fix-attachment-draft-reset-on-compose-changes.md) |
 | 2026-07-20 11:53 | chore | Fix board rules link navigation | phone | 1006365 | [2026-07-20-115317-fix-board-rules-link-navigation.md](entries/2026-07-20-115317-fix-board-rules-link-navigation.md) |
 | 2026-07-20 11:57 | chore | fix forum pilot regressions | phone | ffaf0bb | [2026-07-20-115714-fix-forum-pilot-regressions.md](entries/2026-07-20-115714-fix-forum-pilot-regressions.md) |
+| 2026-07-20 12:27 | chore | Move post trend indicator into metadata | phone | edf1b7e | [2026-07-20-122718-move-post-trend-indicator-into-metadata.md](entries/2026-07-20-122718-move-post-trend-indicator-into-metadata.md) |
