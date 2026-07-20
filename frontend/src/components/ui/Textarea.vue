@@ -24,6 +24,7 @@ defineEmits(['update:modelValue'])
         $attrs.class,
       )
     "
+    @keydown.stop
     @input="$emit('update:modelValue', $event.target.value)"
   />
 </template>

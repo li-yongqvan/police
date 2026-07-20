@@ -12,11 +12,12 @@ import (
 // InteractionHandler handles likes and collections.
 type InteractionHandler struct {
 	Service *service.ForumService
+	Extras  *service.ExtrasService
 }
 
 // NewInteractionHandler creates a new InteractionHandler.
-func NewInteractionHandler(svc *service.ForumService) *InteractionHandler {
-	return &InteractionHandler{Service: svc}
+func NewInteractionHandler(svc *service.ForumService, extras *service.ExtrasService) *InteractionHandler {
+	return &InteractionHandler{Service: svc, Extras: extras}
 }
 
 // LikePost handles liking a post.
@@ -32,6 +33,11 @@ func (h *InteractionHandler) LikePost(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to like post"})
 		return
+	}
+	if resp.Liked && h.Extras != nil {
+		if meta, err := h.Service.GetPostNotifyMeta(c.Request.Context(), uint(postID)); err == nil {
+			h.Extras.NotifyPostAuthorOnLike(c.Request.Context(), uint(postID), meta.AuthorID, userID, meta.Title)
+		}
 	}
 	c.JSON(http.StatusOK, resp)
 }
@@ -83,6 +89,11 @@ func (h *InteractionHandler) LikeComment(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to like comment"})
 		return
+	}
+	if resp.Liked && h.Extras != nil {
+		if meta, err := h.Service.GetCommentNotifyMeta(c.Request.Context(), uint(commentID)); err == nil {
+			h.Extras.NotifyCommentAuthorOnLike(c.Request.Context(), meta.PostID, meta.AuthorID, userID, meta.PostTitle)
+		}
 	}
 	c.JSON(http.StatusOK, resp)
 }

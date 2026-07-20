@@ -211,3 +211,19 @@ func (s *ExtrasService) NotifyPostAuthorOnComment(ctx context.Context, postID, a
 	body := fmt.Sprintf("你的帖子《%s》收到新回复", title)
 	_ = s.CreateNotification(ctx, authorID, "reply", "收到新回复", body, &postID)
 }
+
+func (s *ExtrasService) NotifyPostAuthorOnLike(ctx context.Context, postID, authorID, likerID uint, title string) {
+	if authorID == likerID {
+		return
+	}
+	body := fmt.Sprintf("你的帖子《%s》收到了新的点赞", title)
+	_ = s.CreateNotification(ctx, authorID, "like", "收到新的点赞", body, &postID)
+}
+
+func (s *ExtrasService) NotifyCommentAuthorOnLike(ctx context.Context, postID, authorID, likerID uint, postTitle string) {
+	if authorID == likerID {
+		return
+	}
+	body := fmt.Sprintf("你在帖子《%s》下的评论收到了新的点赞", postTitle)
+	_ = s.CreateNotification(ctx, authorID, "like", "评论收到点赞", body, &postID)
+}

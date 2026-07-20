@@ -75,7 +75,7 @@ func main() {
 	reportHandler := handler.NewReportHandler(extrasService)
 	reportAdminHandler := handler.NewReportAdminHandler(extrasService)
 	communityHandler := handler.NewCommunityHandler(extrasService)
-	interactionHandler := handler.NewInteractionHandler(forumService)
+	interactionHandler := handler.NewInteractionHandler(forumService, extrasService)
 	attachmentHandler := handler.NewAttachmentHandler(forumService)
 
 	// Initialize forum admin service and handler

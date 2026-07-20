@@ -70,19 +70,21 @@ func (s *UserService) ResolveAppRole(ctx context.Context, userID uint) string {
 }
 
 // Register creates a new user account with invite code validation
-func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) (*model.User, string, error) {
+func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) (*model.User, string, string, error) {
 	// Validate invite code exists and is unused
+	inviteCode := strings.ToUpper(strings.TrimSpace(req.InvitationCode))
+	reusableInvite := s.isReusableInviteCode(inviteCode)
 	var codeStatus string
 	var codeID int64
 	err := s.DB.QueryRow(ctx,
 		"SELECT id, status FROM schema_auth.invite_codes WHERE code = $1",
-		req.InvitationCode,
+		inviteCode,
 	).Scan(&codeID, &codeStatus)
 	if err != nil {
-		return nil, "", fmt.Errorf("无效邀请码")
+		return nil, "", "", fmt.Errorf("无效邀请码")
 	}
-	if codeStatus != "unused" {
-		return nil, "", fmt.Errorf("邀请码已被使用或已作废")
+	if codeStatus != "unused" && !reusableInvite {
+		return nil, "", "", fmt.Errorf("邀请码已被使用或已作废")
 	}
 
 	// Check username uniqueness
@@ -92,22 +94,22 @@ func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) 
 		req.Username,
 	).Scan(&exists)
 	if err != nil {
-		return nil, "", fmt.Errorf("database error: %w", err)
+		return nil, "", "", fmt.Errorf("database error: %w", err)
 	}
 	if exists {
-		return nil, "", fmt.Errorf("用户名已被占用")
+		return nil, "", "", fmt.Errorf("用户名已被占用")
 	}
 
 	// Hash password
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 12)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to hash password: %w", err)
+		return nil, "", "", fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	// Start transaction
 	tx, err := s.DB.Begin(ctx)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, "", "", fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
@@ -124,20 +126,22 @@ func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) 
 		&user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to create user: %w", err)
+		return nil, "", "", fmt.Errorf("failed to create user: %w", err)
 	}
 
-	// Mark invite code as used
-	_, err = tx.Exec(ctx,
-		"UPDATE schema_auth.invite_codes SET status = 'used', used_by = $1, used_at = NOW() WHERE id = $2",
-		user.ID, codeID,
-	)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to update invite code: %w", err)
+	// Mark invite code as used unless it is configured for internal test reuse.
+	if !reusableInvite {
+		_, err = tx.Exec(ctx,
+			"UPDATE schema_auth.invite_codes SET status = 'used', used_by = $1, used_at = NOW() WHERE id = $2",
+			user.ID, codeID,
+		)
+		if err != nil {
+			return nil, "", "", fmt.Errorf("failed to update invite code: %w", err)
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, "", fmt.Errorf("failed to commit transaction: %w", err)
+		return nil, "", "", fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	// Generate tokens
@@ -145,13 +149,26 @@ func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) 
 	role := s.resolveJWTReole(ctx, user.ID)
 	token, err := jwt.GenerateToken(user.ID, user.Username, role, user.Level, secret, accessTokenExpiry)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to generate token: %w", err)
+		return nil, "", "", fmt.Errorf("failed to generate token: %w", err)
 	}
 	refreshToken := jwt.GenerateRefreshToken()
 	redisKey := fmt.Sprintf("refresh:%d", user.ID)
 	s.RDB.Set(ctx, redisKey, refreshToken, refreshTokenExpiry)
 
-	return &user, token, nil
+	return &user, token, refreshToken, nil
+}
+
+func (s *UserService) isReusableInviteCode(code string) bool {
+	raw := os.Getenv("REUSABLE_INVITE_CODES")
+	if strings.TrimSpace(raw) == "" && os.Getenv("APP_ENV") != "production" {
+		raw = "DEMO2026"
+	}
+	for _, part := range strings.Split(raw, ",") {
+		if strings.ToUpper(strings.TrimSpace(part)) == code {
+			return true
+		}
+	}
+	return false
 }
 
 // Login authenticates a user and returns JWT tokens

@@ -159,15 +159,19 @@ function persistTokens(payload) {
 
 export const userApi = {
   async register({ username, password, invitationCode }) {
-    await request('/user-api', '/api/v1/register', {
+    const payload = await request('/user-api', '/api/v1/register', {
       method: 'POST',
       headers: authHeaders(true, null),
       body: JSON.stringify({
         username,
         password,
-        invitation_code: invitationCode,
+        invitation_code: invitationCode?.trim().toUpperCase(),
       }),
     })
+    const token = persistTokens(payload)
+    if (token && payload.user) {
+      return { token, user: mapUser(payload.user), refreshToken: payload.refresh_token }
+    }
     return userApi.login(username, password)
   },
   async login(username, password) {

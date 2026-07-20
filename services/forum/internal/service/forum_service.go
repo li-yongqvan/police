@@ -288,6 +288,26 @@ func (s *ForumService) GetPostNotifyMeta(ctx context.Context, id uint) (*PostNot
 	return meta, nil
 }
 
+type CommentNotifyMeta struct {
+	AuthorID  uint
+	PostID    uint
+	PostTitle string
+}
+
+func (s *ForumService) GetCommentNotifyMeta(ctx context.Context, id uint) (*CommentNotifyMeta, error) {
+	meta := &CommentNotifyMeta{}
+	err := s.DB.QueryRow(ctx, `
+		SELECT c.author_id, c.post_id, p.title
+		FROM schema_forum.comments c
+		JOIN schema_forum.posts p ON p.id = c.post_id
+		WHERE c.id = $1
+	`, id).Scan(&meta.AuthorID, &meta.PostID, &meta.PostTitle)
+	if err != nil {
+		return nil, err
+	}
+	return meta, nil
+}
+
 // GetPost returns full post detail with attachments
 func (s *ForumService) GetPost(ctx context.Context, id uint, viewerID uint) (*model.PostDetail, error) {
 	detail := &model.PostDetail{}

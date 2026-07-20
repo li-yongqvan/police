@@ -33,15 +33,19 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, _, err := h.Service.Register(c.Request.Context(), &req)
+	user, accessToken, refreshToken, err := h.Service.Register(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	role := h.Service.ResolveAppRole(c.Request.Context(), user.ID)
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "注册成功",
-		"user":    user.ToResponse(),
+		"message":       "注册成功",
+		"token":         accessToken,
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"user":          toUserJSON(user.ToResponse(), role),
 	})
 }
 
