@@ -41,7 +41,7 @@ func (h *AttachmentHandler) UploadAttachment(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"id":       attachment.ID,
+			"id":        attachment.ID,
 			"file_type": "link",
 			"file_path": linkURL,
 		})
@@ -55,7 +55,8 @@ func (h *AttachmentHandler) UploadAttachment(c *gin.Context) {
 	}
 
 	// Validate file
-	if attachmentType == "image" {
+	switch attachmentType {
+	case "image":
 		allowedImageTypes := map[string]bool{
 			"image/jpeg": true,
 			"image/png":  true,
@@ -82,7 +83,7 @@ func (h *AttachmentHandler) UploadAttachment(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "图片大小不能超过10MB"})
 			return
 		}
-	} else if attachmentType == "document" {
+	case "document":
 		allowedExtensions := map[string]bool{
 			".pdf":  true,
 			".doc":  true,
@@ -100,7 +101,7 @@ func (h *AttachmentHandler) UploadAttachment(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "文档大小不能超过20MB"})
 			return
 		}
-	} else {
+	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的文件类型"})
 		return
 	}

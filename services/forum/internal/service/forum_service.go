@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"ai-forum/forum-service/internal/client"
 	"ai-forum/forum-service/internal/model"
@@ -102,7 +103,6 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID, authorID uint, pa
 	if keyword != "" {
 		countQuery += fmt.Sprintf(" AND (title ILIKE $%d OR content ILIKE $%d)", argN, argN)
 		args = append(args, "%"+keyword+"%")
-		argN++
 	}
 	countQuery += postSortCountFilter(sort)
 	var total int
@@ -134,7 +134,6 @@ func (s *ForumService) ListPosts(ctx context.Context, boardID, authorID uint, pa
 	if keyword != "" {
 		query += fmt.Sprintf(" AND (p.title ILIKE $%d OR p.content ILIKE $%d)", qN, qN)
 		qArgs = append(qArgs, "%"+keyword+"%")
-		qN++
 	}
 	query += postSortListFilter(sort)
 	query += postSortOrderBy(sort)
@@ -378,7 +377,7 @@ func (s *ForumService) CreatePost(ctx context.Context, authorID uint, req *model
 			post.ID, req.AttachmentIDs, authorID,
 		)
 		if err != nil {
-			// Non-fatal, log warning
+			log.Printf("forum: failed to link attachments for post %d: %v", post.ID, err)
 		}
 	}
 

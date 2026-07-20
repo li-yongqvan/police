@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import * as Sentry from '@sentry/vue'
 import App from './App.vue'
 import router from './router'
 import { setUnauthorizedHandler } from './api/http'
@@ -17,6 +18,18 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
+
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN
+
+if (sentryDsn) {
+  Sentry.init({
+    app,
+    dsn: sentryDsn,
+    environment: import.meta.env.MODE,
+    integrations: [Sentry.browserTracingIntegration({ router })],
+    tracesSampleRate: Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? 0),
+  })
+}
 
 setUnauthorizedHandler(() => {
   const session = useSessionStore()
