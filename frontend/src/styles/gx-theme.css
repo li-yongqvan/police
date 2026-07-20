@@ -4108,7 +4108,9 @@ a.gx-author-chip__name:hover {
   color: #fff;
 }
 .gx-feed-card {
-  display: block;
+  display: grid;
+  grid-template-columns: var(--gx-vote-rail-w) minmax(0, 1fr);
+  gap: 0;
   border: 1px solid #e8e8e8;
   border-radius: var(--gx-feed-card-radius);
   background: #fff;
@@ -4173,6 +4175,41 @@ a.gx-author-chip__name:hover {
 }
 .gx-vote-rail__score.is-active {
   color: var(--color-brand);
+}
+.gx-vote-rail__trend {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(15, 43, 91, 0.06);
+  color: var(--color-muted);
+}
+.gx-vote-rail__trend.is-hot {
+  background: rgba(232, 85, 45, 0.12);
+  color: #d94d27;
+}
+.gx-vote-rail__trend.is-rise {
+  background: rgba(43, 132, 92, 0.12);
+  color: #218451;
+}
+.gx-vote-rail__trend.is-warm {
+  background: rgba(244, 164, 56, 0.14);
+  color: #b96b13;
+}
+.gx-vote-rail__trend.is-stable,
+.gx-vote-rail__trend.is-new {
+  background: rgba(15, 43, 91, 0.07);
+  color: var(--color-primary);
+}
+.gx-vote-rail__trend.is-cool {
+  background: rgba(64, 120, 192, 0.12);
+  color: #326eb8;
+}
+.gx-vote-rail__trend.is-fall,
+.gx-vote-rail__trend.is-fall-strong {
+  background: rgba(116, 93, 148, 0.12);
+  color: #664f91;
 }
 .gx-feed-card__body {
   padding: 10px 12px 12px;
@@ -4788,42 +4825,6 @@ a.gx-author-chip__name:hover {
 }
 .gx-feed-card__foot-stat:hover {
   color: var(--color-primary);
-}
-.gx-feed-card__trend {
-  display: inline-grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 24px;
-  border-radius: 6px;
-  background: rgba(15, 43, 91, 0.06);
-  color: var(--color-muted);
-}
-.gx-feed-card__trend.is-hot {
-  background: rgba(232, 85, 45, 0.12);
-  color: #d94d27;
-}
-.gx-feed-card__trend.is-rise {
-  background: rgba(43, 132, 92, 0.12);
-  color: #218451;
-}
-.gx-feed-card__trend.is-warm {
-  background: rgba(244, 164, 56, 0.14);
-  color: #b96b13;
-}
-.gx-feed-card__trend.is-stable,
-.gx-feed-card__trend.is-new {
-  background: rgba(15, 43, 91, 0.07);
-  color: var(--color-primary);
-}
-.gx-feed-card__trend.is-cool {
-  background: rgba(64, 120, 192, 0.12);
-  color: #326eb8;
-}
-.gx-feed-card__trend.is-fall,
-.gx-feed-card__trend.is-fall-strong {
-  background: rgba(116, 93, 148, 0.12);
-  color: #664f91;
 }
 .gx-feed-pagination {
   display: flex;

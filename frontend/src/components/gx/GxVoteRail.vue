@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import GxIcon from './GxIcon.vue'
 
 const props = defineProps({
   score: { type: Number, default: 0 },
@@ -8,6 +9,9 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   compact: { type: Boolean, default: false },
   vertical: { type: Boolean, default: true },
+  trendIcon: { type: String, default: '' },
+  trendTone: { type: String, default: 'stable' },
+  trendLabel: { type: String, default: '' },
 })
 
 const emit = defineEmits(['vote', 'dislike'])
@@ -48,7 +52,18 @@ function onDislike() {
         />
       </svg>
     </button>
-    <span class="gx-vote-rail__score tabular-nums" :class="{ 'is-active': liked }">{{ label }}</span>
+    <span
+      v-if="trendIcon"
+      class="gx-vote-rail__trend"
+      :class="`is-${trendTone}`"
+      :title="trendLabel"
+      :aria-label="trendLabel"
+    >
+      <GxIcon :name="trendIcon" :size="16" />
+    </span>
+    <span v-else class="gx-vote-rail__score tabular-nums" :class="{ 'is-active': liked }">
+      {{ label }}
+    </span>
     <button
       type="button"
       class="gx-vote-rail__btn gx-vote-rail__btn--down"

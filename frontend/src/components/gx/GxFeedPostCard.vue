@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import GxAvatarInitial from './GxAvatarInitial.vue'
+import GxVoteRail from './GxVoteRail.vue'
 import GxIcon from './GxIcon.vue'
 import { boardKeyFromName } from '../../composables/useGxNav'
 import { formatAuthorLabel, formatRelativeTime } from '../../utils/displayName'
@@ -109,6 +110,16 @@ async function onVote() {
       'gx-feed-card--pinned': pinned && !announce,
     }"
   >
+    <GxVoteRail
+      :score="likeCount"
+      :liked="liked"
+      :loading="voting"
+      :trend-icon="trendBadge.icon"
+      :trend-tone="trendBadge.tone"
+      :trend-label="trendBadge.label"
+      compact
+      @vote="onVote"
+    />
     <div class="gx-feed-card__body">
       <div class="gx-feed-card__meta">
         <span v-if="pinned" class="gx-feed-card__pin-tag">[置顶]</span>
@@ -136,14 +147,6 @@ async function onVote() {
             <GxIcon name="star" :size="14" />
             {{ likeCount }}
           </button>
-          <span
-            class="gx-feed-card__trend"
-            :class="`is-${trendBadge.tone}`"
-            :title="trendBadge.label"
-            :aria-label="trendBadge.label"
-          >
-            <GxIcon :name="trendBadge.icon" :size="15" />
-          </span>
         </span>
       </footer>
     </div>
