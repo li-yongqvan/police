@@ -1,7 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   Award,
   BarChart3,
   Bell,
@@ -12,18 +14,23 @@ import {
   Clock,
   FileText,
   Flag,
+  Flame,
   Home,
   Info,
   KeyRound,
   Lock,
   LogOut,
   MessageSquare,
+  Minus,
   Pencil,
   Search,
   Settings,
   Shield,
   ShieldOff,
+  Sparkles,
   Star,
+  TrendingDown,
+  TrendingUp,
   User,
   Users,
 } from 'lucide-vue-next'
@@ -59,6 +66,13 @@ const ICON_MAP = {
   users: Users,
   check: Check,
   'chevron-down': ChevronDown,
+  flame: Flame,
+  sparkles: Sparkles,
+  'trending-up': TrendingUp,
+  'trending-down': TrendingDown,
+  'arrow-up': ArrowUp,
+  'arrow-down': ArrowDown,
+  minus: Minus,
 }
 
 const IconComponent = computed(() => ICON_MAP[props.name] || Circle)

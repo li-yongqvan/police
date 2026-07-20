@@ -2,7 +2,6 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import GxAvatarInitial from './GxAvatarInitial.vue'
-import GxVoteRail from './GxVoteRail.vue'
 import GxIcon from './GxIcon.vue'
 import { boardKeyFromName } from '../../composables/useGxNav'
 import { formatAuthorLabel, formatRelativeTime } from '../../utils/displayName'
@@ -52,6 +51,38 @@ const authorAvatar = computed(() => {
   return ''
 })
 
+function numericOrNull(value) {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
+const trendBadge = computed(() => {
+  const explicitDirection = String(props.post.trendDirection || '').toLowerCase()
+  const delta = numericOrNull(props.post.trendDelta)
+  const heatScore =
+    numericOrNull(props.post.hotScore) ??
+    (Number(likeCount.value || 0) * 2 + Number(props.post.commentCount || 0) * 3)
+
+  if (explicitDirection.includes('up') || explicitDirection.includes('rise')) {
+    return { icon: 'trending-up', tone: 'rise', label: '这帖子的排名上升啦' }
+  }
+  if (explicitDirection.includes('down') || explicitDirection.includes('fall')) {
+    return { icon: 'trending-down', tone: 'fall', label: '这帖子的讨论热度降了一些' }
+  }
+  if (delta !== null) {
+    if (delta >= 12) return { icon: 'flame', tone: 'hot', label: '这个帖子最近很火爆' }
+    if (delta >= 4) return { icon: 'trending-up', tone: 'rise', label: '这帖子的排名上升啦' }
+    if (delta > 0) return { icon: 'arrow-up', tone: 'warm', label: '这帖子的关注度在升温' }
+    if (delta <= -12) return { icon: 'trending-down', tone: 'fall-strong', label: '这帖子最近没那么热了' }
+    if (delta <= -4) return { icon: 'trending-down', tone: 'fall', label: '这帖子的讨论热度降了一些' }
+    if (delta < 0) return { icon: 'arrow-down', tone: 'cool', label: '这帖子的热度稍有回落' }
+  }
+  if (heatScore >= 30) return { icon: 'flame', tone: 'hot', label: '这个帖子最近很火爆' }
+  if (heatScore >= 12) return { icon: 'trending-up', tone: 'rise', label: '这帖子的关注度在升温' }
+  if (heatScore <= 0) return { icon: 'sparkles', tone: 'new', label: '新帖子，还在观察热度' }
+  return { icon: 'minus', tone: 'stable', label: '这帖子的热度比较稳定' }
+})
+
 async function onVote() {
   if (!session.currentUser) {
     session.setFlash('请先登录后再点赞', 'info')
@@ -78,13 +109,6 @@ async function onVote() {
       'gx-feed-card--pinned': pinned && !announce,
     }"
   >
-    <GxVoteRail
-      :score="likeCount"
-      :liked="liked"
-      :loading="voting"
-      compact
-      @vote="onVote"
-    />
     <div class="gx-feed-card__body">
       <div class="gx-feed-card__meta">
         <span v-if="pinned" class="gx-feed-card__pin-tag">[置顶]</span>
@@ -112,6 +136,14 @@ async function onVote() {
             <GxIcon name="star" :size="14" />
             {{ likeCount }}
           </button>
+          <span
+            class="gx-feed-card__trend"
+            :class="`is-${trendBadge.tone}`"
+            :title="trendBadge.label"
+            :aria-label="trendBadge.label"
+          >
+            <GxIcon :name="trendBadge.icon" :size="15" />
+          </span>
         </span>
       </footer>
     </div>
