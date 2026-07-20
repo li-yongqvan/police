@@ -71,14 +71,14 @@ const trendBadge = computed(() => {
     return { icon: 'trending-down', tone: 'fall', label: '这帖子的讨论热度降了一些' }
   }
   if (delta !== null) {
-    if (delta >= 12) return { icon: 'flame', tone: 'hot', label: '这个帖子最近很火爆' }
+    if (delta >= 12) return { icon: 'flame-up', tone: 'hot', label: '这个帖子最近很火爆' }
     if (delta >= 4) return { icon: 'trending-up', tone: 'rise', label: '这帖子的排名上升啦' }
     if (delta > 0) return { icon: 'arrow-up', tone: 'warm', label: '这帖子的关注度在升温' }
     if (delta <= -12) return { icon: 'trending-down', tone: 'fall-strong', label: '这帖子最近没那么热了' }
     if (delta <= -4) return { icon: 'trending-down', tone: 'fall', label: '这帖子的讨论热度降了一些' }
     if (delta < 0) return { icon: 'arrow-down', tone: 'cool', label: '这帖子的热度稍有回落' }
   }
-  if (heatScore >= 30) return { icon: 'flame', tone: 'hot', label: '这个帖子最近很火爆' }
+  if (heatScore >= 30) return { icon: 'flame-up', tone: 'hot', label: '这个帖子最近很火爆' }
   if (heatScore >= 12) return { icon: 'trending-up', tone: 'rise', label: '这帖子的关注度在升温' }
   if (heatScore <= 0) return { icon: 'sparkles', tone: 'new', label: '新帖子，还在观察热度' }
   return { icon: 'minus', tone: 'stable', label: '这帖子的热度比较稳定' }

@@ -66,7 +66,7 @@ function onDislike() {
       :title="trendLabel"
       :aria-label="trendLabel"
     >
-      <GxIcon :name="trendIcon" :size="16" />
+      <GxIcon :name="trendIcon" :size="18" />
     </span>
     <span v-else class="gx-vote-rail__score tabular-nums" :class="{ 'is-active': liked }">
       {{ label }}
