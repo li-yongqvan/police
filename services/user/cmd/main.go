@@ -104,6 +104,15 @@ func main() {
 		auth.GET("/users/:id", userHandler.GetProfile)
 		auth.PUT("/users/:id", userHandler.UpdateProfile)
 		auth.POST("/users/:id/avatar", userHandler.UploadAvatar)
+
+		// Follow system
+		auth.POST("/users/me/following", userHandler.Follow)
+		auth.DELETE("/users/me/following/:id", userHandler.Unfollow)
+		auth.GET("/users/me/following", userHandler.GetFollowing)
+		auth.GET("/users/me/followers", userHandler.GetFollowers)
+		auth.GET("/users/:id/following", userHandler.GetPublicFollowing)
+		auth.GET("/users/:id/followers", userHandler.GetPublicFollowers)
+		auth.GET("/users/:id/follow-counts", userHandler.GetFollowCounts)
 	}
 
 	// Internal routes (service-to-service, no external auth per D-09)
@@ -178,6 +187,24 @@ func main() {
 				return
 			}
 			c.JSON(http.StatusOK, gin.H{"codes": codes, "count": len(codes)})
+		})
+
+		// Batch follow check for forum-service
+		internal.POST("/users/following/batch-check", func(c *gin.Context) {
+			var req struct {
+				FollowerID  uint   `json:"follower_id"`
+				FolloweeIDs []uint `json:"followee_ids"`
+			}
+			if err := c.ShouldBindJSON(&req); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+				return
+			}
+			result, err := userService.BatchIsFollowing(c.Request.Context(), req.FollowerID, req.FolloweeIDs)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"following": result})
 		})
 
 		// Admin user management

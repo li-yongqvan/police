@@ -77,6 +77,11 @@ function clearAttachmentDraft() {
   }
 }
 
+function resetAttachmentFull() {
+  clearAttachmentDraft()
+  form.value.attachmentType = 'link'
+}
+
 function selectAttachmentType(type) {
   if (needsLevelForAttachment.value) return
   form.value.attachmentType = type
@@ -86,7 +91,7 @@ watch(() => form.value.attachmentType, clearAttachmentDraft)
 watch(
   () => form.value.boardId,
   (next, prev) => {
-    if (prev && next !== prev) clearAttachmentDraft()
+    if (prev && next !== prev) resetAttachmentFull()
   },
 )
 

@@ -83,6 +83,26 @@ func (h *ForumHandler) ListPosts(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取帖子列表失败"})
 		return
 	}
+
+	// Batch check follow status for post authors
+	if viewerID > 0 && len(posts) > 0 {
+		authorIDs := make([]uint, 0, len(posts))
+		seen := make(map[uint]bool)
+		for _, p := range posts {
+			if p.AuthorID > 0 && !seen[p.AuthorID] {
+				authorIDs = append(authorIDs, p.AuthorID)
+				seen[p.AuthorID] = true
+			}
+		}
+		if followMap, err := h.Service.UserClient.BatchIsFollowing(viewerID, authorIDs); err == nil {
+			for i := range posts {
+				if posts[i].AuthorID > 0 {
+					posts[i].IsFollowing = followMap[posts[i].AuthorID]
+				}
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"posts": posts,
 		"total": total,
@@ -109,6 +129,14 @@ func (h *ForumHandler) GetPost(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Check follow status for post author
+	if viewerID > 0 && post.AuthorID > 0 && post.AuthorID != viewerID {
+		if followMap, err := h.Service.UserClient.BatchIsFollowing(viewerID, []uint{post.AuthorID}); err == nil {
+			post.IsFollowing = followMap[post.AuthorID]
+		}
+	}
+
 	c.JSON(http.StatusOK, post)
 }
 

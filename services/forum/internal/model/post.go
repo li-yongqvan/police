@@ -107,6 +107,7 @@ type PostListItem struct {
 	CommentCount int       `json:"comment_count"`
 	Liked        bool      `json:"liked,omitempty"`
 	Disliked     bool      `json:"disliked,omitempty"`
+	IsFollowing  bool      `json:"is_following,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 
@@ -129,6 +130,7 @@ type PostDetail struct {
 	Liked        bool         `json:"liked,omitempty"`
 	Disliked     bool         `json:"disliked,omitempty"`
 	Collected    bool         `json:"collected,omitempty"`
+	IsFollowing  bool         `json:"is_following,omitempty"`
 	Attachments  []Attachment `json:"attachments"`
 	CreatedAt    time.Time    `json:"created_at"`
 	UpdatedAt    time.Time    `json:"updated_at"`

@@ -304,3 +304,169 @@ func toUserJSON(u model.UserResponse, role string) gin.H {
 		"level":             u.Level,
 	}
 }
+
+// Follow a user
+func (h *UserHandler) Follow(c *gin.Context) {
+	userIDAny, _ := c.Get("user_id")
+	followerID := userIDAny.(uint)
+
+	var req model.FollowRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request: " + err.Error()})
+		return
+	}
+
+	if err := h.Service.Follow(c.Request.Context(), followerID, req.TargetUserID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "followed"})
+}
+
+// Unfollow a user
+func (h *UserHandler) Unfollow(c *gin.Context) {
+	userIDAny, _ := c.Get("user_id")
+	followerID := userIDAny.(uint)
+
+	idStr := c.Param("id")
+	targetID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	if err := h.Service.Unfollow(c.Request.Context(), followerID, uint(targetID)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "unfollowed"})
+}
+
+// GetFollowing returns the list of users that the current user follows
+func (h *UserHandler) GetFollowing(c *gin.Context) {
+	userIDAny, _ := c.Get("user_id")
+	userID := userIDAny.(uint)
+
+	limit := 20
+	offset := 0
+	if l := c.Query("limit"); l != "" {
+		if v, err := strconv.Atoi(l); err == nil && v > 0 && v <= 100 {
+			limit = v
+		}
+	}
+	if o := c.Query("offset"); o != "" {
+		if v, err := strconv.Atoi(o); err == nil && v >= 0 {
+			offset = v
+		}
+	}
+
+	users, total, err := h.Service.GetFollowing(c.Request.Context(), userID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users, "total": total})
+}
+
+// GetFollowers returns the list of users who follow the current user
+func (h *UserHandler) GetFollowers(c *gin.Context) {
+	userIDAny, _ := c.Get("user_id")
+	userID := userIDAny.(uint)
+
+	limit := 20
+	offset := 0
+	if l := c.Query("limit"); l != "" {
+		if v, err := strconv.Atoi(l); err == nil && v > 0 && v <= 100 {
+			limit = v
+		}
+	}
+	if o := c.Query("offset"); o != "" {
+		if v, err := strconv.Atoi(o); err == nil && v >= 0 {
+			offset = v
+		}
+	}
+
+	users, total, err := h.Service.GetFollowers(c.Request.Context(), userID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users, "total": total})
+}
+
+// GetPublicFollowing returns users that a given public user follows
+func (h *UserHandler) GetPublicFollowing(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	limit := 20
+	offset := 0
+	if l := c.Query("limit"); l != "" {
+		if v, err := strconv.Atoi(l); err == nil && v > 0 && v <= 100 {
+			limit = v
+		}
+	}
+	if o := c.Query("offset"); o != "" {
+		if v, err := strconv.Atoi(o); err == nil && v >= 0 {
+			offset = v
+		}
+	}
+
+	users, total, err := h.Service.GetFollowing(c.Request.Context(), uint(id), limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users, "total": total})
+}
+
+// GetPublicFollowers returns users who follow a given public user
+func (h *UserHandler) GetPublicFollowers(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	limit := 20
+	offset := 0
+	if l := c.Query("limit"); l != "" {
+		if v, err := strconv.Atoi(l); err == nil && v > 0 && v <= 100 {
+			limit = v
+		}
+	}
+	if o := c.Query("offset"); o != "" {
+		if v, err := strconv.Atoi(o); err == nil && v >= 0 {
+			offset = v
+		}
+	}
+
+	users, total, err := h.Service.GetFollowers(c.Request.Context(), uint(id), limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users, "total": total})
+}
+
+// GetFollowCounts returns following and follower counts for a user
+func (h *UserHandler) GetFollowCounts(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	following, followers, err := h.Service.GetFollowCounts(c.Request.Context(), uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"following": following, "followers": followers})
+}

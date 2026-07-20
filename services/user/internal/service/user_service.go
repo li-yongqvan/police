@@ -508,3 +508,152 @@ func (s *UserService) CreateInviteCodesBatch(ctx context.Context, count int, cre
 	}
 	return codes, nil
 }
+
+
+// Follow creates a follow relationship between two users
+func (s *UserService) Follow(ctx context.Context, followerID, followeeID uint) error {
+	if followerID == followeeID {
+		return fmt.Errorf("cannot follow yourself")
+	}
+	_, err := s.DB.Exec(ctx,
+		"INSERT INTO schema_auth.user_follows (follower_id, followee_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+		followerID, followeeID,
+	)
+	if err != nil {
+		return fmt.Errorf("follow failed: %w", err)
+	}
+	return nil
+}
+
+// Unfollow removes a follow relationship
+func (s *UserService) Unfollow(ctx context.Context, followerID, followeeID uint) error {
+	_, err := s.DB.Exec(ctx,
+		"DELETE FROM schema_auth.user_follows WHERE follower_id = $1 AND followee_id = $2",
+		followerID, followeeID,
+	)
+	if err != nil {
+		return fmt.Errorf("unfollow failed: %w", err)
+	}
+	return nil
+}
+
+// IsFollowing checks if followerID follows followeeID
+func (s *UserService) IsFollowing(ctx context.Context, followerID, followeeID uint) (bool, error) {
+	var exists bool
+	err := s.DB.QueryRow(ctx,
+		"SELECT EXISTS(SELECT 1 FROM schema_auth.user_follows WHERE follower_id = $1 AND followee_id = $2)",
+		followerID, followeeID,
+	).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check follow status failed: %w", err)
+	}
+	return exists, nil
+}
+
+// BatchIsFollowing returns a map of followeeID -> isFollowing
+func (s *UserService) BatchIsFollowing(ctx context.Context, followerID uint, followeeIDs []uint) (map[uint]bool, error) {
+	result := make(map[uint]bool, len(followeeIDs))
+	for _, fid := range followeeIDs {
+		result[fid] = false
+	}
+	if len(followeeIDs) == 0 {
+		return result, nil
+	}
+	rows, err := s.DB.Query(ctx,
+		"SELECT followee_id FROM schema_auth.user_follows WHERE follower_id = $1 AND followee_id = ANY($2)",
+		followerID, followeeIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("batch check follow failed: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var fid uint
+		if err := rows.Scan(&fid); err != nil {
+			continue
+		}
+		result[fid] = true
+	}
+	return result, nil
+}
+
+// GetFollowing returns users that the given user follows
+func (s *UserService) GetFollowing(ctx context.Context, userID uint, limit, offset int) ([]model.FollowUser, int, error) {
+	var total int
+	err := s.DB.QueryRow(ctx,
+		"SELECT COUNT(*) FROM schema_auth.user_follows WHERE follower_id = $1",
+		userID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get following count failed: %w", err)
+	}
+
+	rows, err := s.DB.Query(ctx,
+		"SELECT u.id, u.username, u.nickname, u.avatar, u.level, u.squad, f.created_at FROM schema_auth.user_follows f JOIN schema_auth.users u ON u.id = f.followee_id WHERE f.follower_id = $1 ORDER BY f.created_at DESC LIMIT $2 OFFSET $3",
+		userID, limit, offset,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get following list failed: %w", err)
+	}
+	defer rows.Close()
+
+	users := make([]model.FollowUser, 0)
+	for rows.Next() {
+		var u model.FollowUser
+		if err := rows.Scan(&u.ID, &u.Username, &u.Nickname, &u.Avatar, &u.Level, &u.Squad, &u.CreatedAt); err != nil {
+			continue
+		}
+		users = append(users, u)
+	}
+	return users, total, nil
+}
+
+// GetFollowers returns users who follow the given user
+func (s *UserService) GetFollowers(ctx context.Context, userID uint, limit, offset int) ([]model.FollowUser, int, error) {
+	var total int
+	err := s.DB.QueryRow(ctx,
+		"SELECT COUNT(*) FROM schema_auth.user_follows WHERE followee_id = $1",
+		userID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get followers count failed: %w", err)
+	}
+
+	rows, err := s.DB.Query(ctx,
+		"SELECT u.id, u.username, u.nickname, u.avatar, u.level, u.squad, f.created_at FROM schema_auth.user_follows f JOIN schema_auth.users u ON u.id = f.follower_id WHERE f.followee_id = $1 ORDER BY f.created_at DESC LIMIT $2 OFFSET $3",
+		userID, limit, offset,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get followers list failed: %w", err)
+	}
+	defer rows.Close()
+
+	users := make([]model.FollowUser, 0)
+	for rows.Next() {
+		var u model.FollowUser
+		if err := rows.Scan(&u.ID, &u.Username, &u.Nickname, &u.Avatar, &u.Level, &u.Squad, &u.CreatedAt); err != nil {
+			continue
+		}
+		users = append(users, u)
+	}
+	return users, total, nil
+}
+
+// GetFollowCounts returns following and follower counts for a user
+func (s *UserService) GetFollowCounts(ctx context.Context, userID uint) (following, followers int, err error) {
+	err = s.DB.QueryRow(ctx,
+		"SELECT COUNT(*) FROM schema_auth.user_follows WHERE follower_id = $1",
+		userID,
+	).Scan(&following)
+	if err != nil {
+		return 0, 0, fmt.Errorf("get following count failed: %w", err)
+	}
+	err = s.DB.QueryRow(ctx,
+		"SELECT COUNT(*) FROM schema_auth.user_follows WHERE followee_id = $1",
+		userID,
+	).Scan(&followers)
+	if err != nil {
+		return 0, 0, fmt.Errorf("get followers count failed: %w", err)
+	}
+	return following, followers, nil
+}

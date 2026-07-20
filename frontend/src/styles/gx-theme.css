@@ -5468,3 +5468,63 @@ a.gx-author-chip__name:hover {
     margin-top: 0;
   }
 }
+
+/* ===== Follow System ===== */
+.gx-follow-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.gx-follow-btn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+.gx-follow-btn.is-following {
+  background: var(--color-primary);
+  color: #fff;
+}
+.gx-follow-btn.is-following:hover {
+  opacity: 0.85;
+}
+
+/* Profile follow stats */
+.gx-profile-stats {
+  display: flex;
+  gap: 24px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eef0f3;
+}
+.gx-profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.gx-profile-stat:hover {
+  background: #f5f5f5;
+}
+.gx-profile-stat__num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+.gx-profile-stat__label {
+  font-size: 12px;
+  color: var(--color-muted);
+}

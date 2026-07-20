@@ -17,11 +17,12 @@ import (
 type ForumService struct {
 	DB          *pgxpool.Pool
 	AdminClient *client.AdminClient
+	UserClient  *client.UserClient
 }
 
 // NewForumService creates a new ForumService instance
-func NewForumService(db *pgxpool.Pool, adminClient *client.AdminClient) *ForumService {
-	return &ForumService{DB: db, AdminClient: adminClient}
+func NewForumService(db *pgxpool.Pool, adminClient *client.AdminClient, userClient *client.UserClient) *ForumService {
+	return &ForumService{DB: db, AdminClient: adminClient, UserClient: userClient}
 }
 
 // ListBoards returns all enabled boards

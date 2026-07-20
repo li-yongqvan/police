@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import Badge from '../components/ui/Badge.vue'
@@ -138,6 +138,21 @@ async function saveAvatar() {
 }
 
 onBeforeUnmount(clearAvatarPreview)
+
+// Follow stats
+const followCounts = ref({ following: 0, followers: 0 })
+
+async function fetchFollowCounts() {
+  try {
+    const id = session.currentUser?.id
+    if (!id) return
+    const result = await userApi.getFollowCounts(id)
+    followCounts.value = { following: result.following || 0, followers: result.followers || 0 }
+  } catch (_) {}
+}
+
+onMounted(() => { fetchFollowCounts() })
+
 </script>
 
 <template>
@@ -164,6 +179,16 @@ onBeforeUnmount(clearAvatarPreview)
             <div class="gx-profile-card__badges">
               <Badge variant="secondary">Lv.{{ session.currentUser?.level ?? 1 }}</Badge>
               <Badge variant="outline">{{ session.currentUser?.role || 'student' }}</Badge>
+            </div>
+            <div class="gx-profile-stats">
+              <RouterLink to="/community/profile?tab=following" class="gx-profile-stat">
+                <span class="gx-profile-stat__num">{{ followCounts.following }}</span>
+                <span class="gx-profile-stat__label">关注</span>
+              </RouterLink>
+              <RouterLink to="/community/profile?tab=followers" class="gx-profile-stat">
+                <span class="gx-profile-stat__num">{{ followCounts.followers }}</span>
+                <span class="gx-profile-stat__label">粉丝</span>
+              </RouterLink>
             </div>
             <p v-if="form.bio" class="gx-profile-card__bio">{{ form.bio }}</p>
             <RouterLink

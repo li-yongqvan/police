@@ -13,7 +13,20 @@ const props = defineProps({
   createdAt: { type: String, default: '' },
   size: { type: String, default: 'md' },
   linkable: { type: Boolean, default: true },
+  isFollowing: { type: Boolean, default: false },
+  showFollow: { type: Boolean, default: false },
+  currentUserId: { type: [String, Number], default: '' },
 })
+
+const emit = defineEmits(['follow', 'unfollow'])
+
+function handleFollow() {
+  if (props.isFollowing) {
+    emit('unfollow', props.authorId)
+  } else {
+    emit('follow', props.authorId)
+  }
+}
 
 const label = computed(() => formatAuthorLabel(props.user, props.post || { authorName: props.authorName }))
 const avatarSrc = computed(() => props.authorAvatar || props.user?.avatar || props.post?.authorAvatar || props.post?.avatar || '')
@@ -51,5 +64,14 @@ const timeLabel = computed(() => {
       </component>
       <time v-if="timeLabel" class="gx-author-chip__time">{{ timeLabel }}</time>
     </div>
+    <button
+      v-if="showFollow && String(authorId) !== String(currentUserId)"
+      type="button"
+      class="gx-follow-btn"
+      :class="{ 'is-following': isFollowing }"
+      @click.stop="handleFollow"
+    >
+      {{ isFollowing ? '已关注' : '+ 关注' }}
+    </button>
   </div>
 </template>

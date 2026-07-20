@@ -85,6 +85,22 @@ type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
+// FollowUser represents a brief user info in follow list
+type FollowUser struct {
+	ID        uint      `json:"id"`
+	Username  string    `json:"username"`
+	Nickname  string    `json:"nickname"`
+	Avatar    string    `json:"avatar"`
+	Level     int       `json:"level"`
+	Squad     string    `json:"squad"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// FollowRequest represents follow/unfollow input
+type FollowRequest struct {
+	TargetUserID uint `json:"target_user_id" binding:"required"`
+}
+
 // UpdateProfileRequest represents profile update input
 type UpdateProfileRequest struct {
 	Username         string `json:"username"`

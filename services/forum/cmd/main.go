@@ -66,8 +66,14 @@ func main() {
 	}
 	adminClient := client.NewAdminClient(adminURL)
 
+	userURL := os.Getenv("USER_SERVICE_URL")
+	if userURL == "" {
+		userURL = "http://localhost:8001"
+	}
+	userClient := client.NewUserClient(userURL)
+
 	// Initialize service and handlers
-	forumService := service.NewForumService(pool, adminClient)
+	forumService := service.NewForumService(pool, adminClient, userClient)
 	extrasService := service.NewExtrasService(pool)
 	forumHandler := handler.NewForumHandler(forumService)
 	commentHandler := handler.NewCommentHandler(forumService, extrasService)

@@ -233,6 +233,52 @@ export const userApi = {
     if (payload?.id || payload?.username) return mapUser(payload)
     return userApi.me()
   },
+  // Follow system
+  async follow(targetUserId) {
+    const payload = await request('/user-api', '/api/v1/users/me/following', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ target_user_id: targetUserId }),
+    })
+    return payload
+  },
+  async unfollow(targetUserId) {
+    await request('/user-api', `/api/v1/users/me/following/${targetUserId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+  },
+  async getFollowing(limit = 20, offset = 0) {
+    const payload = await request('/user-api', `/api/v1/users/me/following?limit=${limit}&offset=${offset}`, {
+      headers: authHeaders(),
+    })
+    return payload
+  },
+  async getFollowers(limit = 20, offset = 0) {
+    const payload = await request('/user-api', `/api/v1/users/me/followers?limit=${limit}&offset=${offset}`, {
+      headers: authHeaders(),
+    })
+    return payload
+  },
+  async getPublicFollowing(userId, limit = 20, offset = 0) {
+    const payload = await request('/user-api', `/api/v1/users/${userId}/following?limit=${limit}&offset=${offset}`, {
+      headers: authHeaders(),
+    })
+    return payload
+  },
+  async getPublicFollowers(userId, limit = 20, offset = 0) {
+    const payload = await request('/user-api', `/api/v1/users/${userId}/followers?limit=${limit}&offset=${offset}`, {
+      headers: authHeaders(),
+    })
+    return payload
+  },
+  async getFollowCounts(userId) {
+    const payload = await request('/user-api', `/api/v1/users/${userId}/follow-counts`, {
+      headers: authHeaders(),
+    })
+    return payload
+  },
+
   async listUsers(page = 1, limit = 20) {
     const payload = await request(
       '/admin-api',

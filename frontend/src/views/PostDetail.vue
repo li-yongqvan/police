@@ -1,8 +1,8 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { formatApiError } from '../api/errors'
-import { forumApi } from '../api'
+import { forumApi, userApi } from '../api'
 import GxActionToolbar from '../components/gx/GxActionToolbar.vue'
 import GxAuthorChip from '../components/gx/GxAuthorChip.vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
@@ -37,6 +37,35 @@ const attachments = computed(() => payload.value.post?.attachments ?? [])
 const imageAttachments = computed(() => attachments.value.filter((item) => item.type === 'image'))
 const fileAttachments = computed(() => attachments.value.filter((item) => item.type !== 'image'))
 const isAuthor = computed(() => payload.value.post?.authorId === session.currentUser?.id)
+
+// Follow state
+const isFollowingAuthor = ref(false)
+const followLoading = ref(false)
+
+async function handleFollowAuthor(authorId) {
+  if (followLoading.value) return
+  followLoading.value = true
+  try {
+    const uid = Number(authorId)
+    if (isFollowingAuthor.value) {
+      await userApi.unfollow(uid)
+      isFollowingAuthor.value = false
+    } else {
+      await userApi.follow(uid)
+      isFollowingAuthor.value = true
+    }
+  } catch (e) {
+    console.error('Follow error:', e)
+  } finally {
+    followLoading.value = false
+  }
+}
+
+watch(() => payload.value.post, (p) => {
+  if (p) {
+    isFollowingAuthor.value = !!p.isFollowing
+  }
+})
 const post = computed(() => payload.value.post)
 const postAuthorAvatar = computed(() => {
   if (post.value?.authorAvatar) return post.value.authorAvatar
@@ -256,6 +285,11 @@ onMounted(loadPost)
                 :author-name="post.authorName"
                 :author-avatar="postAuthorAvatar"
                 :created-at="post.createdAt"
+                :is-following="isFollowingAuthor"
+                :show-follow="true"
+                :current-user-id="session.currentUser?.id"
+                @follow="handleFollowAuthor"
+                @unfollow="handleFollowAuthor"
               />
               <div class="gx-post-hero__stats">
                 <span class="gx-stat-chip">{{ post.likeCount }} 赞</span>
