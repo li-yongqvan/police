@@ -23,3 +23,4 @@
 | 2026-07-20 11:57 | chore | fix forum pilot regressions | phone | ffaf0bb | [2026-07-20-115714-fix-forum-pilot-regressions.md](entries/2026-07-20-115714-fix-forum-pilot-regressions.md) |
 | 2026-07-20 12:27 | chore | Move post trend indicator into metadata | phone | edf1b7e | [2026-07-20-122718-move-post-trend-indicator-into-metadata.md](entries/2026-07-20-122718-move-post-trend-indicator-into-metadata.md) |
 | 2026-07-20 14:47 | chore | Replace feed rail score with trend icon | phone | 9e9ac87 | [2026-07-20-144725-replace-feed-rail-score-with-trend-icon.md](entries/2026-07-20-144725-replace-feed-rail-score-with-trend-icon.md) |
+| 2026-07-20 14:53 | chore | Show feed trend rail without vote arrows | phone | 3a5c95d | [2026-07-20-145314-show-feed-trend-rail-without-vote-arrows.md](entries/2026-07-20-145314-show-feed-trend-rail-without-vote-arrows.md) |
