@@ -114,7 +114,7 @@ const reportTips = [
           </ul>
         </article>
 
-        <article class="gx-about-topic">
+        <article id="rules" class="gx-about-topic">
           <header class="gx-about-topic__head">
             <span class="gx-about-topic__icon gx-about-topic__icon--edit" aria-hidden="true">
               <GxIcon name="edit" :size="22" />

@@ -58,7 +58,7 @@ const updatedAt = computed(() => formatDisplayDate(new Date().toISOString()))
         <ol class="gx-feed-aside__rules">
           <li v-for="(rule, i) in boardRules" :key="i">{{ rule }}</li>
         </ol>
-        <RouterLink :to="`/community/boards/${board.slug}`" class="gx-feed-aside__more">
+        <RouterLink :to="{ name: 'about', hash: '#rules' }" class="gx-feed-aside__more">
           查看更多规则 →
         </RouterLink>
       </div>
