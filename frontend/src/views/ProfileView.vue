@@ -43,13 +43,47 @@ function clearAvatarPreview() {
   }
 }
 
-function onAvatarPick(event) {
+const AVATAR_MAX_PX = 400
+
+async function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      let { width, height } = img
+      if (width <= AVATAR_MAX_PX && height <= AVATAR_MAX_PX) {
+        resolve(file)
+        return
+      }
+      const ratio = Math.min(AVATAR_MAX_PX / width, AVATAR_MAX_PX / height)
+      width = Math.round(width * ratio)
+      height = Math.round(height * ratio)
+      const canvas = document.createElement("canvas")
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext("2d")
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob((blob) => {
+        if (!blob) { resolve(file); return }
+        const compressed = new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() })
+        resolve(compressed)
+      }, "image/jpeg", 0.85)
+    }
+    img.onerror = () => resolve(file)
+    img.src = URL.createObjectURL(file)
+  })
+}
+
+async function onAvatarPick(event) {
   const file = event.target.files?.[0]
   clearAvatarPreview()
-  avatarFile.value = file || null
-  avatarFileName.value = file?.name || ''
   if (file) {
+    const compressed = await compressImage(file)
+    avatarFile.value = compressed || file
+    avatarFileName.value = file.name
     avatarPreviewUrl.value = URL.createObjectURL(file)
+  } else {
+    avatarFile.value = null
+    avatarFileName.value = ''
   }
 }
 
