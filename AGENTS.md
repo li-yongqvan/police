@@ -285,6 +285,24 @@ go run cmd/main.go     # 默认监听 :8002
 
 ### 7.1 交付约定
 
+### 7.1.1 Git 分支策略与提交纪律
+
+- **分支模型**：
+  - master = 生产环境基线，严禁直接提交
+  - codex/<feature-name> = 开发分支，从 master 拉出
+  - 当前开发分支：codex/discourse-rebuild
+- **提交纪律**：每完成一个 Ticket 必须做一次 git commit，commit message 格式：<type>: <description> (#<ticket>)
+- **推送纪律**：每次 commit 后立即 git push origin <branch>
+- **合并纪律**：功能开发完成且验证通过后，通过 GitHub PR 合入 master，不在本地 merge
+- **.gitignore 维护**：新增文件类型（编译产物、AI 工件、临时截图）必须同步更新 .gitignore
+
+### 7.1.2 多 Ticket 串行开发铁律
+
+当一个功能开发涉及多个连续 Ticket（如 Ticket 3a → 3b → 4 → 5），必须在同一个 codex/ 开发分支上串行执行：
+- Ticket 完成 → git commit → git push → 继续下一个 Ticket
+- 严禁一个 Ticket 未提交就开始下一个
+- 严禁跨 Ticket 混合改动（一个 commit 只对应一个 Ticket）
+
 - **发布要求**：所有完成并验证通过的项目改动，默认需要同步上传到 GitHub，并部署到云服务器；除非用户明确要求只做本地修改，否则不能停留在本地工作区
 - **验收要求**：前端改动完成后必须检查移动端窄屏效果，尤其是导航、搜索、弹层、侧边栏、表单和底部安全区
 

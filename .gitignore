@@ -26,6 +26,14 @@ _so.html
 infra/cloudflared/config.yml
 infra/cloudflared/credentials.json
 
+# AI work artifacts (never commit)
+.scratch/
+.codex-*
+
+# Compiled Go binaries (should never be in repo)
+forum-service
+forum-service-linux
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
