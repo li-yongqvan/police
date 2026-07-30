@@ -3,21 +3,21 @@ import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 
 const breadcrumbItems = [
-  { label: '¹ÜÀíºóÌ¨', to: '/admin' },
-  { label: '¹ÜÀí¸ÅÀÀ' },
+  { label: 'ç®¡ç†åå°', to: '/admin' },
+  { label: 'ç®¡ç†æ¦‚è§ˆ' },
 ]
 </script>
 
 <template>
   <div class="gx-page gx-admin-page gx-admin-overview">
     <GxBreadcrumb :items="breadcrumbItems" />
-    <GxAdminPageHeader eyebrow="¹ÜÀí¸ÅÀÀ" title="AIÖÇÁªÆ½Ì¨ ¡¤ ÔËÓªÊı¾İ" description="¿É¿Ø¡¢¿É¹Ü¡¢¿ÉÕ¹Ê¾µÄ¹ÜÀí±Õ»·" />
+    <GxAdminPageHeader eyebrow="ç®¡ç†æ¦‚è§ˆ" title="AIæ™ºè”å¹³å° Â· è¿è¥æ•°æ®" description="å¯æ§ã€å¯ç®¡ã€å¯å±•ç¤ºçš„ç®¡ç†é—­ç¯" />
 
     <section class="gx-card gx-admin-placeholder">
       <div class="gx-placeholder-content">
         <p class="gx-placeholder-icon">??</p>
-        <h3>Í³¼Æ¹¦ÄÜ¼´½«ÉÏÏß</h3>
-        <p class="gx-muted">ÂÛÌ³ÒÑÇ¨ÒÆÖÁ Discourse£¬ĞÂµÄÍ³¼ÆÃæ°åÕıÔÚ½¨ÉèÖĞ£¬¾´ÇëÆÚ´ı¡£</p>
+        <h3>ç»Ÿè®¡åŠŸèƒ½å³å°†ä¸Šçº¿</h3>
+        <p class="gx-muted">è®ºå›å·²è¿ç§»è‡³ Discourseï¼Œæ–°çš„ç»Ÿè®¡é¢æ¿æ­£åœ¨å»ºè®¾ä¸­ï¼Œæ•¬è¯·æœŸå¾…ã€‚</p>
       </div>
     </section>
   </div>

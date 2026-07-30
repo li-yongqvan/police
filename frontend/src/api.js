@@ -70,7 +70,7 @@ function mapPostDetail(post, comments = []) {
       attachments: (post.attachments || []).map((item) => ({
         id: String(item.id),
         type: item.file_type,
-        title: item.filename || item.title || '附件',
+        title: item.filename || item.title || '闄勪欢',
         url: item.file_type === 'link' ? userAssetUrl(item.file_path) : userAssetUrl(item.id),
         fileSize: item.file_size ?? 0,
       })),
@@ -309,7 +309,7 @@ export const adminApi = {
       await request('/admin-api', `/api/v1/admin/users/${id}/ban`, {
         method: 'POST',
         headers: authHeaders(),
-        body: JSON.stringify({ reason: '演示封禁' }),
+        body: JSON.stringify({ reason: '婕旂ず灏佺' }),
       })
     } else {
       await request('/admin-api', `/api/v1/admin/users/${id}/unban`, {

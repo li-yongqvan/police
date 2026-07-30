@@ -14,11 +14,11 @@ const saving = ref(false)
 const error = ref('')
 
 const breadcrumbItems = [
-  { label: '¹ÜÀíºóÌ¨', to: '/admin' },
-  { label: 'ÏµÍ³ÅäÖÃ' },
+  { label: 'ç®¡ç†åå°', to: '/admin' },
+  { label: 'ç³»ç»Ÿé…ç½®' },
 ]
 
-const moderationLabel = computed(() => (config.value?.moderationMode === 'manual' ? 'ÈË¹¤ÉóºË' : '×Ô¶¯ÉóºË'))
+const moderationLabel = computed(() => (config.value?.moderationMode === 'manual' ? 'äººå·¥å®¡æ ¸' : 'è‡ªåŠ¨å®¡æ ¸'))
 
 async function load() {
   loading.value = true
@@ -26,7 +26,7 @@ async function load() {
   try {
     config.value = await adminApi.getConfig()
   } catch (err) {
-    error.value = formatApiError(err, 'ÏµÍ³ÅäÖÃ¼ÓÔØÊ§°Ü')
+    error.value = formatApiError(err, 'ç³»ç»Ÿé…ç½®åŠ è½½å¤±è´¥')
   } finally {
     loading.value = false
   }
@@ -37,9 +37,9 @@ async function save() {
   saving.value = true
   try {
     config.value = await adminApi.updateConfig(config.value)
-    session.setFlash('ÏµÍ³ÅäÖÃÒÑ±£´æ¡£', 'success')
+    session.setFlash('ç³»ç»Ÿé…ç½®å·²ä¿å­˜ã€‚', 'success')
   } catch (err) {
-    session.setFlash(formatApiError(err, 'ÏµÍ³ÅäÖÃ±£´æÊ§°Ü'), 'info')
+    session.setFlash(formatApiError(err, 'ç³»ç»Ÿé…ç½®ä¿å­˜å¤±è´¥'), 'info')
   } finally {
     saving.value = false
   }
@@ -53,27 +53,27 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
 
     <GxAdminPageHeader
-      eyebrow="ÏµÍ³ÅäÖÃ"
-      title="»ù´¡¿ØÖÆÄÜÁ¦"
-      description="Í³Ò»Î¬»¤·¢Ìû×¼ÈëºÍÉóºË²ßÂÔ¡£"
+      eyebrow="ç³»ç»Ÿé…ç½®"
+      title="åŸºç¡€æ§åˆ¶èƒ½åŠ›"
+      description="ç»Ÿä¸€ç»´æŠ¤å‘å¸–å‡†å…¥å’Œå®¡æ ¸ç­–ç•¥ã€‚"
     />
 
-    <p v-if="loading" class="gx-muted gx-config-loading">ÕıÔÚ¼ÓÔØÏµÍ³ÅäÖÃ...</p>
+    <p v-if="loading" class="gx-muted gx-config-loading">æ­£åœ¨åŠ è½½ç³»ç»Ÿé…ç½®...</p>
     <section v-else-if="error" class="gx-config-error">
       <p>{{ error }}</p>
-      <button type="button" class="gx-btn gx-btn--secondary" @click="load">ÖØÊÔ</button>
+      <button type="button" class="gx-btn gx-btn--secondary" @click="load">é‡è¯•</button>
     </section>
 
     <template v-else-if="config">
-      <section class="gx-config-summary" aria-label="ÅäÖÃ×´Ì¬¸ÅÀÀ">
+      <section class="gx-config-summary" aria-label="é…ç½®çŠ¶æ€æ¦‚è§ˆ">
         <article class="gx-config-summary__item">
           <Settings :size="18" />
-          <span>·¢Ìû×´Ì¬</span>
-          <strong>{{ config.postingEnabled ? 'ÒÑ¿ªÆô' : 'ÒÑ¹Ø±Õ' }}</strong>
+          <span>å‘å¸–çŠ¶æ€</span>
+          <strong>{{ config.postingEnabled ? 'å·²å¼€å¯' : 'å·²å…³é—­' }}</strong>
         </article>
         <article class="gx-config-summary__item">
           <ShieldCheck :size="18" />
-          <span>ÉóºËÄ£Ê½</span>
+          <span>å®¡æ ¸æ¨¡å¼</span>
           <strong>{{ moderationLabel }}</strong>
         </article>
       </section>
@@ -83,17 +83,17 @@ onMounted(load)
           <div class="gx-config-panel__head">
             <div>
               <p class="gx-eyebrow">Posting</p>
-              <h2>·¢²¼È¨ÏŞ</h2>
+              <h2>å‘å¸ƒæƒé™</h2>
             </div>
             <span :class="['gx-config-status', config.postingEnabled ? 'is-on' : 'is-off']">
-              {{ config.postingEnabled ? 'ÔÊĞí·¢Ìû' : 'ÔİÍ£·¢Ìû' }}
+              {{ config.postingEnabled ? 'å…è®¸å‘å¸–' : 'æš‚åœå‘å¸–' }}
             </span>
           </div>
 
           <label class="gx-config-control">
             <span>
-              <strong>¿ªÆô·¢²¼</strong>
-              <small>¹Ø±ÕºóÆÕÍ¨ÓÃ»§²»ÄÜ¼ÌĞø·¢²¼ĞÂÌû×Ó¡£</small>
+              <strong>å¼€å¯å‘å¸ƒ</strong>
+              <small>å…³é—­åæ™®é€šç”¨æˆ·ä¸èƒ½ç»§ç»­å‘å¸ƒæ–°å¸–å­ã€‚</small>
             </span>
             <input v-model="config.postingEnabled" class="gx-switch-input" type="checkbox" />
           </label>
@@ -103,19 +103,19 @@ onMounted(load)
           <div class="gx-config-panel__head">
             <div>
               <p class="gx-eyebrow">Moderation</p>
-              <h2>ÉóºË²ßÂÔ</h2>
+              <h2>å®¡æ ¸ç­–ç•¥</h2>
             </div>
             <span class="gx-config-status is-neutral">{{ moderationLabel }}</span>
           </div>
 
           <label class="gx-config-field">
             <span>
-              <strong>ÉóºËÄ£Ê½</strong>
-              <small>×Ô¶¯ÉóºË»áÖ±½Ó´¦ÀíÃô¸ĞÄÚÈİ£¬ÈË¹¤ÉóºË»á½øÈë´ıÉó¶ÓÁĞ¡£</small>
+              <strong>å®¡æ ¸æ¨¡å¼</strong>
+              <small>è‡ªåŠ¨å®¡æ ¸ä¼šç›´æ¥å¤„ç†æ•æ„Ÿå†…å®¹ï¼Œäººå·¥å®¡æ ¸ä¼šè¿›å…¥å¾…å®¡é˜Ÿåˆ—ã€‚</small>
             </span>
             <select v-model="config.moderationMode">
-              <option value="auto">×Ô¶¯ÉóºË</option>
-              <option value="manual">ÈË¹¤ÉóºË</option>
+              <option value="auto">è‡ªåŠ¨å®¡æ ¸</option>
+              <option value="manual">äººå·¥å®¡æ ¸</option>
             </select>
           </label>
         </div>
@@ -124,7 +124,7 @@ onMounted(load)
       <div class="gx-config-actions">
         <button type="button" class="gx-btn gx-btn--primary" :disabled="saving" @click="save">
           <Save :size="16" />
-          <span>{{ saving ? '±£´æÖĞ...' : '±£´æÅäÖÃ' }}</span>
+          <span>{{ saving ? 'ä¿å­˜ä¸­...' : 'ä¿å­˜é…ç½®' }}</span>
         </button>
       </div>
     </template>
