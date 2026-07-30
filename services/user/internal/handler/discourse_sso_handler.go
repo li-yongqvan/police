@@ -153,11 +153,18 @@ func (h *DiscourseSSOHandler) HandleSSO(c *gin.Context) {
 
 	// Avatar URL: construct from PLATFORM_BASE_URL + relative avatar path
 	if user.Avatar != "" {
-		platformBaseURL := os.Getenv("PLATFORM_BASE_URL")
-		if platformBaseURL == "" {
-			platformBaseURL = "http://122.51.233.225:8888"
+		avatarURL := strings.TrimSpace(user.Avatar)
+		if !strings.HasPrefix(avatarURL, "http://") && !strings.HasPrefix(avatarURL, "https://") {
+			platformBaseURL := os.Getenv("PLATFORM_BASE_URL")
+			if platformBaseURL == "" {
+				platformBaseURL = "http://122.51.233.225:8888"
+			}
+			baseURL := strings.TrimRight(platformBaseURL, "/")
+			if strings.HasPrefix(avatarURL, "/uploads/") && !strings.HasSuffix(baseURL, "/user-api") {
+				avatarURL = "/user-api" + avatarURL
+			}
+			avatarURL = baseURL + "/" + strings.TrimLeft(avatarURL, "/")
 		}
-		avatarURL := strings.TrimRight(platformBaseURL, "/") + "/" + strings.TrimLeft(user.Avatar, "/")
 		returnPayload.Set("avatar_url", avatarURL)
 	}
 

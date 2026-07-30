@@ -11,7 +11,7 @@ const AdminUsers = () => import('./views/AdminUsers.vue')
 const AdminInvites = () => import('./views/AdminInvites.vue')
 const AdminRoles = () => import('./views/AdminRoles.vue')
 
-const DISCOURSE_URL = 'http://122.51.233.225:8080'
+const DISCOURSE_URL = 'http://122.51.233.225:8080/session/sso'
 
 function redirectToDiscourse() {
   window.location.href = DISCOURSE_URL
