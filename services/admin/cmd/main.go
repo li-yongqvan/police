@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	"ai-forum/admin-service/internal/client"
 	"ai-forum/admin-service/internal/handler"
 	"ai-forum/admin-service/internal/middleware"
 	"ai-forum/admin-service/internal/service"
@@ -65,31 +64,17 @@ func main() {
 	}
 	userClient := service.NewUserClient(userURL)
 
-	forumURL := os.Getenv("FORUM_SERVICE_URL")
-	if forumURL == "" {
-		forumURL = "http://localhost:8002"
-	}
-	forumClient := client.NewForumClient(forumURL)
-
-	auditService := service.NewAuditService(pool, forumClient)
 	configService := service.NewConfigService(pool)
 	userAdminService := service.NewUserAdminService(pool, userClient)
 	roleService := service.NewRoleService(pool)
 	roleService.SetRedis(rdb)
-	postAdminService := service.NewPostAdminService(forumClient, pool)
-	statsService := service.NewStatsService(userClient, forumClient, pool)
 
 	inviteHandler := handler.NewInviteHandler(adminService, userClient)
 	moderationHandler := handler.NewModerationHandler(adminService)
-	auditHandler := handler.NewAuditHandler(auditService)
 	configHandler := handler.NewConfigHandler(configService)
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)
 	inviteAdminHandler := handler.NewInviteAdminHandler(userClient)
-	boardAdminHandler := handler.NewBoardAdminHandler(forumClient)
 	roleHandler := handler.NewRoleHandler(roleService)
-	postAdminHandler := handler.NewPostAdminHandler(postAdminService, forumClient)
-	reportHandler := handler.NewReportHandler(forumClient)
-	statsHandler := handler.NewStatsHandler(statsService)
 
 	router := gin.Default()
 	router.GET("/health", handler.HealthCheck)
@@ -100,16 +85,6 @@ func main() {
 		v1.GET("/config", configHandler.GetConfig)
 		v1.GET("/config/:key", configHandler.GetConfigByKey)
 		v1.PUT("/config/:key", configHandler.UpdateConfig)
-
-		v1.GET("/audit/pending", auditHandler.ListPendingAudit)
-		v1.POST("/audit/:id/approve", auditHandler.ApprovePost)
-		v1.POST("/audit/:id/reject", auditHandler.RejectPost)
-		v1.POST("/audit/batch-delete", auditHandler.BatchDeletePosts)
-
-		v1.POST("/posts/:id/delete", postAdminHandler.DeletePost)
-		v1.GET("/posts", postAdminHandler.ListPosts)
-		v1.POST("/posts/:id/featured", postAdminHandler.SetPostFeatured)
-		v1.POST("/posts/:id/pinned", postAdminHandler.SetPostPinned)
 
 		v1.POST("/users/:id/ban", userAdminHandler.BanUser)
 		v1.POST("/users/:id/unban", userAdminHandler.UnbanUser)
@@ -128,20 +103,9 @@ func main() {
 		v1.GET("/invite-codes/:code/status", inviteAdminHandler.GetInviteCodeStatus)
 		v1.PUT("/invite-codes/:code/void", inviteAdminHandler.VoidInviteCode)
 
-		v1.POST("/boards", boardAdminHandler.CreateBoard)
-		v1.PUT("/boards/:id", boardAdminHandler.UpdateBoard)
-		v1.DELETE("/boards/:id", boardAdminHandler.DeleteBoard)
-		v1.GET("/boards", boardAdminHandler.ListBoards)
-
 		v1.POST("/sensitive-words", moderationHandler.AddSensitiveWord)
 		v1.GET("/sensitive-words", moderationHandler.ListSensitiveWords)
 		v1.DELETE("/sensitive-words/:id", moderationHandler.DeleteSensitiveWord)
-
-		v1.GET("/stats/overview", statsHandler.GetOverview)
-		v1.GET("/stats/daily", statsHandler.GetDailyStats)
-
-		v1.GET("/reports", reportHandler.ListReports)
-		v1.POST("/reports/:id/resolve", reportHandler.ResolveReport)
 	}
 
 	internal := router.Group("/internal/v1")
