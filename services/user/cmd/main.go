@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"context"
@@ -70,6 +70,7 @@ func main() {
 	userHandler := handler.NewUserHandler(userService)
 	qqOAuthHandler := handler.NewQQOAuthHandler(userService)
 	discourseSSOHandler := handler.NewDiscourseSSOHandler(userService)
+	authHandler := handler.NewAuthHandler(userService)
 
 	// Initialize user admin service and handler
 	userAdminService := service.NewUserAdminService(pool, rdb)
@@ -116,6 +117,7 @@ func main() {
 		auth.GET("/users/:id/following", userHandler.GetPublicFollowing)
 		auth.GET("/users/:id/followers", userHandler.GetPublicFollowers)
 		auth.GET("/users/:id/follow-counts", userHandler.GetFollowCounts)
+		auth.POST("/auth/logout", authHandler.Logout)
 	}
 
 	// Internal routes (service-to-service, no external auth per D-09)

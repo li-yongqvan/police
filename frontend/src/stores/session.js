@@ -50,6 +50,7 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   function logout() {
+    userApi.logout().catch(() => {})
     token.value = ''
     currentUser.value = null
     localStorage.removeItem('ai-forum-token')

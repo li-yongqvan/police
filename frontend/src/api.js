@@ -1,4 +1,4 @@
-import { apiRequest, apiUpload, LOGIN_TIMEOUT_MS, setRefreshToken } from './api/http'
+﻿import { apiRequest, apiUpload, LOGIN_TIMEOUT_MS, setRefreshToken } from './api/http'
 import { formatDisplayDate, formatDisplayTime } from './utils/displayName'
 
 const authHeaders = (json = true, tokenOverride) => {
@@ -291,6 +291,13 @@ export const userApi = {
       page: payload.page ?? page,
       limit: payload.limit ?? limit,
     }
+  },
+
+  async logout() {
+    await request('/user-api', '/api/v1/auth/logout', {
+      method: 'POST',
+      headers: authHeaders(),
+    })
   },
 }
 
