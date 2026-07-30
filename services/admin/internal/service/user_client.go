@@ -201,59 +201,11 @@ func (c *UserClient) VoidInviteCode(code string) error {
 	return c.putJSON(fmt.Sprintf("%s/internal/v1/invite-codes/%s/void", c.BaseURL, code), nil)
 }
 
-// GetUserOverview calls user-service internal stats overview
-func (c *UserClient) GetUserOverview() (*UserOverview, error) {
-	url := fmt.Sprintf("%s/internal/v1/stats/overview", c.BaseURL)
-	resp, err := c.HTTPClient.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call user-service stats: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("user-service returned status %d for stats", resp.StatusCode)
-	}
-	var result struct {
-		Data UserOverview `json:"data"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-	return &result.Data, nil
-}
 
-// GetDailyUsers calls user-service internal daily users endpoint
-func (c *UserClient) GetDailyUsers(days int) ([]DailyUserCount, error) {
-	url := fmt.Sprintf("%s/internal/v1/stats/daily-users?days=%d", c.BaseURL, days)
-	resp, err := c.HTTPClient.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call user-service daily users: %w", err)
-	}
-	defer resp.Body.Close()
-	var result struct {
-		Data []DailyUserCount `json:"data"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-	return result.Data, nil
-}
 
-// GetLevelDistribution calls user-service internal level distribution endpoint
-func (c *UserClient) GetLevelDistribution() ([]LevelDistribution, error) {
-	url := fmt.Sprintf("%s/internal/v1/stats/level-distribution", c.BaseURL)
-	resp, err := c.HTTPClient.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call user-service level distribution: %w", err)
-	}
-	defer resp.Body.Close()
-	var result struct {
-		Data []LevelDistribution `json:"data"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-	return result.Data, nil
-}
+
+
+
 
 func (c *UserClient) postJSON(url string, payload interface{}) error {
 	body, err := json.Marshal(payload)

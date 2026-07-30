@@ -127,3 +127,19 @@ func (h *UserAdminHandler) GetUserLogs(c *gin.Context) {
 		"limit": limit,
 	})
 }
+
+func getOperatorInfo(c *gin.Context) (uint, string) {
+	operatorID := uint(0)
+	operatorName := "admin_system"
+	if oid, ok := c.Get("user_id"); ok {
+		if o, ok := oid.(uint); ok {
+			operatorID = o
+		}
+	}
+	if on, ok := c.Get("username"); ok {
+		if n, ok := on.(string); ok {
+			operatorName = n
+		}
+	}
+	return operatorID, operatorName
+}
