@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { LayoutGrid, Save, Settings, ShieldCheck } from 'lucide-vue-next'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
-import { adminApi, forumApi } from '../api'
+import { adminApi } from '../api'
 import { formatApiError } from '../api/errors'
 import { useSessionStore } from '../stores/session'
 
@@ -30,7 +30,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [nextConfig, nextBoards] = await Promise.all([adminApi.getConfig(), forumApi.getBoards(true)])
+    const [nextConfig, nextBoards] = await Promise.all([adminApi.getConfig(), adminApi.listBoards()])
     config.value = nextConfig
     boards.value = nextBoards
   } catch (err) {

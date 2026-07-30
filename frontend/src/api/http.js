@@ -10,10 +10,23 @@ const REFRESH_KEY = 'ai-forum-refresh-token'
 export const DEFAULT_TIMEOUT_MS = 15000
 export const LOGIN_TIMEOUT_MS = 30000
 
+/**
+ * Write token to document.cookie so Discourse SSO (cross-port 80->8080)
+ * can read it via c.Request.Cookie("ai-forum-token").
+ */
+export function setTokenCookie(token) {
+  if (token) {
+    document.cookie = 'ai-forum-token=' + encodeURIComponent(token) + ';path=/;SameSite=Lax'
+  } else {
+    document.cookie = 'ai-forum-token=;path=/;SameSite=Lax;max-age=0'
+  }
+}
+
 let unauthorizedHandler = () => {
   localStorage.removeItem('ai-forum-token')
   localStorage.removeItem('ai-forum-user')
   localStorage.removeItem(REFRESH_KEY)
+  setTokenCookie('')
   if (!window.location.pathname.startsWith('/')) {
     window.location.href = '/'
   } else if (window.location.pathname !== '/') {
@@ -51,7 +64,7 @@ function isNetworkError(error) {
 
 export function networkErrorMessage(error) {
   if (error?.name === 'AbortError') {
-    return '网络响应超时，请切换 Wi‑Fi/4G 后重试'
+    return '网络响应超时，请切换 Wi-Fi/4G 后重试'
   }
   if (error?.name === 'TypeError') {
     return '网络不稳定，无法连接服务器，请稍后重试'
@@ -118,6 +131,7 @@ async function tryRefreshAccessToken() {
     const payload = await response.json().catch(() => ({}))
     if (!response.ok || !payload.access_token) return false
     localStorage.setItem('ai-forum-token', payload.access_token)
+    setTokenCookie(payload.access_token)
     return true
   } catch {
     return false

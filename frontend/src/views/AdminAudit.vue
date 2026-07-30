@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
-import { adminApi, forumApi } from '../api'
+import { adminApi } from '../api'
 import { useSessionStore } from '../stores/session'
 
 const session = useSessionStore()
@@ -22,7 +22,7 @@ const previewTitle = computed(() => preview.value?.post?.title || '未选择')
 async function load() {
   items.value = await adminApi.getPendingAudit()
   selected.value = new Set()
-  preview.value = items.value[0] ? await forumApi.getPost(items.value[0].postId) : null
+  preview.value = items.value[0] ? await adminApi.getPostDetail(items.value[0].postId) : null
 }
 
 function toggleSelect(id) {
@@ -56,7 +56,7 @@ async function batchDelete() {
 }
 
 async function showPreview(item) {
-  preview.value = await forumApi.getPost(item.postId)
+  preview.value = await adminApi.getPostDetail(item.postId)
 }
 
 onMounted(load)

@@ -61,10 +61,6 @@ function back() {
         <span>{{ item.label }}</span>
       </RouterLink>
     </nav>
-    <div class="gx-sidebar-nav__sep" />
-    <button type="button" class="gx-sidebar-nav__link w-full border-0 bg-transparent text-left" @click="back">
-      <GxIcon name="home" :size="20" />
-      <span>返回社区</span>
-    </button>
+    
   </aside>
 </template>

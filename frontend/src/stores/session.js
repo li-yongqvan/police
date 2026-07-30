@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { setRefreshToken } from '../api/http'
+import { setRefreshToken, setTokenCookie } from '../api/http'
 import { userApi } from '../api'
 
 export const useSessionStore = defineStore('session', () => {
@@ -29,6 +29,7 @@ export const useSessionStore = defineStore('session', () => {
     currentUser.value = result.user
     localStorage.setItem('ai-forum-token', result.token)
     localStorage.setItem('ai-forum-user', JSON.stringify(result.user))
+    setTokenCookie(result.token)
     if (result.refreshToken) setRefreshToken(result.refreshToken)
   }
 
@@ -56,6 +57,7 @@ export const useSessionStore = defineStore('session', () => {
     localStorage.removeItem('ai-forum-token')
     localStorage.removeItem('ai-forum-user')
     setRefreshToken('')
+    setTokenCookie('')
   }
 
   return {

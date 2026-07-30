@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
-import GxSearchPanel from './components/gx/GxSearchPanel.vue'
 import { useSessionStore } from './stores/session'
 
 const session = useSessionStore()
@@ -20,6 +19,5 @@ onMounted(() => {
       </div>
     </transition>
     <RouterView />
-    <GxSearchPanel />
   </div>
 </template>

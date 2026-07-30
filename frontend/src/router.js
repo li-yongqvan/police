@@ -3,19 +3,7 @@ import { useSessionStore } from './stores/session'
 
 const DemoLogin = () => import('./views/DemoLogin.vue')
 const Register = () => import('./views/Register.vue')
-const CommunityLayout = () => import('./views/CommunityLayout.vue')
-const CommunityHome = () => import('./views/CommunityHome.vue')
-const BoardView = () => import('./views/BoardView.vue')
-const PostDetail = () => import('./views/PostDetail.vue')
-const NewPost = () => import('./views/NewPost.vue')
-const EditPost = () => import('./views/EditPost.vue')
-const ProfileView = () => import('./views/ProfileView.vue')
-const UserPublic = () => import('./views/UserPublic.vue')
-const MessagesView = () => import('./views/MessagesView.vue')
-const AboutView = () => import('./views/AboutView.vue')
-const RankView = () => import('./views/RankView.vue')
-const CircleView = () => import('./views/CircleView.vue')
-const MyLibraryView = () => import('./views/MyLibraryView.vue')
+const OAuthQQ = () => import('./views/OAuthQQ.vue')
 const AdminLayout = () => import('./views/AdminLayout.vue')
 const AdminOverview = () => import('./views/AdminOverview.vue')
 const AdminAudit = () => import('./views/AdminAudit.vue')
@@ -28,7 +16,12 @@ const AdminSensitiveWords = () => import('./views/AdminSensitiveWords.vue')
 const AdminRoles = () => import('./views/AdminRoles.vue')
 const AdminStats = () => import('./views/AdminStats.vue')
 const AdminReports = () => import('./views/AdminReports.vue')
-const OAuthQQ = () => import('./views/OAuthQQ.vue')
+
+const DISCOURSE_URL = 'http://122.51.233.225:8080'
+
+function redirectToDiscourse() {
+  window.location.href = DISCOURSE_URL
+}
 
 const dynamicImportErrorPattern =
   /Failed to fetch dynamically imported module|Importing a module script failed|Unable to preload CSS|error loading dynamically imported module/i
@@ -40,9 +33,8 @@ function isDynamicImportError(error) {
 
 function recoverFromDynamicImportError(to) {
   const target = to?.fullPath || window.location.pathname + window.location.search + window.location.hash
-  const reloadKey = `ai-forum:dynamic-import-reload:${target}`
+  const reloadKey = 'ai-forum:dynamic-import-reload:' + target
   if (sessionStorage.getItem(reloadKey)) return false
-
   sessionStorage.setItem(reloadKey, '1')
   window.location.assign(target)
   return true
@@ -56,51 +48,9 @@ const router = createRouter({
     return { top: 0 }
   },
   routes: [
-    { path: '/boards', redirect: { name: 'login' } },
-    { path: '/boards/:id', redirect: { name: 'community-home' } },
-    { path: '/login', redirect: { name: 'login' } },
-    { path: '/post/create', redirect: { name: 'new-post' } },
-    { path: '/posts/:id', redirect: (to) => ({ name: 'post-detail', params: { id: to.params.id } }) },
-    { path: '/profile', redirect: { name: 'profile' } },
-    { path: '/admin/login', redirect: { name: 'login' } },
     { path: '/', name: 'login', component: DemoLogin },
     { path: '/oauth/qq', name: 'oauth-qq', component: OAuthQQ },
     { path: '/register', name: 'register', component: Register },
-    {
-      path: '/community',
-      component: CommunityLayout,
-      children: [
-        { path: '', name: 'community-home', component: CommunityHome },
-        { path: 'boards/:slug', name: 'board', component: BoardView },
-        { path: 'posts/new', name: 'new-post', component: NewPost },
-        { path: 'posts/:id/edit', name: 'edit-post', component: EditPost },
-        { path: 'posts/:id', name: 'post-detail', component: PostDetail },
-        { path: 'profile', name: 'profile', component: ProfileView },
-        {
-          path: 'my/posts',
-          name: 'my-posts',
-          component: MyLibraryView,
-          meta: { libraryMode: 'posts' },
-        },
-        {
-          path: 'my/favorites',
-          name: 'my-favorites',
-          component: MyLibraryView,
-          meta: { libraryMode: 'favorites' },
-        },
-        {
-          path: 'my/history',
-          name: 'my-history',
-          component: MyLibraryView,
-          meta: { libraryMode: 'history' },
-        },
-        { path: 'users/:id', name: 'user-public', component: UserPublic },
-        { path: 'messages', name: 'messages', component: MessagesView },
-        { path: 'rank', name: 'rank', component: RankView },
-        { path: 'circle', name: 'campus-circle', component: CircleView },
-        { path: 'about', name: 'about', component: AboutView },
-      ],
-    },
     {
       path: '/admin',
       component: AdminLayout,
@@ -118,6 +68,7 @@ const router = createRouter({
         { path: 'stats', name: 'admin-stats', component: AdminStats },
       ],
     },
+    { path: '/:pathMatch(.*)*', redirect: () => { redirectToDiscourse(); return false } },
   ],
 })
 
@@ -127,7 +78,7 @@ router.onError((error, to) => {
 })
 
 router.afterEach((to) => {
-  sessionStorage.removeItem(`ai-forum:dynamic-import-reload:${to.fullPath}`)
+  sessionStorage.removeItem('ai-forum:dynamic-import-reload:' + to.fullPath)
 })
 
 router.beforeEach((to) => {
@@ -137,28 +88,23 @@ router.beforeEach((to) => {
     if (['admin', 'platform_admin'].includes(role)) {
       return { path: '/admin' }
     }
-    return { path: '/community' }
+    redirectToDiscourse()
+    return false
   }
-  if (to.name === 'login' || to.name === 'register') {
+  if (to.name === 'login' || to.name === 'register' || to.name === 'oauth-qq') {
     return true
   }
-  if (to.name === 'oauth-qq') {
-    return true
-  }
-
   if (!session.token) {
     return { name: 'login' }
   }
-
   if (to.path.startsWith('/admin') && !session.canAccessAdmin) {
-    return { name: 'community-home' }
+    redirectToDiscourse()
+    return false
   }
-
   const platformOnly = ['admin-invites', 'admin-sensitive', 'admin-roles']
   if (platformOnly.includes(to.name) && session.currentUser?.role !== 'platform_admin') {
     return { name: 'admin-overview' }
   }
-
   return true
 })
 
