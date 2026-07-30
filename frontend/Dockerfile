@@ -1,9 +1,10 @@
 # Build context must be repository root: docker compose build frontend
 # (requires ../mobile-web for mobile styles)
-ARG NODE_IMAGE=node:20-alpine
+ARG NODE_IMAGE=node:22-alpine
 ARG NGINX_IMAGE=nginx:alpine
 FROM ${NODE_IMAGE} AS build
 WORKDIR /app
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
