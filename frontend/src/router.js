@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+﻿import { createRouter, createWebHistory } from 'vue-router'
 import { useSessionStore } from './stores/session'
 
 const DemoLogin = () => import('./views/DemoLogin.vue')
@@ -6,16 +6,11 @@ const Register = () => import('./views/Register.vue')
 const OAuthQQ = () => import('./views/OAuthQQ.vue')
 const AdminLayout = () => import('./views/AdminLayout.vue')
 const AdminOverview = () => import('./views/AdminOverview.vue')
-const AdminAudit = () => import('./views/AdminAudit.vue')
 const AdminConfig = () => import('./views/AdminConfig.vue')
 const AdminUsers = () => import('./views/AdminUsers.vue')
-const AdminPosts = () => import('./views/AdminPosts.vue')
-const AdminBoards = () => import('./views/AdminBoards.vue')
 const AdminInvites = () => import('./views/AdminInvites.vue')
-const AdminSensitiveWords = () => import('./views/AdminSensitiveWords.vue')
 const AdminRoles = () => import('./views/AdminRoles.vue')
 const AdminStats = () => import('./views/AdminStats.vue')
-const AdminReports = () => import('./views/AdminReports.vue')
 
 const DISCOURSE_URL = 'http://122.51.233.225:8080'
 
@@ -56,14 +51,9 @@ const router = createRouter({
       component: AdminLayout,
       children: [
         { path: '', name: 'admin-overview', component: AdminOverview },
-        { path: 'audit', name: 'admin-audit', component: AdminAudit },
-        { path: 'reports', name: 'admin-reports', component: AdminReports },
-        { path: 'posts', name: 'admin-posts', component: AdminPosts },
         { path: 'users', name: 'admin-users', component: AdminUsers },
-        { path: 'boards', name: 'admin-boards', component: AdminBoards },
         { path: 'config', name: 'admin-config', component: AdminConfig },
         { path: 'invites', name: 'admin-invites', component: AdminInvites },
-        { path: 'sensitive', name: 'admin-sensitive', component: AdminSensitiveWords },
         { path: 'roles', name: 'admin-roles', component: AdminRoles },
         { path: 'stats', name: 'admin-stats', component: AdminStats },
       ],
@@ -101,7 +91,7 @@ router.beforeEach((to) => {
     redirectToDiscourse()
     return false
   }
-  const platformOnly = ['admin-invites', 'admin-sensitive', 'admin-roles']
+  const platformOnly = ['admin-invites', 'admin-roles']
   if (platformOnly.includes(to.name) && session.currentUser?.role !== 'platform_admin') {
     return { name: 'admin-overview' }
   }
@@ -109,3 +99,4 @@ router.beforeEach((to) => {
 })
 
 export default router
+
