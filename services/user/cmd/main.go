@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"context"
@@ -69,6 +69,7 @@ func main() {
 	userService := service.NewUserService(pool, rdb)
 	userHandler := handler.NewUserHandler(userService)
 	qqOAuthHandler := handler.NewQQOAuthHandler(userService)
+	discourseSSOHandler := handler.NewDiscourseSSOHandler(userService)
 
 	// Initialize user admin service and handler
 	userAdminService := service.NewUserAdminService(pool, rdb)
@@ -94,6 +95,8 @@ func main() {
 		v1.POST("/auth/refresh", userHandler.RefreshToken)
 		v1.GET("/auth/qq/start", qqOAuthHandler.Start)
 		v1.GET("/auth/qq/callback", qqOAuthHandler.Callback)
+
+		v1.GET("/auth/discourse/sso", discourseSSOHandler.HandleSSO)
 	}
 
 	// Authenticated routes
