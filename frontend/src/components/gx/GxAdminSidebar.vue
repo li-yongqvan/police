@@ -1,47 +1,44 @@
-<script setup>
-import { computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
-import GxIcon from './GxIcon.vue'
-import { useSessionStore } from '../../stores/session'
+﻿<script setup>
+import { computed } from "vue"
+import { RouterLink, useRoute } from "vue-router"
+import GxIcon from "./GxIcon.vue"
+import { useSessionStore } from "../../stores/session"
 
 defineProps({
   open: { type: Boolean, default: false },
 })
-const emit = defineEmits(['navigate', 'back'])
+const emit = defineEmits(["navigate", "back"])
 
 const route = useRoute()
 const session = useSessionStore()
 
-const isPlatform = computed(() => session.currentUser?.role === 'platform_admin')
+const isPlatform = computed(() => session.currentUser?.role === "platform_admin")
+
+const DISCOURSE_ADMIN_URL = "http://122.51.233.225:8080/admin"
 
 const adminNav = computed(() => {
   const items = [
-    { to: '/admin', label: '数据概览', icon: 'home' },
-    { to: '/admin/stats', label: '趋势统计', icon: 'book' },
-    { to: '/admin/audit', label: '内容审核', icon: 'shield' },
-    { to: '/admin/reports', label: '举报处理', icon: 'flag' },
-    { to: '/admin/posts', label: '帖子管理', icon: 'edit' },
-    { to: '/admin/users', label: '用户管理', icon: 'user' },
-    { to: '/admin/boards', label: '板块管理', icon: 'book' },
-    { to: '/admin/config', label: isPlatform.value ? '系统配置' : '运营配置', icon: 'info' },
+    { to: "/admin", label: "数据概览", icon: "home" },
+    { to: "/admin/stats", label: "趋势统计", icon: "book" },
+    { to: "/admin/users", label: "用户管理", icon: "user" },
+    { to: "/admin/config", label: isPlatform.value ? "系统配置" : "运营配置", icon: "info" },
   ]
   if (isPlatform.value) {
     items.push(
-      { to: '/admin/invites', label: '邀请码', icon: 'flag' },
-      { to: '/admin/sensitive', label: '敏感词', icon: 'shield' },
-      { to: '/admin/roles', label: '角色权限', icon: 'shield' },
+      { to: "/admin/invites", label: "邀请码", icon: "flag" },
+      { to: "/admin/roles", label: "角色权限", icon: "shield" },
     )
   }
   return items
 })
 
 function onNav() {
-  emit('navigate')
+  emit("navigate")
 }
 
 function back() {
-  emit('navigate')
-  emit('back')
+  emit("navigate")
+  emit("back")
 }
 </script>
 
@@ -61,6 +58,16 @@ function back() {
         <span>{{ item.label }}</span>
       </RouterLink>
     </nav>
-    
+    <div class="gx-sidebar-nav__section">外部管理</div>
+    <nav class="gx-sidebar-nav">
+      <a
+        :href="DISCOURSE_ADMIN_URL"
+        class="gx-sidebar-nav__link"
+        @click="onNav"
+      >
+        <GxIcon name="shield" :size="20" />
+        <span>前往 Discourse 管理</span>
+      </a>
+    </nav>
   </aside>
 </template>
