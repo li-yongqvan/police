@@ -1,104 +1,25 @@
 <script setup>
-import { onMounted, ref } from 'vue'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
-import { RouterLink, useRouter } from 'vue-router'
-import { adminApi } from '../api'
-import { formatApiError } from '../api/errors'
-import { useSessionStore } from '../stores/session'
-
-const router = useRouter()
 
 const breadcrumbItems = [
-  { label: 'ç®¡ç†åå°', to: '/admin' },
-  { label: 'ç®¡ç†æ¦‚è§ˆ' },
+  { label: '¹ÜÀíºóÌ¨', to: '/admin' },
+  { label: '¹ÜÀí¸ÅÀÀ' },
 ]
-const session = useSessionStore()
-
-const overview = ref(null)
-const loading = ref(true)
-const error = ref('')
-
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    overview.value = await adminApi.getOverview()
-  } catch (err) {
-    error.value = formatApiError(
-      err,
-      'æ— æ³•åŠ è½½ç®¡ç†æ•°æ®ï¼šè¯·ç¡®è®¤åç«¯æœåŠ¡ä¸ Cloudflare éš§é“å·²å¯åŠ¨ï¼Œå¹¶ä½¿ç”¨æ­£å¼åŸŸåæˆ–ç½‘å…³ 8888 è®¿é—®',
-    )
-    overview.value = null
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(load)
 </script>
 
 <template>
   <div class="gx-page gx-admin-page gx-admin-overview">
-      <GxBreadcrumb :items="breadcrumbItems" />
-    <p v-if="loading" class="gx-muted">æ­£åœ¨åŠ è½½ç®¡ç†æ•°æ®â€¦</p>
-    <div v-else-if="error" class="gx-card gx-admin-error">
-      <p class="gx-error">{{ error }}</p>
-      <p class="gx-muted">
-        å­¦ç”Ÿ/ç®¡ç†å…¥å£ï¼š<strong>https://api.shgenren.dpdns.org</strong>ï¼ˆå‹¿ç”¨å¤±æ•ˆçš„ trycloudflare é“¾æ¥ï¼‰ã€‚
-      </p>
-      <p class="gx-muted">æœåŠ¡å™¨ä¸Šå¯æ‰§è¡Œï¼š<code>bash /opt/ai-forum/scripts/check-tunnel-health.sh</code></p>
-      <div class="gx-action-row">
-        <button type="button" class="gx-btn gx-btn--secondary" @click="load">é‡è¯•</button>
-        <button
-          type="button"
-          class="gx-btn gx-btn--ghost"
-          @click="
-            session.logout();
-            router.push('/');
-          "
-        >
-          é€€å‡ºå¹¶é‡æ–°ç™»å½•
-        </button>
-        <RouterLink to="/community" class="gx-btn gx-btn--secondary">è¿”å›ç¤¾åŒº</RouterLink>
+    <GxBreadcrumb :items="breadcrumbItems" />
+    <GxAdminPageHeader eyebrow="¹ÜÀí¸ÅÀÀ" title="AIÖÇÁªÆ½Ì¨ ¡¤ ÔËÓªÊı¾İ" description="¿É¿Ø¡¢¿É¹Ü¡¢¿ÉÕ¹Ê¾µÄ¹ÜÀí±Õ»·" />
+
+    <section class="gx-card gx-admin-placeholder">
+      <div class="gx-placeholder-content">
+        <p class="gx-placeholder-icon">??</p>
+        <h3>Í³¼Æ¹¦ÄÜ¼´½«ÉÏÏß</h3>
+        <p class="gx-muted">ÂÛÌ³ÒÑÇ¨ÒÆÖÁ Discourse£¬ĞÂµÄÍ³¼ÆÃæ°åÕıÔÚ½¨ÉèÖĞ£¬¾´ÇëÆÚ´ı¡£</p>
       </div>
-    </div>
-
-    <template v-else-if="overview">
-      <GxAdminPageHeader eyebrow="ç®¡ç†æ¦‚è§ˆ" title="AIæ™ºè”å¹³å° Â· è¿è¥æ•°æ®" description="å¯æ§ã€å¯ç®¡ã€å¯å±•ç¤ºçš„ç®¡ç†é—­ç¯" />
-
-      <section class="gx-admin-summary gx-admin-summary--four">
-        <article class="gx-admin-summary__item">
-          <span>æ³¨å†Œç”¨æˆ·æ•°</span>
-          <strong>{{ overview.userCount }}</strong>
-        </article>
-        <article class="gx-admin-summary__item">
-          <span>ä»Šæ—¥å‘å¸–é‡</span>
-          <strong>{{ overview.todayPostCount }}</strong>
-        </article>
-        <article class="gx-admin-summary__item">
-          <span>å¾…å®¡æ ¸æ•°</span>
-          <strong>{{ overview.pendingAuditCount }}</strong>
-        </article>
-        <article class="gx-admin-summary__item">
-          <span>å…¬å¼€å¸–å­é‡</span>
-          <strong>{{ overview.postCount }}</strong>
-        </article>
-      </section>
-
-      <section class="gx-card">
-        <div class="gx-section-head">
-          <strong>æ¿å—æ´»è·ƒåº¦</strong>
-          <span class="gx-muted">{{ overview.boardActivity.length }} ä¸ªæ¿å—</span>
-        </div>
-        <div class="gx-stat-grid gx-stat-grid--boards">
-          <article v-for="item in overview.boardActivity" :key="item.boardId" class="gx-stat-card">
-            <strong>{{ item.count }}</strong>
-            <span>{{ item.name }} Â· å…¬å¼€å¸–</span>
-          </article>
-        </div>
-      </section>
-    </template>
+    </section>
   </div>
 </template>
 
@@ -108,42 +29,27 @@ onMounted(load)
   max-width: none;
 }
 
-.gx-admin-hero {
-  width: 100%;
+.gx-admin-placeholder {
+  text-align: center;
+  padding: 48px 24px;
 }
 
-.gx-admin-hero .gx-stat-grid {
+.gx-placeholder-content {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 16px;
-  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
-.gx-admin-hero .gx-stat-card {
-  flex: 1 1 0;
-  min-width: 0;
+.gx-placeholder-icon {
+  font-size: 48px;
+  margin: 0;
+  line-height: 1;
 }
 
-.gx-stat-grid--boards {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 16px;
-  width: 100%;
-}
-
-.gx-stat-grid--boards .gx-stat-card {
-  flex: 1 1 220px;
-}
-
-@media (max-width: 599px) {
-  .gx-admin-hero .gx-stat-grid {
-    flex-wrap: wrap;
-  }
-
-  .gx-admin-hero .gx-stat-card {
-    flex: 1 1 calc(50% - 8px);
-  }
+.gx-placeholder-content h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 </style>

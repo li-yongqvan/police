@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { useSessionStore } from './stores/session'
 
 const DemoLogin = () => import('./views/DemoLogin.vue')
@@ -10,7 +10,6 @@ const AdminConfig = () => import('./views/AdminConfig.vue')
 const AdminUsers = () => import('./views/AdminUsers.vue')
 const AdminInvites = () => import('./views/AdminInvites.vue')
 const AdminRoles = () => import('./views/AdminRoles.vue')
-const AdminStats = () => import('./views/AdminStats.vue')
 
 const DISCOURSE_URL = 'http://122.51.233.225:8080'
 
@@ -54,9 +53,7 @@ const router = createRouter({
         { path: 'users', name: 'admin-users', component: AdminUsers },
         { path: 'config', name: 'admin-config', component: AdminConfig },
         { path: 'invites', name: 'admin-invites', component: AdminInvites },
-        { path: 'roles', name: 'admin-roles', component: AdminRoles },
-        { path: 'stats', name: 'admin-stats', component: AdminStats },
-      ],
+        { path: 'roles', name: 'admin-roles', component: AdminRoles },      ],
     },
     { path: '/:pathMatch(.*)*', redirect: () => { redirectToDiscourse(); return false } },
   ],

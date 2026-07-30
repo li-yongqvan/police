@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { LayoutGrid, Save, Settings, ShieldCheck } from 'lucide-vue-next'
+import { Save, Settings, ShieldCheck } from 'lucide-vue-next'
 import GxBreadcrumb from '../components/gx/GxBreadcrumb.vue'
 import GxAdminPageHeader from '../components/gx/GxAdminPageHeader.vue'
 import { adminApi } from '../api'
@@ -9,32 +9,24 @@ import { useSessionStore } from '../stores/session'
 
 const session = useSessionStore()
 const config = ref(null)
-const boards = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
 
 const breadcrumbItems = [
-  { label: 'ç®¡ç†åå°', to: '/admin' },
-  { label: 'ç³»ç»Ÿé…ç½®' },
+  { label: '¹ÜÀíºóÌ¨', to: '/admin' },
+  { label: 'ÏµÍ³ÅäÖÃ' },
 ]
 
-const enabledBoardCount = computed(() => {
-  if (!config.value) return 0
-  return boards.value.filter((board) => config.value.boardSwitches?.[board.id]).length
-})
-
-const moderationLabel = computed(() => (config.value?.moderationMode === 'manual' ? 'äººå·¥å®¡æ ¸' : 'è‡ªåŠ¨å®¡æ ¸'))
+const moderationLabel = computed(() => (config.value?.moderationMode === 'manual' ? 'ÈË¹¤ÉóºË' : '×Ô¶¯ÉóºË'))
 
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [nextConfig, nextBoards] = await Promise.all([adminApi.getConfig(), adminApi.listBoards()])
-    config.value = nextConfig
-    boards.value = nextBoards
+    config.value = await adminApi.getConfig()
   } catch (err) {
-    error.value = formatApiError(err, 'ç³»ç»Ÿé…ç½®åŠ è½½å¤±è´¥')
+    error.value = formatApiError(err, 'ÏµÍ³ÅäÖÃ¼ÓÔØÊ§°Ü')
   } finally {
     loading.value = false
   }
@@ -45,10 +37,9 @@ async function save() {
   saving.value = true
   try {
     config.value = await adminApi.updateConfig(config.value)
-    window.dispatchEvent(new CustomEvent('forum-config-updated'))
-    session.setFlash('ç³»ç»Ÿé…ç½®å·²ä¿å­˜ã€‚', 'success')
+    session.setFlash('ÏµÍ³ÅäÖÃÒÑ±£´æ¡£', 'success')
   } catch (err) {
-    session.setFlash(formatApiError(err, 'ç³»ç»Ÿé…ç½®ä¿å­˜å¤±è´¥'), 'info')
+    session.setFlash(formatApiError(err, 'ÏµÍ³ÅäÖÃ±£´æÊ§°Ü'), 'info')
   } finally {
     saving.value = false
   }
@@ -62,33 +53,28 @@ onMounted(load)
     <GxBreadcrumb :items="breadcrumbItems" />
 
     <GxAdminPageHeader
-      eyebrow="ç³»ç»Ÿé…ç½®"
-      title="åŸºç¡€æ§åˆ¶èƒ½åŠ›"
-      description="ç»Ÿä¸€ç»´æŠ¤å‘å¸–å‡†å…¥ã€å®¡æ ¸ç­–ç•¥å’Œæ¿å—å¼€æ”¾çŠ¶æ€ã€‚"
+      eyebrow="ÏµÍ³ÅäÖÃ"
+      title="»ù´¡¿ØÖÆÄÜÁ¦"
+      description="Í³Ò»Î¬»¤·¢Ìû×¼ÈëºÍÉóºË²ßÂÔ¡£"
     />
 
-    <p v-if="loading" class="gx-muted gx-config-loading">æ­£åœ¨åŠ è½½ç³»ç»Ÿé…ç½®...</p>
+    <p v-if="loading" class="gx-muted gx-config-loading">ÕıÔÚ¼ÓÔØÏµÍ³ÅäÖÃ...</p>
     <section v-else-if="error" class="gx-config-error">
       <p>{{ error }}</p>
-      <button type="button" class="gx-btn gx-btn--secondary" @click="load">é‡è¯•</button>
+      <button type="button" class="gx-btn gx-btn--secondary" @click="load">ÖØÊÔ</button>
     </section>
 
     <template v-else-if="config">
-      <section class="gx-config-summary" aria-label="é…ç½®çŠ¶æ€æ¦‚è§ˆ">
+      <section class="gx-config-summary" aria-label="ÅäÖÃ×´Ì¬¸ÅÀÀ">
         <article class="gx-config-summary__item">
           <Settings :size="18" />
-          <span>å‘å¸–çŠ¶æ€</span>
-          <strong>{{ config.postingEnabled ? 'å·²å¼€å¯' : 'å·²å…³é—­' }}</strong>
+          <span>·¢Ìû×´Ì¬</span>
+          <strong>{{ config.postingEnabled ? 'ÒÑ¿ªÆô' : 'ÒÑ¹Ø±Õ' }}</strong>
         </article>
         <article class="gx-config-summary__item">
           <ShieldCheck :size="18" />
-          <span>å®¡æ ¸æ¨¡å¼</span>
+          <span>ÉóºËÄ£Ê½</span>
           <strong>{{ moderationLabel }}</strong>
-        </article>
-        <article class="gx-config-summary__item">
-          <LayoutGrid :size="18" />
-          <span>å¼€æ”¾æ¿å—</span>
-          <strong>{{ enabledBoardCount }} / {{ boards.length }}</strong>
         </article>
       </section>
 
@@ -97,17 +83,17 @@ onMounted(load)
           <div class="gx-config-panel__head">
             <div>
               <p class="gx-eyebrow">Posting</p>
-              <h2>å‘å¸ƒæƒé™</h2>
+              <h2>·¢²¼È¨ÏŞ</h2>
             </div>
             <span :class="['gx-config-status', config.postingEnabled ? 'is-on' : 'is-off']">
-              {{ config.postingEnabled ? 'å…è®¸å‘å¸–' : 'æš‚åœå‘å¸–' }}
+              {{ config.postingEnabled ? 'ÔÊĞí·¢Ìû' : 'ÔİÍ£·¢Ìû' }}
             </span>
           </div>
 
           <label class="gx-config-control">
             <span>
-              <strong>å¼€å¯å‘å¸–</strong>
-              <small>å…³é—­åæ™®é€šç”¨æˆ·ä¸èƒ½ç»§ç»­å‘å¸ƒæ–°å¸–å­ã€‚</small>
+              <strong>¿ªÆô·¢²¼</strong>
+              <small>¹Ø±ÕºóÆÕÍ¨ÓÃ»§²»ÄÜ¼ÌĞø·¢²¼ĞÂÌû×Ó¡£</small>
             </span>
             <input v-model="config.postingEnabled" class="gx-switch-input" type="checkbox" />
           </label>
@@ -117,40 +103,20 @@ onMounted(load)
           <div class="gx-config-panel__head">
             <div>
               <p class="gx-eyebrow">Moderation</p>
-              <h2>å®¡æ ¸ç­–ç•¥</h2>
+              <h2>ÉóºË²ßÂÔ</h2>
             </div>
             <span class="gx-config-status is-neutral">{{ moderationLabel }}</span>
           </div>
 
           <label class="gx-config-field">
             <span>
-              <strong>å®¡æ ¸æ¨¡å¼</strong>
-              <small>è‡ªåŠ¨å®¡æ ¸ä¼šç›´æ¥å¤„ç†æ•æ„Ÿå†…å®¹ï¼Œäººå·¥å®¡æ ¸ä¼šè¿›å…¥å¾…å®¡é˜Ÿåˆ—ã€‚</small>
+              <strong>ÉóºËÄ£Ê½</strong>
+              <small>×Ô¶¯ÉóºË»áÖ±½Ó´¦ÀíÃô¸ĞÄÚÈİ£¬ÈË¹¤ÉóºË»á½øÈë´ıÉó¶ÓÁĞ¡£</small>
             </span>
             <select v-model="config.moderationMode">
-              <option value="auto">è‡ªåŠ¨å®¡æ ¸</option>
-              <option value="manual">äººå·¥å®¡æ ¸</option>
+              <option value="auto">×Ô¶¯ÉóºË</option>
+              <option value="manual">ÈË¹¤ÉóºË</option>
             </select>
-          </label>
-        </div>
-      </section>
-
-      <section class="gx-config-panel gx-config-panel--wide">
-        <div class="gx-config-panel__head">
-          <div>
-            <p class="gx-eyebrow">Boards</p>
-            <h2>æ¿å—å¼€å…³</h2>
-          </div>
-          <span class="gx-config-status is-neutral">{{ enabledBoardCount }} ä¸ªå·²å¼€æ”¾</span>
-        </div>
-
-        <div class="gx-board-switch-grid">
-          <label v-for="board in boards" :key="board.id" class="gx-board-switch">
-            <span>
-              <strong>{{ board.name }}</strong>
-              <small>{{ board.description || 'æš‚æ— æ¿å—è¯´æ˜' }}</small>
-            </span>
-            <input v-model="config.boardSwitches[board.id]" class="gx-switch-input" type="checkbox" />
           </label>
         </div>
       </section>
@@ -158,7 +124,7 @@ onMounted(load)
       <div class="gx-config-actions">
         <button type="button" class="gx-btn gx-btn--primary" :disabled="saving" @click="save">
           <Save :size="16" />
-          {{ saving ? 'ä¿å­˜ä¸­...' : 'ä¿å­˜é…ç½®' }}
+          <span>{{ saving ? '±£´æÖĞ...' : '±£´æÅäÖÃ' }}</span>
         </button>
       </div>
     </template>
@@ -171,22 +137,18 @@ onMounted(load)
   max-width: none;
 }
 
-.gx-config-loading,
-.gx-config-error {
-  margin: 0;
+.gx-config-loading {
+  text-align: center;
+  padding: 24px 0;
 }
 
 .gx-config-error {
+  text-align: center;
+  padding: 24px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  padding: 16px;
-  border: 1px solid #f1b8b8;
-  border-radius: var(--radius-md);
-  background: #fff5f5;
-  color: #9f1d1d;
 }
 
 .gx-config-error p {
@@ -195,7 +157,7 @@ onMounted(load)
 
 .gx-config-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -244,10 +206,6 @@ onMounted(load)
   border-radius: var(--radius-md);
   background: var(--color-surface);
   box-shadow: 0 8px 22px rgba(15, 43, 91, 0.06);
-}
-
-.gx-config-panel--wide {
-  margin-bottom: 16px;
 }
 
 .gx-config-panel__head {
@@ -304,8 +262,7 @@ onMounted(load)
 }
 
 .gx-config-control,
-.gx-config-field,
-.gx-board-switch {
+.gx-config-field {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
@@ -313,8 +270,7 @@ onMounted(load)
 }
 
 .gx-config-control strong,
-.gx-config-field strong,
-.gx-board-switch strong {
+.gx-config-field strong {
   display: block;
   color: var(--color-text);
   font-size: 15px;
@@ -322,8 +278,7 @@ onMounted(load)
 }
 
 .gx-config-control small,
-.gx-config-field small,
-.gx-board-switch small {
+.gx-config-field small {
   display: block;
   margin-top: 4px;
   color: var(--color-muted);
@@ -386,20 +341,6 @@ onMounted(load)
   box-shadow: 0 0 0 3px rgba(15, 43, 91, 0.16);
 }
 
-.gx-board-switch-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.gx-board-switch {
-  min-height: 88px;
-  padding: 14px;
-  border: 1px solid #e4e9f2;
-  border-radius: var(--radius-md);
-  background: #f8fafc;
-}
-
 .gx-config-actions {
   display: flex;
   justify-content: flex-end;
@@ -412,8 +353,7 @@ onMounted(load)
 
 @media (max-width: 760px) {
   .gx-config-summary,
-  .gx-config-grid,
-  .gx-board-switch-grid {
+  .gx-config-grid {
     grid-template-columns: 1fr;
   }
 
@@ -423,8 +363,7 @@ onMounted(load)
 
   .gx-config-panel__head,
   .gx-config-control,
-  .gx-config-field,
-  .gx-board-switch {
+  .gx-config-field {
     gap: 12px;
   }
 
