@@ -3,5 +3,4 @@
 -- ============================================================================
 
 DROP SCHEMA IF EXISTS schema_admin CASCADE;
-DROP SCHEMA IF EXISTS schema_forum CASCADE;
 DROP SCHEMA IF EXISTS schema_auth CASCADE;
