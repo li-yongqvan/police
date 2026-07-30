@@ -10,10 +10,6 @@ services:
     ports:
       - "8001:8001"
 
-  forum-service:
-    ports:
-      - "8002:8002"
-
   admin-service:
     ports:
       - "8003:8003"

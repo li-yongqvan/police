@@ -1,5 +1,5 @@
 services:
-  # ─── API Gateway ───
+  # === API Gateway ===
   nginx:
     image: nginx:alpine
     restart: unless-stopped
@@ -8,13 +8,12 @@ services:
       - ./nginx/includes:/etc/nginx/includes:ro
     depends_on:
       - user-service
-      - forum-service
       - admin-service
       - frontend
     networks:
       - ai-forum-net
 
-  # ─── User Service ───
+  # === User Service ===
   user-service:
     build:
       context: ./services/user
@@ -34,25 +33,7 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── Forum Service ───
-  forum-service:
-    build:
-      context: ./services/forum
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      - DB_SCHEMA=schema_forum
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - ai-forum-net
-
-  # ─── Admin Service ───
+  # === Admin Service ===
   admin-service:
     build:
       context: ./services/admin
@@ -70,7 +51,7 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── PostgreSQL ───
+  # === PostgreSQL ===
   postgres:
     image: postgres:16
     restart: unless-stopped
@@ -90,7 +71,7 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── Redis ───
+  # === Redis ===
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -103,7 +84,7 @@ services:
     networks:
       - ai-forum-net
 
-  # ─── Frontend ───
+  # === Frontend ===
   frontend:
     build:
       context: .
@@ -111,7 +92,6 @@ services:
     restart: unless-stopped
     depends_on:
       - user-service
-      - forum-service
       - admin-service
     networks:
       - ai-forum-net

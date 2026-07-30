@@ -8,7 +8,6 @@ services:
       - ./nginx/includes:/etc/nginx/includes:ro
     depends_on:
       - user-service
-      - forum-service
       - admin-service
     networks:
       - ai-forum-net
@@ -21,22 +20,6 @@ services:
       - .env
     environment:
       - DB_SCHEMA=schema_auth
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - ai-forum-net
-
-  forum-service:
-    build:
-      context: ./services/forum
-      dockerfile: Dockerfile
-    env_file:
-      - .env
-    environment:
-      - DB_SCHEMA=schema_forum
     depends_on:
       postgres:
         condition: service_healthy
@@ -96,7 +79,6 @@ services:
       dockerfile: frontend/Dockerfile
     depends_on:
       - user-service
-      - forum-service
       - admin-service
     networks:
       - ai-forum-net
