@@ -1,0 +1,145 @@
+// ai-forum-premium-preview
+// Colors must come from Discourse core CSS variables and bound palettes.
+
+:root {
+  --af-radius-s: 6px;
+  --af-radius-m: 10px;
+  --af-radius-l: 14px;
+  --af-ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --af-t-fast: 150ms;
+  --af-shadow-1: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
+  --af-shadow-2: 0 4px 16px rgb(0 0 0 / 0.08);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+    "Helvetica Neue", Arial, sans-serif;
+  --heading-font-family: var(--font-family);
+}
+
+.btn,
+.nav-pills > li > a,
+.select-kit .select-kit-header,
+.d-header .icons .icon,
+.menu-panel .widget-link,
+.topic-list-item,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  transition:
+    background-color var(--af-t-fast) var(--af-ease),
+    border-color var(--af-t-fast) var(--af-ease),
+    color var(--af-t-fast) var(--af-ease),
+    box-shadow var(--af-t-fast) var(--af-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .nav-pills > li > a,
+  .select-kit .select-kit-header,
+  .d-header .icons .icon,
+  .menu-panel .widget-link,
+  .topic-list-item,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    transition: none;
+  }
+}
+
+.d-header {
+  background: var(--header_background);
+  box-shadow: var(--af-shadow-1);
+}
+
+.d-header .title,
+.d-header .d-icon,
+.d-header .icon {
+  color: var(--header_primary);
+}
+
+.btn {
+  border-radius: var(--af-radius-m);
+}
+
+.btn .d-icon,
+.btn .d-icon use {
+  color: currentColor;
+  fill: currentColor;
+}
+
+.btn-primary {
+  background: var(--tertiary);
+  border-color: var(--tertiary);
+  color: var(--secondary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: var(--quaternary);
+  border-color: var(--quaternary);
+  color: var(--secondary);
+}
+
+.nav-pills > li > a {
+  border-radius: var(--af-radius-m);
+}
+
+.nav-pills > li.active > a,
+.nav-pills > li > a.active {
+  background: var(--tertiary-low);
+  color: var(--tertiary);
+}
+
+.topic-list .topic-list-item:hover {
+  background: var(--primary-very-low);
+}
+
+.topic-list .main-link a.title,
+.latest-topic-list-item .main-link a.title {
+  color: var(--primary);
+}
+
+.topic-list .main-link a.title:visited {
+  color: var(--primary-high);
+}
+
+aside.quote blockquote,
+.topic-post .cooked blockquote {
+  border-left: 3px solid var(--tertiary-low);
+  background: var(--primary-very-low);
+  border-radius: 0 var(--af-radius-s) var(--af-radius-s) 0;
+}
+
+.topic-post .cooked pre,
+.topic-post .cooked code {
+  border-radius: var(--af-radius-s);
+}
+
+.topic-post .topic-body {
+  border-top-color: var(--primary-low);
+}
+
+#reply-control {
+  border-top-left-radius: var(--af-radius-l);
+  border-top-right-radius: var(--af-radius-l);
+  box-shadow: var(--af-shadow-2);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+.select-kit .select-kit-header.is-focused {
+  border-color: var(--tertiary);
+  box-shadow: 0 0 0 3px var(--tertiary-low);
+}
+
+.menu-panel {
+  border-radius: var(--af-radius-m);
+  box-shadow: var(--af-shadow-2);
+}
+
+.search-menu .search-input {
+  border-color: var(--highlight);
+}

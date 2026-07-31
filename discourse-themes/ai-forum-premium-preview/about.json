@@ -1,0 +1,34 @@
+{
+  "name": "ai-forum-premium-preview",
+  "component": false,
+  "authors": "AI Forum Project",
+  "theme_version": "0.2.0",
+  "about_url": null,
+  "license_url": null,
+  "color_schemes": {
+    "AI Forum Light": {
+      "primary": "1a2333",
+      "secondary": "faf8f3",
+      "tertiary": "0f2b5b",
+      "quaternary": "3d7eef",
+      "header_background": "0f2b5b",
+      "header_primary": "f5f2e9",
+      "highlight": "d4b86a",
+      "danger": "c81623",
+      "success": "1b6b4a",
+      "love": "c81623"
+    },
+    "AI Forum Dark": {
+      "primary": "e8eaf0",
+      "secondary": "0d1626",
+      "tertiary": "3d7eef",
+      "quaternary": "7fa9f7",
+      "header_background": "0b1220",
+      "header_primary": "e8eaf0",
+      "highlight": "9c8038",
+      "danger": "e0525c",
+      "success": "5cb382",
+      "love": "e0525c"
+    }
+  }
+}
