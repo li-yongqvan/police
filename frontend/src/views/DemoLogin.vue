@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import GxAuthShell from '../components/gx/GxAuthShell.vue'
 import { useSessionStore } from '../stores/session'
 
@@ -14,16 +14,11 @@ const statusHint = ref('')
 
 function redirectAfterLogin(user) {
   const target = session.routeAfterLogin(user)
-  const label = ['admin', 'platform_admin'].includes(user.role) ? '管理端' : '社区'
-  statusHint.value = `登录成功，正在进入${label}…`
+  const label = ['admin', 'platform_admin'].includes(user.role) ? '管理端' : '论坛'
+  statusHint.value = `登录成功，正在进入${label}...`
   return router.replace(target).catch(() => {
     window.location.assign(target)
   })
-}
-
-function loginWithQQ() {
-  statusHint.value = '请在上方账号框输入 QQ 号，密码输入 123456 登录。'
-  error.value = ''
 }
 
 onMounted(() => {
@@ -34,7 +29,7 @@ onMounted(() => {
 
 async function submit() {
   if (!username.value.trim() || !password.value) {
-    error.value = '请输入学号/用户名和密码'
+    error.value = '请输入学号或用户名和密码'
     return
   }
   loading.value = true
@@ -53,9 +48,9 @@ async function submit() {
 
 <template>
   <GxAuthShell
-    headline="万千帖子，齐聚 AI智联平台。"
+    headline="AI 智联论坛"
     form-title="账号登录"
-    form-hint="支持学号、用户名或 QQ 号；默认密码为 123456"
+    form-hint="使用已发放的学号或用户名登录。"
     submit-label="登录"
     :loading="loading"
     :error="error"
@@ -63,13 +58,13 @@ async function submit() {
     @submit="submit"
   >
     <div class="gx-auth-field">
-      <label for="username">学号 / 用户名 / QQ号</label>
+      <label for="username">学号 / 用户名</label>
       <input
         id="username"
         v-model="username"
         type="text"
         autocomplete="username"
-        placeholder="例如 demo_student 或 QQ号"
+        placeholder="请输入学号或用户名"
       />
     </div>
     <div class="gx-auth-field">
@@ -79,36 +74,12 @@ async function submit() {
         v-model="password"
         type="password"
         autocomplete="current-password"
-        placeholder="请输入密码，默认 123456"
+        placeholder="请输入密码"
       />
     </div>
 
     <template #footer>
-      <p>首次使用？请用学校发放的邀请码注册账号</p>
-      <RouterLink to="/register">邀请码注册</RouterLink>
-      <div class="gx-auth-divider" />
-      <button class="gx-auth-qq" type="button" @click="loginWithQQ">QQ 号普通登录说明</button>
+      <p>账号由管理员统一发放。如无法登录，请联系运营同学处理。</p>
     </template>
   </GxAuthShell>
 </template>
-
-<style scoped>
-.gx-auth-divider {
-  height: 1px;
-  margin: 12px 0;
-  background: rgba(255, 255, 255, 0.08);
-}
-.gx-auth-qq {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
-  color: inherit;
-  padding: 10px 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.gx-auth-qq:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-</style>

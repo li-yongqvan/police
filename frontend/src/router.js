@@ -2,14 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useSessionStore } from './stores/session'
 
 const DemoLogin = () => import('./views/DemoLogin.vue')
-const Register = () => import('./views/Register.vue')
 const OAuthQQ = () => import('./views/OAuthQQ.vue')
 const AdminLayout = () => import('./views/AdminLayout.vue')
 const AdminOverview = () => import('./views/AdminOverview.vue')
-const AdminConfig = () => import('./views/AdminConfig.vue')
 const AdminUsers = () => import('./views/AdminUsers.vue')
 const AdminInvites = () => import('./views/AdminInvites.vue')
-const AdminRoles = () => import('./views/AdminRoles.vue')
 
 const DISCOURSE_URL = 'http://122.51.233.225:8080/session/sso'
 
@@ -44,16 +41,18 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'login', component: DemoLogin },
     { path: '/oauth/qq', name: 'oauth-qq', component: OAuthQQ },
-    { path: '/register', name: 'register', component: Register },
+    { path: '/register', redirect: { name: 'login' } },
     {
       path: '/admin',
       component: AdminLayout,
       children: [
         { path: '', name: 'admin-overview', component: AdminOverview },
         { path: 'users', name: 'admin-users', component: AdminUsers },
-        { path: 'config', name: 'admin-config', component: AdminConfig },
+        { path: 'stats', redirect: { name: 'admin-overview' } },
+        { path: 'config', redirect: { name: 'admin-overview' } },
         { path: 'invites', name: 'admin-invites', component: AdminInvites },
-        { path: 'roles', name: 'admin-roles', component: AdminRoles },      ],
+        { path: 'roles', redirect: { name: 'admin-overview' } },
+      ],
     },
     { path: '/:pathMatch(.*)*', redirect: () => { redirectToDiscourse(); return false } },
   ],
@@ -70,7 +69,7 @@ router.afterEach((to) => {
 
 router.beforeEach((to) => {
   const session = useSessionStore()
-  if ((to.name === 'login' || to.name === 'register') && session.token) {
+  if (to.name === 'login' && session.token) {
     const role = session.currentUser?.role
     if (['admin', 'platform_admin'].includes(role)) {
       return { path: '/admin' }
@@ -78,7 +77,7 @@ router.beforeEach((to) => {
     redirectToDiscourse()
     return false
   }
-  if (to.name === 'login' || to.name === 'register' || to.name === 'oauth-qq') {
+  if (to.name === 'login' || to.name === 'oauth-qq') {
     return true
   }
   if (!session.token) {
@@ -88,7 +87,7 @@ router.beforeEach((to) => {
     redirectToDiscourse()
     return false
   }
-  const platformOnly = ['admin-invites', 'admin-roles']
+  const platformOnly = ['admin-invites']
   if (platformOnly.includes(to.name) && session.currentUser?.role !== 'platform_admin') {
     return { name: 'admin-overview' }
   }
