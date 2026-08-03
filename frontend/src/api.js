@@ -1,5 +1,4 @@
-import { apiRequest, apiUpload, LOGIN_TIMEOUT_MS, setRefreshToken } from './api/http'
-import { formatDisplayDate, formatDisplayTime } from './utils/displayName'
+import { apiRequest, LOGIN_TIMEOUT_MS } from './api/http'
 
 const authHeaders = (json = true, tokenOverride) => {
   const headers = {}
@@ -20,93 +19,6 @@ function userAssetUrl(path) {
   if (value.startsWith('/user-api/')) return value
   if (value.startsWith('/uploads/')) return `/user-api${value}`
   return value
-}
-
-function mapBoard(board) {
-  return {
-    id: String(board.id),
-    name: board.name,
-    slug: board.slug,
-    description: board.description,
-    enabled: board.enabled,
-    sortOrder: board.sort_order ?? 0,
-    postCount: board.post_count ?? 0,
-  }
-}
-
-function mapPostListItem(post) {
-  return {
-    id: String(post.id),
-    title: post.title,
-    content: post.content,
-    boardId: String(post.board_id),
-    boardName: post.board_name,
-    boardSlug: post.board_slug || '',
-    authorId: String(post.author_id),
-    authorName: post.author_name,
-    authorAvatar: userAssetUrl(post.author_avatar || post.author_avatar_url || ''),
-    status: post.status,
-    isFeatured: post.is_featured,
-    isPinned: post.is_pinned,
-    likeCount: post.like_count ?? 0,
-    dislikeCount: post.dislike_count ?? 0,
-    liked: !!post.liked,
-    disliked: !!post.disliked,
-    commentCount: post.comment_count ?? 0,
-    trendDelta: post.trend_delta ?? post.rank_delta ?? post.hot_rank_delta ?? null,
-    trendDirection: post.trend_direction ?? post.rank_trend ?? '',
-    hotScore: post.hot_score ?? post.hotScore ?? null,
-    createdAtIso: post.created_at,
-    createdAt: formatDisplayDate(post.created_at),
-    tags: post.tags || [],
-  }
-}
-
-function mapPostDetail(post, comments = []) {
-  return {
-    post: {
-      ...mapPostListItem(post),
-      content: post.content,
-      attachments: (post.attachments || []).map((item) => ({
-        id: String(item.id),
-        type: item.file_type,
-        title: item.filename || item.title || '闄勪欢',
-        url: item.file_type === 'link' ? userAssetUrl(item.file_path) : userAssetUrl(item.id),
-        fileSize: item.file_size ?? 0,
-      })),
-      tags: post.tags || [],
-      collected: !!post.collected,
-    },
-    comments: comments.map((item) => ({
-      id: String(item.id),
-      postId: String(item.post_id),
-      parentId: item.parent_id ? String(item.parent_id) : '',
-      depth: item.depth ?? 0,
-      authorId: String(item.author_id),
-      authorName: item.author_name || item.author_id,
-      authorAvatar: userAssetUrl(item.author_avatar || item.author_avatar_url || ''),
-      content: item.content,
-      likeCount: item.like_count ?? 0,
-      dislikeCount: item.dislike_count ?? 0,
-      liked: !!item.liked,
-      disliked: !!item.disliked,
-      createdAtIso: item.created_at,
-      createdAt: formatDisplayTime(item.created_at),
-    })),
-  }
-}
-
-function mapNotification(row) {
-  return {
-    id: String(row.id),
-    type: row.type,
-    title: row.title,
-    body: row.body,
-    related_post_id: row.related_post_id ? String(row.related_post_id) : '',
-    is_read: row.is_read,
-    createdAtIso: row.created_at,
-    created_at: formatDisplayTime(row.created_at),
-  }
 }
 
 function mapUser(user, roleFallback) {
@@ -162,92 +74,6 @@ export const userApi = {
     }
   },
 
-  async register(code, username, password) {
-    const payload = await request('/user-api', '/api/v1/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ invite_code: code, username, password }),
-      timeoutMs: LOGIN_TIMEOUT_MS,
-    })
-    return {
-      token: payload.access_token,
-      user: mapUser(payload.user),
-      refreshToken: payload.refresh_token || '',
-    }
-  },
-
-  async getPublicUser(id) {
-    const payload = await request('/user-api', `/api/v1/users/public/${id}`, {
-      headers: authHeaders(),
-    })
-    return mapUser(payload.user || payload)
-  },
-
-  async updateMe(data) {
-    const payload = await request('/user-api', '/api/v1/users/me', {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify(data),
-    })
-    return mapUser(payload.user || payload)
-  },
-
-  async uploadAvatar(file) {
-    const form = new FormData()
-    form.append('file', file)
-    const payload = await apiUpload('/user-api', '/api/v1/users/me/avatar', form)
-    return userAssetUrl(payload.url || payload.avatar || '')
-  },
-
-  async follow(userId) {
-    await request('/user-api', `/api/v1/users/${userId}/follow`, {
-      method: 'POST',
-      headers: authHeaders(),
-    })
-  },
-
-  async unfollow(userId) {
-    await request('/user-api', `/api/v1/users/${userId}/follow`, {
-      method: 'DELETE',
-      headers: authHeaders(),
-    })
-  },
-
-  async getFollowing(limit = 20, offset = 0) {
-    const payload = await request('/user-api', `/api/v1/users/me/following?limit=${limit}&offset=${offset}`, {
-      headers: authHeaders(),
-    })
-    return payload
-  },
-
-  async getFollowers(limit = 20, offset = 0) {
-    const payload = await request('/user-api', `/api/v1/users/me/followers?limit=${limit}&offset=${offset}`, {
-      headers: authHeaders(),
-    })
-    return payload
-  },
-
-  async getPublicFollowing(userId, limit = 20, offset = 0) {
-    const payload = await request('/user-api', `/api/v1/users/${userId}/following?limit=${limit}&offset=${offset}`, {
-      headers: authHeaders(),
-    })
-    return payload
-  },
-
-  async getPublicFollowers(userId, limit = 20, offset = 0) {
-    const payload = await request('/user-api', `/api/v1/users/${userId}/followers?limit=${limit}&offset=${offset}`, {
-      headers: authHeaders(),
-    })
-    return payload
-  },
-
-  async getFollowCounts(userId) {
-    const payload = await request('/user-api', `/api/v1/users/${userId}/follow-counts`, {
-      headers: authHeaders(),
-    })
-    return payload
-  },
-
   async listUsers(page = 1, limit = 20) {
     const payload = await request(
       '/admin-api',
@@ -271,39 +97,6 @@ export const userApi = {
 }
 
 export const adminApi = {
-  async getConfig() {
-    const payload = await request('/admin-api', '/api/v1/admin/config', {
-      headers: authHeaders(),
-    })
-    const configs = payload.configs || {}
-    return {
-      postingEnabled: configs.post_requires_level !== '99',
-      moderationMode: configs.sensitive_word_action === 'pending_review' ? 'manual' : 'auto',
-      boardSwitches: {},
-    }
-  },
-
-  async updateConfig(config) {
-    const updates = []
-    if (typeof config.postingEnabled === 'boolean') {
-      updates.push(['post_requires_level', config.postingEnabled ? '0' : '99'])
-    }
-    if (config.moderationMode) {
-      updates.push([
-        'sensitive_word_action',
-        config.moderationMode === 'manual' ? 'pending_review' : 'reject',
-      ])
-    }
-    if (updates.length) {
-      await request('/admin-api', '/api/v1/admin/config', {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify(Object.fromEntries(updates)),
-      })
-    }
-    return adminApi.getConfig()
-  },
-
   async setUserStatus(id, status) {
     if (status === 'banned') {
       await request('/admin-api', `/api/v1/admin/users/${id}/ban`, {
@@ -371,57 +164,6 @@ export const adminApi = {
   async voidInviteCode(code) {
     await request('/admin-api', `/api/v1/admin/invite-codes/${encodeURIComponent(code)}/void`, {
       method: 'PUT',
-      headers: authHeaders(),
-    })
-  },
-
-  async listSensitiveWords() {
-    const payload = await request('/admin-api', '/api/v1/admin/sensitive-words', {
-      headers: authHeaders(),
-    })
-    return Array.isArray(payload) ? payload : payload.words || []
-  },
-
-  async addSensitiveWord(word, category) {
-    await request('/admin-api', '/api/v1/admin/sensitive-words', {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ word, category: category || 'general' }),
-    })
-  },
-
-  async deleteSensitiveWord(id) {
-    await request('/admin-api', `/api/v1/admin/sensitive-words/${id}`, {
-      method: 'DELETE',
-      headers: authHeaders(),
-    })
-  },
-
-  async listRoles() {
-    const payload = await request('/admin-api', '/api/v1/admin/roles', {
-      headers: authHeaders(),
-    })
-    return payload.roles || []
-  },
-
-  async getUserRoles(userId) {
-    const payload = await request('/admin-api', `/api/v1/admin/users/${userId}/roles`, {
-      headers: authHeaders(),
-    })
-    return payload.roles || []
-  },
-
-  async assignRole(userId, roleId) {
-    await request('/admin-api', `/api/v1/admin/users/${userId}/roles`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ role_id: Number(roleId) }),
-    })
-  },
-
-  async removeRole(userId, roleId) {
-    await request('/admin-api', `/api/v1/admin/users/${userId}/roles/${roleId}`, {
-      method: 'DELETE',
       headers: authHeaders(),
     })
   },

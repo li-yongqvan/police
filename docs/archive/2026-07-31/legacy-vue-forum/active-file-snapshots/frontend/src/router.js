@@ -2,13 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useSessionStore } from './stores/session'
 
 const DemoLogin = () => import('./views/DemoLogin.vue')
+const OAuthQQ = () => import('./views/OAuthQQ.vue')
 const AdminLayout = () => import('./views/AdminLayout.vue')
 const AdminOverview = () => import('./views/AdminOverview.vue')
 const AdminUsers = () => import('./views/AdminUsers.vue')
 const AdminInvites = () => import('./views/AdminInvites.vue')
 
 const DISCOURSE_URL = 'http://122.51.233.225:8080/session/sso'
-const DISCOURSE_ENTRY_PATH = '/forum'
 
 function redirectToDiscourse() {
   window.location.href = DISCOURSE_URL
@@ -40,8 +40,7 @@ const router = createRouter({
   },
   routes: [
     { path: '/', name: 'login', component: DemoLogin },
-    { path: '/oauth/qq', redirect: { name: 'login' } },
-    { path: DISCOURSE_ENTRY_PATH, name: 'discourse-entry' },
+    { path: '/oauth/qq', name: 'oauth-qq', component: OAuthQQ },
     { path: '/register', redirect: { name: 'login' } },
     {
       path: '/admin',
@@ -78,15 +77,11 @@ router.beforeEach((to) => {
     redirectToDiscourse()
     return false
   }
-  if (to.name === 'login') {
+  if (to.name === 'login' || to.name === 'oauth-qq') {
     return true
   }
   if (!session.token) {
     return { name: 'login' }
-  }
-  if (to.name === 'discourse-entry') {
-    redirectToDiscourse()
-    return false
   }
   if (to.path.startsWith('/admin') && !session.canAccessAdmin) {
     redirectToDiscourse()
@@ -100,4 +95,3 @@ router.beforeEach((to) => {
 })
 
 export default router
-

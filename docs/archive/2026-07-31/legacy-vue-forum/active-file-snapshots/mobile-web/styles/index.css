@@ -7,4 +7,6 @@
 @import './drawer.css';
 @import './utilities.css';
 @import './pages/login.css';
+@import './pages/community.css';
+@import './pages/post.css';
 @import './pages/admin.css';

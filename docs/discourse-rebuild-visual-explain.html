@@ -1,0 +1,363 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 智联论坛 · 架构升级可视化方案</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+    --green: #4ade80; --amber: #fbbf24; --red: #f87171;
+    --purple: #a78bfa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family: "PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+    line-height:1.7;
+  }
+  .hero {
+    text-align:center; padding:80px 24px 60px;
+    background:linear-gradient(180deg, #1e3a5f 0%, var(--bg) 100%);
+  }
+  .hero h1 { font-size:2.4rem; margin-bottom:12px; }
+  .hero .sub { color:var(--muted); font-size:1.1rem; }
+  .container { max-width:960px; margin:0 auto; padding:0 24px 60px; }
+  section { margin:48px 0; }
+
+  .card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:12px; padding:32px; margin:24px 0;
+  }
+  h2 {
+    font-size:1.5rem; margin-bottom:16px; padding-bottom:8px;
+    border-bottom:2px solid var(--accent); display:inline-block;
+  }
+  h3 { font-size:1.15rem; margin:20px 0 10px; color:var(--accent); }
+
+  .compare { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:24px 0; }
+  .compare .box {
+    border-radius:10px; padding:24px; border:2px dashed var(--border);
+  }
+  .compare .box.old { border-color:var(--red); }
+  .compare .box.new { border-color:var(--green); }
+  .compare .box h3 { margin-top:0; }
+  .tag {
+    display:inline-block; padding:2px 10px; border-radius:20px;
+    font-size:0.8rem; font-weight:bold;
+  }
+  .tag.old { background:rgba(248,113,113,0.2); color:var(--red); }
+  .tag.new { background:rgba(74,222,128,0.2); color:var(--green); }
+  .tag.keep { background:rgba(56,189,248,0.2); color:var(--accent); }
+
+  .roadmap { position:relative; padding-left:32px; }
+  .roadmap::before {
+    content:''; position:absolute; left:11px; top:0; bottom:0;
+    width:2px; background:var(--accent);
+  }
+  .step {
+    position:relative; margin-bottom:28px; padding-left:20px;
+  }
+  .step::before {
+    content:''; position:absolute; left:-25px; top:5px;
+    width:16px; height:16px; border-radius:50%;
+    border:2px solid var(--accent); background:var(--bg);
+  }
+  .step.done::before { background:var(--green); border-color:var(--green); }
+  .step.wip::before { background:var(--amber); border-color:var(--amber); box-shadow:0 0 8px var(--amber); }
+  .step .label { font-weight:bold; font-size:1.05rem; }
+  .step .desc { color:var(--muted); font-size:0.9rem; margin-top:2px; }
+  .step .files { font-size:0.8rem; color:#64748b; margin-top:4px; }
+
+  .flow-box { background:rgba(56,189,248,0.08); border-radius:10px; padding:20px; }
+  .mermaid { display:flex; justify-content:center; overflow-x:auto; }
+
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:24px 0; }
+  .grid-3 .item {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:20px; text-align:center;
+  }
+  .grid-3 .item .emoji { font-size:2rem; margin-bottom:8px; }
+  .grid-3 .item .title { font-weight:bold; margin-bottom:4px; }
+  .grid-3 .item .detail { color:var(--muted); font-size:0.85rem; }
+
+  .punchline {
+    background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(167,139,250,0.15));
+    border-radius:12px; padding:28px; text-align:center; font-size:1.1rem;
+    border:1px solid rgba(56,189,248,0.3);
+  }
+
+  @media (max-width:640px) {
+    .compare { grid-template-columns:1fr; }
+    .grid-3 { grid-template-columns:1fr; }
+    .hero h1 { font-size:1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🏗️ AI 智联论坛 · 架构升级方案</h1>
+  <p class="sub">从"自研论坛"平稳切换到"Discourse 成熟社区引擎"</p>
+</div>
+
+<div class="container">
+
+<!-- ============ WHY ============ -->
+<section>
+  <h2>🤔 为什么要改？</h2>
+  <div class="card">
+    <div class="grid-3">
+      <div class="item">
+        <div class="emoji">⚠️</div>
+        <div class="title">维护风险高</div>
+        <div class="detail">自研论坛代码集中在单文件，改一处容易坏一片，没有测试保护</div>
+      </div>
+      <div class="item">
+        <div class="emoji">🚫</div>
+        <div class="title">功能受限</div>
+        <div class="detail">缺少通知、搜索、富文本编辑器等社区标配功能，开发成本巨大</div>
+      </div>
+      <div class="item">
+        <div class="emoji">✅</div>
+        <div class="title">Discourse 更成熟</div>
+        <div class="detail">全球数十万社区使用的开源论坛，功能完备、安全可靠、持续维护</div>
+      </div>
+    </div>
+    <p style="color:var(--muted); margin-top:16px;">
+    💡 <strong>核心思路</strong>：不重复造轮子。把论坛部分交给专业的 Discourse，
+    平台保留自己的"门面"（登录、主页、管理后台），两者通过<strong>单点登录（SSO）</strong>无缝衔接。
+    </p>
+  </div>
+</section>
+
+<!-- ============ BEFORE / AFTER ============ -->
+<section>
+  <h2>📐 架构对比：改造前 vs 改造后</h2>
+
+  <div class="compare">
+    <div class="box old">
+      <span class="tag old">改造前</span>
+      <h3>自研论坛架构</h3>
+      <div class="mermaid">
+graph TD
+  U[👤 学生] -->|浏览器| NG[🟢 Nginx 网关]
+  NG --> SPA["📱 Vue 前端 SPA"]
+  NG --> US["🔐 user-service<br/>登录/注册/用户"]
+  NG --> FS["📝 forum-service<br/>帖子/评论/板块<br/>⚠️ 自研，风险集中"]
+  NG --> AD["⚙️ admin-service<br/>管理后台"]
+  FS --> PG[("🗄️ PostgreSQL")]
+  US --> PG
+  AD --> PG
+  style FS fill:#7f1d1d,stroke:#f87171,color:#fca5a5
+  style US fill:#1e3a5f,stroke:#38bdf8,color:#e2e8f0
+  style AD fill:#1e3a5f,stroke:#38bdf8,color:#e2e8f0
+  style PG fill:#1e3a5f,stroke:#38bdf8,color:#e2e8f0
+  style SPA fill:#1e3a5f,stroke:#38bdf8,color:#e2e8f0
+      </div>
+    </div>
+
+    <div class="box new">
+      <span class="tag new">改造后</span>
+      <h3>Discourse 社区架构</h3>
+      <div class="mermaid">
+graph TD
+  U[👤 学生] -->|浏览器| NG[🟢 Nginx 网关]
+  NG --> SPA["📱 Vue 前端 SPA<br/>主页/登录/管理"]
+  NG --> US["🔐 user-service<br/>登录/注册 + SSO"]
+  NG --> AD["⚙️ admin-service<br/>管理后台"]
+  NG -->|8080| DC["💬 Discourse<br/>论坛引擎"]
+  US -.->|"SSO 单点登录"| DC
+  US --> PG[("🗄️ PostgreSQL")]
+  AD --> PG
+  DC --> DPG[("🗄️ Discourse DB")]
+  style DC fill:#14532d,stroke:#4ade80,color:#bbf7d0
+  style US fill:#1e3a5f,stroke:#38bdf8,color:#e2e8f0
+  style AD fill:#1e3a5f,stroke:#38bdf8,color:#e2e8f0
+  style PG fill:#1e3a5f,stroke:#38bdf8,color:#e2e8f0
+  style SPA fill:#1e3a5f,stroke:#38bdf8,color:#e2e8f0
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:0;">
+    <h3>关键变化一览</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px"><span class="tag keep">保留</span></td>
+        <td>登录/注册、用户资料、管理后台（用户管理、邀请码、系统配置）</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px"><span class="tag keep">保留</span></td>
+        <td>Vue 前端主页、AI 相关页面、关于页面</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px"><span class="tag new">新增</span></td>
+        <td>Discourse 论坛引擎（独立的 PostgreSQL + Redis）</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px"><span class="tag new">新增</span></td>
+        <td>SSO 单点登录（user-service 新增接口）</td>
+      </tr>
+      <tr>
+        <td style="padding:8px"><span class="tag old">移除</span></td>
+        <td>自研 forum-service、旧论坛前端页面、schema_forum 数据库表</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ USER JOURNEY ============ -->
+<section>
+  <h2>🚶 用户体验：一次登录，畅行无阻</h2>
+  <div class="card">
+    <p style="color:var(--muted); margin-bottom:20px;">
+    用户<strong>只需在平台登录一次</strong>，点击"进入社区"后自动以同一身份进入 Discourse，不需要再注册或登录。
+    </p>
+    <div class="mermaid">
+sequenceDiagram
+    actor 学生
+    participant 平台 as 🔐 AI 智联平台<br/>(Vue SPA)
+    participant 后端 as ⚙️ user-service<br/>(SSO 端点)
+    participant DC as 💬 Discourse<br/>(论坛引擎)
+
+    学生->>平台: 1. 输入用户名密码登录
+    平台->>后端: 2. 验证身份
+    后端-->>平台: 3. 返回 JWT Token
+    平台-->>学生: 4. 登录成功，存入 Cookie
+
+    学生->>平台: 5. 点击「进入社区」
+    平台->>DC: 6. 跳转到 Discourse
+
+    DC->>后端: 7. SSO 重定向：<br/>「这个人是谁？」
+    后端->>后端: 8. 读取 Cookie 中的 JWT<br/>验证身份 + 查询角色
+    后端-->>DC: 9. 返回用户信息：<br/>用户名、昵称、角色
+    DC-->>学生: 10. 自动登录 Discourse！<br/>无需再输入密码 ✨
+
+    Note over 学生,DC: 全程用户只需登录一次
+    </div>
+  </div>
+</section>
+
+<!-- ============ TICKET ROADMAP ============ -->
+<section>
+  <h2>🗺️ 实施路线图（共 7 个步骤）</h2>
+  <div class="card">
+    <div class="roadmap">
+
+      <div class="step done">
+        <div class="label">✅ Ticket 1 · 基线锁定</div>
+        <div class="desc">清理服务器上混乱的代码状态，确保有一个干净的起点</div>
+        <div class="files">状态：已完成</div>
+      </div>
+
+      <div class="step done">
+        <div class="label">✅ Ticket 2 · 部署 Discourse</div>
+        <div class="desc">在服务器上安装 Discourse，通过 8080 端口访问，配置公开浏览</div>
+        <div class="files">状态：已完成 · 地址：http://122.51.233.225:8080</div>
+      </div>
+
+      <div class="step done">
+        <div class="label">✅ Ticket 3a · 单点登录核心</div>
+        <div class="desc">实现 SSO 接口：平台登录后自动获得 Discourse 身份</div>
+        <div class="files">涉及：user-service 新增 handler、角色映射</div>
+      </div>
+
+      <div class="step wip">
+        <div class="label">🔨 Ticket 3b · 登出同步 <span style="font-size:0.8rem;color:var(--amber)">← 当前</span></div>
+        <div class="desc">平台登出时同步登出 Discourse，调用 Discourse API 清除会话</div>
+        <div class="files">涉及：auth_handler.go · 需配置 DISCOURSE_API_KEY</div>
+      </div>
+
+      <div class="step">
+        <div class="label">⏳ Ticket 4 · 前端导航切换</div>
+        <div class="desc">把所有「论坛」入口指向 Discourse，移除旧的论坛页面</div>
+        <div class="files">涉及：Vue Router、导航组件、首页按钮</div>
+      </div>
+
+      <div class="step">
+        <div class="label">⏳ Ticket 5 · 管理后台调整</div>
+        <div class="desc">隐藏旧的论坛管理菜单，添加「进入 Discourse 管理」入口</div>
+        <div class="files">涉及：Admin 页面菜单调整</div>
+      </div>
+
+      <div class="step">
+        <div class="label">⏳ Ticket 6 · 旧论坛清理</div>
+        <div class="desc">稳定运行 15 天后，删除旧论坛代码和数据库表</div>
+        <div class="files">涉及：forum-service、schema_forum、Docker 编排</div>
+      </div>
+
+      <div class="step">
+        <div class="label">⏳ Ticket 7 · 最终验收</div>
+        <div class="desc">全流程冒烟测试：登录、发帖、管理、登出、安全隔离</div>
+        <div class="files">涉及：所有服务端到端检查</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHAT STAYS ============ -->
+<section>
+  <h2>🔒 不变的部分（你放心）</h2>
+  <div class="card">
+    <div class="grid-3">
+      <div class="item">
+        <div class="emoji">🏠</div>
+        <div class="title">平台主页不变</div>
+        <div class="detail">Vue SPA 首页、登录页、注册页完全保留</div>
+      </div>
+      <div class="item">
+        <div class="emoji">👤</div>
+        <div class="title">用户体系不变</div>
+        <div class="detail">现有账号、角色、邀请码机制全部保留</div>
+      </div>
+      <div class="item">
+        <div class="emoji">⚙️</div>
+        <div class="title">管理后台不变</div>
+        <div class="detail">用户管理、邀请码、系统配置功能保留</div>
+      </div>
+      <div class="item">
+        <div class="emoji">🔐</div>
+        <div class="title">登录方式不变</div>
+        <div class="detail">用户名密码登录、QQ OAuth 登录全部保留</div>
+      </div>
+      <div class="item">
+        <div class="emoji">🗄️</div>
+        <div class="title">数据库不动</div>
+        <div class="detail">schema_auth、schema_admin 不受影响</div>
+      </div>
+      <div class="item">
+        <div class="emoji">📦</div>
+        <div class="title">15天保障期</div>
+        <div class="detail">如果出问题，15天内随时可以回退到旧论坛</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PUNCHLINE ============ -->
+<section>
+  <div class="punchline">
+    <p style="font-size:1.3rem; margin-bottom:8px;">🎯 一句话总结</p>
+    <p>
+    把「论坛」这块交给专业的 <strong>Discourse</strong> 来做，<br/>
+    平台通过 <strong>单点登录（SSO）</strong> 打通身份——<br/>
+    用户<strong>感觉不到切换</strong>，但功能更强大、系统更稳定。
+    </p>
+  </div>
+</section>
+
+</div>
+
+<script>
+mermaid.initialize({ startOnLoad:true, theme:'dark', themeVariables:{
+  primaryColor:'#1e3a5f', primaryTextColor:'#e2e8f0',
+  lineColor:'#38bdf8', secondaryColor:'#1e293b',
+  tertiaryColor:'#0f172a'
+}});
+</script>
+</body>
+</html>

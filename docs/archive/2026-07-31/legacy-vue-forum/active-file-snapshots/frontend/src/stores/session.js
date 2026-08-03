@@ -41,7 +41,7 @@ export const useSessionStore = defineStore('session', () => {
 
   function routeAfterLogin(user) {
     if (['admin', 'platform_admin'].includes(user.role)) return '/admin'
-    return '/forum'
+    return '/community'
   }
 
   async function refreshMe() {
