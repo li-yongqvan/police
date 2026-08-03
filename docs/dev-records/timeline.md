@@ -47,3 +47,4 @@
 
 | 2026-07-30 18:30 | verify | verify: Ticket 7 smoke testing - infrastructure, gateway, auth/SSO, admin UI, mobile (#7) | codex/discourse-rebuild | - | [2026-07-30-183000-verify-ticket7-smoke-test.md](entries/2026-07-30-183000-verify-ticket7-smoke-test.md) |
 | 2026-08-03 23:10 | chore | fix: include login user role (#AUTH-ROLE-01) | codex/discourse-rebuild | 13c3b26 | [2026-08-03-231010-fix-include-login-user-role-auth-role-01.md](entries/2026-08-03-231010-fix-include-login-user-role-auth-role-01.md) |
+| 2026-08-03 23:15 | chore | docs: record login role fix (#DEV-RECORD) | codex/dev-records | d879007 | [2026-08-03-231554-docs-record-login-role-fix-dev-record.md](entries/2026-08-03-231554-docs-record-login-role-fix-dev-record.md) |
