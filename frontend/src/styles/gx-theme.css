@@ -2887,21 +2887,6 @@ select {
   .gx-admin-shell {
     display: block;
   }
-  .gx-admin-shell .gx-admin-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 50;
-    width: min(88vw, 300px);
-    height: 100dvh;
-    padding: calc(var(--gx-header-h) + var(--safe-top) + 16px) 16px 16px;
-    background: var(--color-surface);
-    transform: translateX(-105%);
-    transition: transform 0.15s ease;
-  }
-  .gx-admin-shell .gx-admin-sidebar.is-open {
-    transform: translateX(0);
-  }
   .gx-admin-shell .gx-header__menu {
     display: flex;
   }
@@ -5448,11 +5433,52 @@ a.gx-author-chip__name:hover {
   }
 
   .gx-admin-shell .gx-admin-sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    left: 0;
+    right: auto;
     z-index: 50;
+    box-sizing: border-box;
     width: min(86vw, 300px);
-    max-width: 300px;
+    max-width: calc(100vw - 32px);
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: calc(var(--gx-header-h) + var(--safe-top) + 16px) 16px 16px;
     background: var(--color-surface);
     box-shadow: 4px 0 24px rgba(15, 43, 91, 0.14);
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform: translate3d(-100%, 0, 0);
+    transition: transform 0.15s ease;
+  }
+
+  .gx-admin-shell .gx-admin-sidebar.is-open {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .gx-admin-shell .gx-sidebar-nav,
+  .gx-admin-shell .gx-sidebar-nav__link,
+  .gx-admin-shell .gx-sidebar-nav__section {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  .gx-admin-shell .gx-sidebar-nav__link {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .gx-admin-shell .gx-sidebar-nav__link svg {
+    flex: 0 0 auto;
+  }
+
+  .gx-admin-shell .gx-sidebar-nav__link span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .gx-admin-shell .gx-main {

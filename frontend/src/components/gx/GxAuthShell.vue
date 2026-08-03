@@ -413,4 +413,67 @@ const emit = defineEmits(['submit'])
     padding-top: 20px;
   }
 }
+
+@media (max-height: 480px) and (orientation: landscape) {
+  .gx-auth-spotify {
+    justify-content: flex-start;
+  }
+  .gx-auth-spotify__body {
+    max-width: 440px;
+    padding: max(12px, env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom));
+  }
+  .gx-auth-spotify__intro {
+    margin-bottom: 12px;
+  }
+  .gx-auth-spotify__brand {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+  }
+  .gx-auth-spotify__brand-icon {
+    width: 24px;
+    height: 24px;
+  }
+  .gx-auth-spotify__eyebrow {
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+  .gx-auth-spotify__headline {
+    font-size: 1.15rem;
+    line-height: 1.18;
+  }
+  .gx-auth-spotify__panel {
+    padding: 14px 16px;
+  }
+  .gx-auth-spotify__panel-head {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+  .gx-auth-spotify__form-title {
+    font-size: 1.05rem;
+  }
+  .gx-auth-spotify__form-hint {
+    margin-top: 4px;
+    line-height: 1.35;
+  }
+  .gx-auth-spotify__fields {
+    gap: 10px;
+  }
+  .gx-auth-spotify__fields :deep(.gx-auth-field) {
+    gap: 6px;
+  }
+  .gx-auth-spotify__fields :deep(.gx-auth-field input) {
+    height: 44px;
+  }
+  .gx-auth-spotify__feedback {
+    margin-top: 12px;
+  }
+  .gx-auth-spotify__btn {
+    margin-top: 14px;
+  }
+  .gx-auth-spotify__secondary {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+}
 </style>
