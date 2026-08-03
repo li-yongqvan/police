@@ -63,7 +63,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	role := h.Service.ResolveAppRole(c.Request.Context(), resp.User.ID)
+	c.JSON(http.StatusOK, loginResponseJSON(resp, role))
 }
 
 // RefreshToken handles access token refresh
@@ -257,12 +258,7 @@ func (h *UserHandler) DemoLogin(c *gin.Context) {
 	if role == "" {
 		role = req.Role
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"token":         resp.AccessToken,
-		"access_token":  resp.AccessToken,
-		"refresh_token": resp.RefreshToken,
-		"user":          toUserJSON(resp.User, role),
-	})
+	c.JSON(http.StatusOK, loginResponseJSON(resp, role))
 }
 
 // Me returns the current authenticated user profile.
@@ -282,6 +278,16 @@ func (h *UserHandler) Me(c *gin.Context) {
 
 	role := h.Service.ResolveAppRole(c.Request.Context(), userID)
 	c.JSON(http.StatusOK, toUserJSON(user.ToResponse(), role))
+}
+
+func loginResponseJSON(resp *model.LoginResponse, role string) gin.H {
+	return gin.H{
+		"token":         resp.AccessToken,
+		"access_token":  resp.AccessToken,
+		"refresh_token": resp.RefreshToken,
+		"expires_in":    resp.ExpiresIn,
+		"user":          toUserJSON(resp.User, role),
+	}
 }
 
 func toUserJSON(u model.UserResponse, role string) gin.H {
