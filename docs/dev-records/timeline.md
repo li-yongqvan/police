@@ -46,3 +46,4 @@
 | 2026-07-30 17:58 | chore | fix: upgrade Node to 22-alpine and set UTF-8 locale in frontend Dockerfile (#6) | codex/discourse-rebuild | 15d172a | [2026-07-30-175831-fix-upgrade-node-to-22-alpine-and-set-utf-8-loca.md](entries/2026-07-30-175831-fix-upgrade-node-to-22-alpine-and-set-utf-8-loca.md) |
 
 | 2026-07-30 18:30 | verify | verify: Ticket 7 smoke testing - infrastructure, gateway, auth/SSO, admin UI, mobile (#7) | codex/discourse-rebuild | - | [2026-07-30-183000-verify-ticket7-smoke-test.md](entries/2026-07-30-183000-verify-ticket7-smoke-test.md) |
+| 2026-08-03 23:10 | chore | fix: include login user role (#AUTH-ROLE-01) | codex/discourse-rebuild | 13c3b26 | [2026-08-03-231010-fix-include-login-user-role-auth-role-01.md](entries/2026-08-03-231010-fix-include-login-user-role-auth-role-01.md) |
