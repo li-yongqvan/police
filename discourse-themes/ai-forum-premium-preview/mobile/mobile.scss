@@ -11,6 +11,12 @@
   border-top-right-radius: var(--af-radius-m);
 }
 
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 .d-header .title a,
 .d-header .icons .header-dropdown-toggle,
 .d-header .icons .btn {
