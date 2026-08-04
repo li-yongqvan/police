@@ -34,6 +34,10 @@ body {
   justify-content: center;
 }
 
+.d-header #toggle-current-user .badge-notification.new-reviewables {
+  right: 0;
+}
+
 .list-controls {
   margin-top: 14px;
 }
