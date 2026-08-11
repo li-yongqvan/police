@@ -88,7 +88,7 @@ func (h *DiscourseSSOHandler) HandleSSO(c *gin.Context) {
 	cookie, err := c.Request.Cookie("ai-forum-token")
 	if err != nil {
 		// No valid session cookie, redirect to login
-		loginURL := "/login"
+		loginURL := "/"
 		c.Redirect(http.StatusFound, loginURL)
 		return
 	}
@@ -100,13 +100,13 @@ func (h *DiscourseSSOHandler) HandleSSO(c *gin.Context) {
 
 	claims, err := jwt.ValidateToken(cookie.Value, jwtSecret)
 	if err != nil {
-		c.Redirect(http.StatusFound, "/login")
+		c.Redirect(http.StatusFound, "/")
 		return
 	}
 
 	userIDFloat, ok := claims["user_id"].(float64)
 	if !ok {
-		c.Redirect(http.StatusFound, "/login")
+		c.Redirect(http.StatusFound, "/")
 		return
 	}
 	userID := uint(userIDFloat)
