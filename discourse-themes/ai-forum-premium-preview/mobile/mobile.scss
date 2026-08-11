@@ -65,6 +65,128 @@ body {
   right: 0;
 }
 
+// Fourth-part polish keeps secondary mobile surfaces aligned with the reading shell.
+.menu-panel,
+.search-menu,
+.user-menu {
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
+}
+
+.menu-panel {
+  border: 1px solid var(--primary-low);
+  border-radius: var(--af-radius-m);
+  box-shadow: var(--af-shadow-2);
+}
+
+.menu-panel .panel-body,
+.menu-panel .panel-body-contents,
+.search-menu .results,
+.user-menu .panel-body {
+  max-height: min(72dvh, 620px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.menu-panel .widget-link,
+.menu-panel .menu-panel-row,
+.hamburger-panel .menu-links-row,
+.user-menu .quick-access-panel a,
+.user-menu .quick-access-panel .item,
+.user-menu .notifications a,
+.user-menu .notifications .notification,
+.search-menu .search-link,
+.search-menu .results .fps-result,
+.search-menu .results .search-result {
+  align-items: center;
+  border-radius: var(--af-radius-s);
+  display: flex;
+  gap: 10px;
+  min-height: 44px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.menu-panel .widget-link .d-icon,
+.menu-panel .menu-panel-row .d-icon,
+.hamburger-panel .menu-links-row .d-icon,
+.user-menu .quick-access-panel .d-icon,
+.user-menu .notifications .d-icon,
+.search-menu .search-link .d-icon,
+.search-menu .results .d-icon,
+.menu-panel .widget-link .d-icon use,
+.menu-panel .menu-panel-row .d-icon use,
+.hamburger-panel .menu-links-row .d-icon use,
+.user-menu .quick-access-panel .d-icon use,
+.user-menu .notifications .d-icon use,
+.search-menu .search-link .d-icon use,
+.search-menu .results .d-icon use {
+  color: currentColor;
+  fill: currentColor;
+  flex: 0 0 auto;
+  opacity: 1;
+}
+
+.menu-panel .widget-link span,
+.menu-panel .menu-panel-row span,
+.hamburger-panel .menu-links-row span,
+.user-menu .quick-access-panel span,
+.user-menu .notifications span,
+.search-menu .search-link span,
+.search-menu .results .topic-title,
+.search-menu .results .blurb {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.search-menu .search-input {
+  align-items: center;
+  border: 1px solid var(--primary-low);
+  border-radius: var(--af-radius-m);
+  display: flex;
+  min-height: 48px;
+  padding: 4px 10px;
+}
+
+.search-menu .search-input input {
+  min-height: 40px;
+  min-width: 0;
+}
+
+.search-menu .results .fps-result,
+.search-menu .results .search-result {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--primary-low);
+  border-radius: 0;
+}
+
+.search-menu .results .topic-title {
+  color: var(--primary);
+  font-size: 0.96rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.search-menu .results .blurb,
+.search-menu .results .search-result-meta,
+.user-menu .notifications .notification-excerpt {
+  color: var(--primary-medium);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.user-menu .quick-access-panel {
+  min-width: 0;
+}
+
+.user-menu .quick-access-panel .read,
+.user-menu .quick-access-panel .unread,
+.user-menu .notifications .read,
+.user-menu .notifications .unread {
+  max-width: 100%;
+}
+
 .list-controls {
   margin-top: 14px;
 }
@@ -324,6 +446,34 @@ body {
   min-width: 44px;
   padding: 0;
   width: 44px;
+}
+
+#reply-control .submit-panel,
+#reply-control .save-or-cancel,
+#reply-control .composer-actions {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#reply-control .save-or-cancel .btn-primary,
+#reply-control .composer-actions .btn-primary,
+#reply-control .reply,
+#reply-control .create {
+  min-width: min(48vw, 148px);
+}
+
+#reply-control .save-or-cancel .btn:not(.btn-primary),
+#reply-control .composer-actions .btn:not(.btn-primary) {
+  flex: 0 0 auto;
+}
+
+#reply-control .save-or-cancel .btn-primary .d-button-label,
+#reply-control .composer-actions .btn-primary .d-button-label,
+#reply-control .reply .d-button-label,
+#reply-control .create .d-button-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #reply-control .submit-panel #mobile-file-upload .d-icon,
