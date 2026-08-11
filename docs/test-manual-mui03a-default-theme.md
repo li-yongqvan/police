@@ -161,6 +161,8 @@ Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - wind
 - 回复按钮可见、可点击。
 - 发布成功后内容出现在话题中；如果需要审核，应显示待审核状态。
 
+自动化验收说明：打开编辑器和检查发布按钮属于无副作用检查；真正输入草稿或点击发布会改变站点状态，执行前需要单独确认。
+
 ## 6. 新建话题编辑器测试
 
 页面：`http://122.51.233.225:8080/latest`
@@ -198,6 +200,8 @@ Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - wind
 - 新话题可在列表中找到，或显示待审核状态。
 
 测试完成后，如果该话题只是临时数据，请按站点权限删除或请管理员清理。
+
+自动化验收说明：打开编辑器和检查发布按钮属于无副作用检查；真正输入草稿或点击发布会改变站点状态，执行前需要单独确认。
 
 ## 7. 菜单测试
 
