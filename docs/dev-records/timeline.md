@@ -46,3 +46,5 @@
 | 2026-07-30 17:58 | chore | fix: upgrade Node to 22-alpine and set UTF-8 locale in frontend Dockerfile (#6) | codex/discourse-rebuild | 15d172a | [2026-07-30-175831-fix-upgrade-node-to-22-alpine-and-set-utf-8-loca.md](entries/2026-07-30-175831-fix-upgrade-node-to-22-alpine-and-set-utf-8-loca.md) |
 
 | 2026-07-30 18:30 | verify | verify: Ticket 7 smoke testing - infrastructure, gateway, auth/SSO, admin UI, mobile (#7) | codex/discourse-rebuild | - | [2026-07-30-183000-verify-ticket7-smoke-test.md](entries/2026-07-30-183000-verify-ticket7-smoke-test.md) |
+| 2026-08-11 15:39 | chore | fix: route Discourse SSO anonymous users to login entry (#MUI-03A) | codex/discourse-rebuild | e3d2dc3 | [2026-08-11-153959-fix-route-discourse-sso-anonymous-users-to-login.md](entries/2026-08-11-153959-fix-route-discourse-sso-anonymous-users-to-login.md) |
+| 2026-08-11 16:39 | chore | fix: improve Discourse mobile control affordances (#MUI-03A) | codex/discourse-rebuild | c5f161a | [2026-08-11-163956-fix-improve-discourse-mobile-control-affordances.md](entries/2026-08-11-163956-fix-improve-discourse-mobile-control-affordances.md) |

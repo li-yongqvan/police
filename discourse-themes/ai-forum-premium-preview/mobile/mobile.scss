@@ -34,6 +34,33 @@ body {
   justify-content: center;
 }
 
+.d-header .icons .header-dropdown-toggle .d-icon,
+.d-header .icons .header-dropdown-toggle .d-icon use,
+.d-header .icons .btn .d-icon,
+.d-header .icons .btn .d-icon use,
+.list-controls .btn .d-icon,
+.list-controls .btn .d-icon use,
+.navigation-container .btn .d-icon,
+.navigation-container .btn .d-icon use {
+  color: currentColor;
+  fill: currentColor;
+  opacity: 1;
+}
+
+.list-controls .btn.no-text,
+.navigation-container .btn.no-text {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.list-controls .btn.no-text .d-icon,
+.navigation-container .btn.no-text .d-icon {
+  display: inline-flex;
+}
+
 .d-header #toggle-current-user .badge-notification.new-reviewables {
   right: 0;
 }
@@ -371,24 +398,27 @@ body {
   align-items: center;
   border-radius: var(--af-radius-m);
   display: inline-flex;
-  font-size: 0;
+  font-size: 0.92rem;
   font-weight: 700;
+  gap: 6px;
   height: 44px;
   justify-content: center;
   min-height: 44px;
-  min-width: 44px;
-  padding: 0;
-  width: 44px;
+  min-width: 72px;
+  padding: 0 12px;
+  width: auto;
 }
 
 #create-topic.no-text .d-icon {
-  display: none;
+  color: currentColor;
+  display: inline-flex;
+  fill: currentColor;
+  opacity: 1;
 }
 
-#create-topic::before {
-  color: currentColor;
-  content: "发";
-  font-size: 17px;
+#create-topic.no-text .d-button-label {
+  display: inline;
+  font-size: 0.92rem;
   line-height: 1;
 }
 
