@@ -187,6 +187,160 @@ body {
   max-width: 100%;
 }
 
+.search-page,
+.search-container,
+.search-advanced,
+.search-results,
+.popular-topics,
+.category-list,
+.category-list tbody,
+.category-list-item,
+.category-boxes,
+.category-box {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.search-page .search-advanced,
+.search-container .search-advanced,
+.error-page,
+.exception {
+  padding-inline: 18px;
+}
+
+.search-page .search-advanced .search-info,
+.search-container .search-advanced .search-info,
+.search-page .search-advanced .search-title,
+.search-container .search-advanced .search-title {
+  overflow-wrap: anywhere;
+}
+
+.search-page .search-advanced .search-bar,
+.search-container .search-advanced .search-bar,
+.search-page .search-advanced .search-field,
+.search-container .search-advanced .search-field,
+.search-page .search-advanced .search-query,
+.search-container .search-advanced .search-query {
+  width: 100%;
+  max-width: 100%;
+}
+
+.search-page .search-advanced input[type="text"],
+.search-container .search-advanced input[type="text"],
+.search-page .search-advanced .search-query input,
+.search-container .search-advanced .search-query input {
+  min-height: 44px;
+  min-width: 0;
+}
+
+.search-page .search-advanced .btn,
+.search-container .search-advanced .btn,
+.error-page .btn,
+.exception .btn {
+  min-height: 44px;
+}
+
+.search-results .fps-result,
+.search-results .search-result,
+.popular-topics a,
+.popular-topics .topic-title {
+  overflow-wrap: anywhere;
+}
+
+.popular-topics {
+  margin-top: 28px;
+  padding-inline: 16px;
+}
+
+.popular-topics h2,
+.popular-topics h3 {
+  color: var(--primary);
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.popular-topics .topic-list-item,
+.popular-topics li {
+  border-bottom: 1px solid var(--primary-low);
+  min-height: 44px;
+  padding-block: 10px;
+}
+
+.category-list {
+  border-collapse: separate;
+  border-spacing: 0 14px;
+  display: block;
+}
+
+.category-list tbody,
+.category-list tr,
+.category-list-item {
+  display: block;
+  width: 100%;
+}
+
+.category-list-item,
+.category-box {
+  border: 1px solid var(--primary-low);
+  border-left: 4px solid var(--category-badge-color, var(--tertiary));
+  border-radius: var(--af-radius-m);
+  background: var(--secondary);
+  padding: 14px;
+}
+
+.category-list-item .category,
+.category-list-item .category-name,
+.category-box .category-title-link,
+.category-box .category-name {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--primary);
+  font-size: 1.18rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.category-list-item .category-description,
+.category-box .description,
+.category-box .category-description {
+  color: var(--primary-medium);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.category-list-item .topics,
+.category-list-item .latest,
+.category-list-item .stats,
+.category-box .topics,
+.category-box .category-box-heading {
+  color: var(--primary-medium);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.category-list-item .featured-topic,
+.category-list-item .featured-topics,
+.category-box .featured-topic,
+.category-box .featured-topics {
+  margin-top: 10px;
+}
+
+.category-list-item .featured-topic a,
+.category-list-item .featured-topics a,
+.category-box .featured-topic a,
+.category-box .featured-topics a {
+  display: block;
+  min-height: 36px;
+  padding-block: 6px;
+  color: var(--primary);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
 .list-controls {
   margin-top: 14px;
 }
