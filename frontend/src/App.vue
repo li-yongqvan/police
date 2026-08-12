@@ -7,7 +7,7 @@ const session = useSessionStore()
 
 onMounted(() => {
   if (!session.token) return
-  session.refreshMe().catch(() => {})
+  session.ensureValidSession()
 })
 </script>
 

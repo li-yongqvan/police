@@ -67,9 +67,11 @@ router.afterEach((to) => {
   sessionStorage.removeItem('ai-forum:dynamic-import-reload:' + to.fullPath)
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const session = useSessionStore()
   if (to.name === 'login' && session.token) {
+    const valid = await session.ensureValidSession()
+    if (!valid) return true
     const role = session.currentUser?.role
     if (['admin', 'platform_admin'].includes(role)) {
       return { path: '/admin' }
@@ -83,6 +85,8 @@ router.beforeEach((to) => {
   if (!session.token) {
     return { name: 'login' }
   }
+  const valid = await session.ensureValidSession()
+  if (!valid) return { name: 'login' }
   if (to.path.startsWith('/admin') && !session.canAccessAdmin) {
     redirectToDiscourse()
     return false

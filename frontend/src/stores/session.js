@@ -8,6 +8,8 @@ export const useSessionStore = defineStore('session', () => {
   const currentUser = ref(JSON.parse(localStorage.getItem('ai-forum-user') || 'null'))
   const flashMessage = ref('')
   const flashType = ref('info')
+  let validatedToken = ''
+  let validationPromise = null
 
   const canAccessAdmin = computed(() =>
     ['admin', 'platform_admin'].includes(currentUser.value?.role),
@@ -31,6 +33,7 @@ export const useSessionStore = defineStore('session', () => {
     localStorage.setItem('ai-forum-user', JSON.stringify(result.user))
     setTokenCookie(result.token)
     if (result.refreshToken) setRefreshToken(result.refreshToken)
+    validatedToken = result.token
   }
 
   async function loginWithCredentials(username, password) {
@@ -50,14 +53,46 @@ export const useSessionStore = defineStore('session', () => {
     localStorage.setItem('ai-forum-user', JSON.stringify(currentUser.value))
   }
 
-  function logout() {
-    userApi.logout().catch(() => {})
+  function clearSession() {
     token.value = ''
     currentUser.value = null
+    validatedToken = ''
     localStorage.removeItem('ai-forum-token')
     localStorage.removeItem('ai-forum-user')
     setRefreshToken('')
     setTokenCookie('')
+  }
+
+  async function ensureValidSession() {
+    if (!token.value) {
+      clearSession()
+      return false
+    }
+
+    setTokenCookie(token.value)
+    if (validatedToken === token.value && currentUser.value) return true
+    if (validationPromise) return validationPromise
+
+    validationPromise = (async () => {
+      try {
+        await refreshMe()
+        validatedToken = token.value
+        setTokenCookie(token.value)
+        return true
+      } catch {
+        clearSession()
+        return false
+      } finally {
+        validationPromise = null
+      }
+    })()
+
+    return validationPromise
+  }
+
+  function logout() {
+    userApi.logout().catch(() => {})
+    clearSession()
   }
 
   return {
@@ -71,6 +106,8 @@ export const useSessionStore = defineStore('session', () => {
     loginWithCredentials,
     routeAfterLogin,
     refreshMe,
+    ensureValidSession,
+    clearSession,
     logout,
   }
 })
