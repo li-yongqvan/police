@@ -1037,3 +1037,37 @@ body {
     min-width: min(46vw, 136px);
   }
 }
+
+// MUI-06: user surfaces mobile polish
+// Continues MUI-03A post controls, MUI-04 secondary surfaces, and MUI-05
+// topic detail/composer work. Audit found one substantive issue: the user
+// profile activity navigation is clipped by horizontal scrolling on mobile.
+
+// --- 1. User profile activity navigation: wrap instead of horizontal scroll ---------
+
+.user-navigation {
+  .horizontal-overflow-nav {
+    .nav-pills {
+      flex-wrap: wrap;
+      height: auto;
+      overflow-x: visible;
+      overflow-y: visible;
+      row-gap: 0.25em;
+    }
+
+    .horizontal-overflow-nav__scroll-left,
+    .horizontal-overflow-nav__scroll-right {
+      display: none;
+    }
+  }
+}
+
+// --- 2. User card defensive wrapping ------------------------------------------------
+
+.user-card {
+  .names__primary,
+  .names__secondary,
+  .bio {
+    overflow-wrap: anywhere;
+  }
+}
