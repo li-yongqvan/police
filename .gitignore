@@ -1,4 +1,4 @@
-﻿# Logs
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -29,6 +29,7 @@ infra/cloudflared/credentials.json
 # AI work artifacts (never commit)
 .scratch/
 .codex-*
+work/
 
 # Compiled Go binaries (should never be in repo)
 forum-service

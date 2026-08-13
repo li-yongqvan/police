@@ -821,3 +821,219 @@ body {
     max-width: calc(100% - 48px);
   }
 }
+
+// ============================================================================
+// MUI-05: topic detail + reply/new-topic composer mobile polish
+// ----------------------------------------------------------------------------
+// Continues the MUI-03A post controls and MUI-04 secondary surfaces above.
+// CSS-only, cascades from the shared --af-* tokens; no JS or templates.
+// ============================================================================
+
+// --- 1. Topic detail reading shell -------------------------------------------
+
+#topic-title,
+.topic-title {
+  padding-top: 2px;
+}
+
+#topic-title .title-wrapper {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+#topic-title .title-wrapper h1,
+#topic-title .fancy-title,
+.topic-title .fancy-title,
+.topic-title .title-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#topic-title .badge-category__wrapper,
+.topic-title .badge-category__wrapper {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+
+.topic-post .topic-body {
+  padding-top: 10px;
+}
+
+.topic-post .row {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.topic-post .cooked a,
+.topic-post .cooked code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.topic-post .cooked a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+// --- 2. Post action controls -------------------------------------------------
+
+.topic-post .post-controls {
+  margin-top: 8px;
+}
+
+.topic-post .post-controls .actions .btn:not(.reply):not(.btn-primary),
+.topic-post .post-controls .actions .post-action,
+.topic-post .post-controls .show-more-actions {
+  background: transparent;
+  border-color: transparent;
+  color: var(--primary-medium);
+}
+
+.topic-post .post-controls .actions .btn:not(.reply):not(.btn-primary):hover,
+.topic-post .post-controls .actions .btn:not(.reply):not(.btn-primary):focus,
+.topic-post .post-controls .actions .post-action:hover,
+.topic-post .post-controls .actions .post-action:focus,
+.topic-post .post-controls .show-more-actions:hover,
+.topic-post .post-controls .show-more-actions:focus {
+  background: var(--primary-low);
+  color: var(--primary);
+}
+
+.topic-post .post-controls .reply {
+  font-size: 0.9rem;
+  min-width: 96px;
+}
+
+// --- 3. Topic footer + timeline containment -----------------------------------
+
+.topic-footer-buttons {
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.topic-footer-buttons .topic-footer-main-buttons {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.topic-footer-buttons .btn,
+.topic-footer-buttons .btn-icon,
+.topic-footer-buttons .topic-notifications-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.topic-footer-buttons .btn .d-icon,
+.topic-footer-buttons .btn-icon .d-icon,
+.topic-footer-buttons .topic-notifications-button .d-icon {
+  color: currentColor;
+  fill: currentColor;
+}
+
+.timeline-container,
+.topic-timeline,
+.timeline-scrollarea-wrapper,
+.timeline-scrollarea,
+#topic-progress,
+.topic-progress,
+.topic-progress-wrapper,
+.topic-navigation {
+  max-width: 100%;
+}
+
+.timeline-container,
+.timeline-scrollarea-wrapper {
+  overflow-x: hidden;
+}
+
+// --- 4. Reply composer -------------------------------------------------------
+
+#reply-control .d-editor-container,
+#reply-control .d-editor-textarea-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#reply-control .d-editor-textarea-wrapper textarea,
+#reply-control .d-editor-input {
+  max-height: 34vh;
+  overflow-y: auto;
+}
+
+#reply-control .d-editor-preview-wrapper {
+  max-height: 34vh;
+  overflow-y: auto;
+}
+
+#reply-control .composer-fields {
+  gap: 8px;
+}
+
+#reply-control .d-editor-button-bar {
+  border-bottom: 1px solid var(--primary-low);
+  padding-bottom: 6px;
+}
+
+#reply-control .save-or-cancel,
+#reply-control .composer-actions {
+  gap: 6px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+}
+
+#reply-control .submit-panel {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+#reply-control .composer-controls {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+// --- 5. New-topic composer -----------------------------------------------------
+
+#reply-control .title-input input {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+#reply-control .category-input,
+#reply-control .tags-input {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#reply-control .category-input .select-kit-header,
+#reply-control .tags-input .select-kit-header {
+  background: var(--secondary);
+  border-radius: var(--af-radius-s);
+  padding: 0 10px;
+}
+
+#reply-control .category-input .select-kit-header .selected-name,
+#reply-control .tags-input .select-kit-header .selected-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// --- 6. Narrow viewport guard ---------------------------------------------------
+
+@media (max-width: 380px) {
+  #reply-control .save-or-cancel .btn-primary,
+  #reply-control .composer-actions .btn-primary,
+  #reply-control .reply,
+  #reply-control .create {
+    min-width: min(46vw, 136px);
+  }
+}
