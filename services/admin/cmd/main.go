@@ -10,7 +10,6 @@ import (
 	"ai-forum/admin-service/internal/middleware"
 	"ai-forum/admin-service/internal/service"
 	"ai-forum/admin-service/pkg/database"
-	"ai-forum/admin-service/pkg/redis"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -40,15 +39,6 @@ func main() {
 		log.Fatalf("Failed to set schema: %v", err)
 	}
 
-	redisHost := os.Getenv("REDIS_HOST")
-	redisPort := os.Getenv("REDIS_PORT")
-	rdb, err := redis.Connect(redisHost, redisPort)
-	if err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
-	}
-	defer rdb.Close()
-	log.Println("Connected to Redis")
-
 	if err := database.RunMigrations(dbHost, dbPort, dbName, dbUser, dbPassword); err != nil {
 		log.Printf("Migration warning: %v", err)
 	}
@@ -67,7 +57,6 @@ func main() {
 	configService := service.NewConfigService(pool)
 	userAdminService := service.NewUserAdminService(pool, userClient)
 	roleService := service.NewRoleService(pool)
-	roleService.SetRedis(rdb)
 
 	inviteHandler := handler.NewInviteHandler(adminService, userClient)
 	moderationHandler := handler.NewModerationHandler(adminService)
@@ -111,6 +100,7 @@ func main() {
 	internal := router.Group("/internal/v1")
 	{
 		internal.POST("/moderation/check", moderationHandler.CheckSensitiveWords)
+		internal.GET("/users/:id/role", roleHandler.GetUserRole)
 	}
 
 	port := ":8003"

@@ -8,23 +8,17 @@ import (
 	"ai-forum/admin-service/internal/model"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/redis/go-redis/v9"
 )
 
-// RoleService handles role and permission assignment
+// RoleService manages role assignments. Role Resolution policy lives in
+// role_authority.go; this service owns the data access and mutations.
 type RoleService struct {
-	DB  *pgxpool.Pool
-	RDB *redis.Client
+	DB *pgxpool.Pool
 }
 
 // NewRoleService creates a new RoleService
 func NewRoleService(db *pgxpool.Pool) *RoleService {
 	return &RoleService{DB: db}
-}
-
-// SetRedis sets the Redis client (optional, called from main)
-func (s *RoleService) SetRedis(rdb *redis.Client) {
-	s.RDB = rdb
 }
 
 // ListRoles returns all available roles
@@ -62,17 +56,6 @@ func (s *RoleService) AssignRole(ctx context.Context, userID uint, roleID uint, 
 		return fmt.Errorf("failed to assign role: %w", err)
 	}
 
-	// Get role name for Redis
-	var roleName string
-	err = s.DB.QueryRow(ctx,
-		"SELECT name FROM schema_admin.roles WHERE id = $1",
-		roleID,
-	).Scan(&roleName)
-	if err == nil && s.RDB != nil {
-		// Store role in Redis for quick middleware lookup
-		s.RDB.Set(ctx, fmt.Sprintf("role:%d", userID), roleName, 0)
-	}
-
 	detail, _ := json.Marshal(map[string]interface{}{
 		"user_id":     userID,
 		"role_id":     roleID,
@@ -94,10 +77,6 @@ func (s *RoleService) RemoveRole(ctx context.Context, userID uint, roleID uint, 
 	)
 	if err != nil {
 		return fmt.Errorf("failed to remove role: %w", err)
-	}
-
-	if s.RDB != nil {
-		s.RDB.Del(ctx, fmt.Sprintf("role:%d", userID))
 	}
 
 	detail, _ := json.Marshal(map[string]interface{}{

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -9,17 +10,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// roleAuthority is the Role Resolution seam behind the internal endpoint.
+// *service.RoleService satisfies it in production; tests substitute a fake.
+type roleAuthority interface {
+	ResolveAuthoritativeRole(ctx context.Context, userID uint) (string, error)
+}
+
 // RoleHandler handles role management endpoints
 type RoleHandler struct {
 	RoleService *service.RoleService
+	authority   roleAuthority
 }
 
 // NewRoleHandler creates a new RoleHandler
 func NewRoleHandler(svc *service.RoleService) *RoleHandler {
-	return &RoleHandler{RoleService: svc}
+	return &RoleHandler{RoleService: svc, authority: svc}
 }
 
-// ListRoles returns all available roles with permissions
+// ListRoles returns all available roles
 func (h *RoleHandler) ListRoles(c *gin.Context) {
 	roles, err := h.RoleService.ListRoles(c.Request.Context())
 	if err != nil {
@@ -27,6 +35,26 @@ func (h *RoleHandler) ListRoles(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"roles": roles})
+}
+
+// GetUserRole resolves the authoritative role name for a user. It is the
+// internal seam of the Role Authority: unknown users and users without
+// assignments resolve to "student" (never 404), so consumers never branch
+// on identity semantics.
+func (h *RoleHandler) GetUserRole(c *gin.Context) {
+	userID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	role, err := h.authority.ResolveAuthoritativeRole(c.Request.Context(), uint(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "role resolution failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user_id": uint(userID), "role": role})
 }
 
 // AssignRole assigns a role to a user
