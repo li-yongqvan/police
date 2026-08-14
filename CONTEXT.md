@@ -31,3 +31,29 @@ _Avoid_: Detail-page scope creep
 **Mobile UI Hard Acceptance**:
 Mobile UI work is accepted against concrete viewport, overflow, touch target, text wrapping, and desktop regression checks rather than broad visual preference.
 _Avoid_: Looks better only, subjective-only acceptance
+
+## Authorization Language
+
+**Role**:
+A user's governance position: student, dmin, or platform_admin. Permission is expressed by the role name alone - there is no separate permission matrix.
+_Avoid_: Permission lists, per-user permission flags
+
+**Role Authority**:
+The single owner of which role a user holds (BC-Governance). Other contexts ask it for the answer instead of deriving roles themselves.
+_Avoid_: user-service reading role tables directly, duplicated role logic
+
+**Authoritative Role Name**:
+The role name the Role Authority resolves for a user at a given moment; the only value other contexts may rely on for authorization.
+_Avoid_: locally-guessed roles, raw role assignment lists
+
+**Role Resolution**:
+The Role Authority's process of turning a user's role assignments into one authoritative name (priority plus fallback).
+_Avoid_: resolving roles on the consuming side
+
+**Level**:
+A display-only 0-5 attribute on a user's profile. It is never an authorization input.
+_Avoid_: level gates, level claims used as permissions
+
+**Session Token Contract**:
+The token BC-Identity issues carries the user identity and the authoritative role name. BC-Identity is the only issuer; other contexts only consume it.
+_Avoid_: other services issuing or redefining the token
