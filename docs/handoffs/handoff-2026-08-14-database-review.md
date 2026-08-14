@@ -49,3 +49,7 @@
 - git 纪律：提交前设 $env:DEV_RECORD_SKIP='1'；每 Ticket 一次 commit，格式 <type>: <description> (#Ticket)；提交后立即 push codex/discourse-rebuild；严禁直接动 master；work/ 已被 gitignore。
 - AGENTS.md 规则：不确定先问；用户质疑先判断合理性再生成计划书；调 skill 先说明原因；批量删文件/上传隐私/窃取账号等操作立即停止。
 - 数据库特有：不要把 eference/ai-forum-gitee 当现役代码；Discourse PG 与 ai_forum PG 两套勿混淆；schema_forum 不在现役 compose 初始化里；生产库任何 DDL/DML 前先备份。
+## 6. 后续（2026-08-14 审查已完成）
+- 审查报告：`docs/database-review-2026-08-14.md`（P1/P2/P3 问题清单 + DB-FIX-01~04 修复 Ticket 草案）。
+- 下一步：等待用户确认修复计划；确认后按 DB-FIX-01 起串行执行，生产库变更前必须先备份。
+- 审查全程只读，未对生产库执行任何 DDL/DML。
