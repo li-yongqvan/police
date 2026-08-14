@@ -1071,3 +1071,51 @@ body {
     overflow-wrap: anywhere;
   }
 }
+
+// ============================================================================
+// MUI-07: top lists + final mobile sweep
+// ----------------------------------------------------------------------------
+// Continues MUI-03A post controls, MUI-04 secondary surfaces, MUI-05 topic
+// detail/composer, and MUI-06 user surfaces. Final audit (2026-08-14) across
+// 390/375/320/1440 found one real mobile defect: /top period chooser keeps a
+// desktop-sized fixed width and overflows horizontally on phones.
+// ----------------------------------------------------------------------------
+
+// --- 1. /top period chooser containment ----------------------------------------
+
+.top-lists .period-chooser {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.top-lists .period-chooser .select-kit-header {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.top-lists .period-chooser .selected-name {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: calc(100% - 1.8em);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.top-lists .period-chooser .angle-icon {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 0.3em;
+}
+
+// --- 2. Narrow viewport guard ---------------------------------------------------
+
+@media (max-width: 320px) {
+  .top-lists .period-chooser .select-kit-body {
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+}
