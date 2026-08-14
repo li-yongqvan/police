@@ -1,4 +1,4 @@
-﻿# 项目上下文 · AI 智联论坛
+# 项目上下文 · AI 智联论坛
 
 > 本文档旨在让 AI 助手在每次新对话中快速理解项目全貌。
 > 修改项目结构或重要约定时，请同步更新本文件。
@@ -7,7 +7,7 @@
 
 ## 1. 项目定位
 
-**AI 智联论坛**是一个面向学院的 AI 主题社区平台（MVP 阶段）。核心场景：学生按板块浏览讨论 AI 话题，协会运营进行内容治理。
+**AI 智联论坛**是一个面向学院的 AI 主题社区平台。核心场景：学生在 Discourse 社区浏览讨论 AI 话题，协会运营通过管理后台进行内容治理与用户管理。
 
 - **目标用户**：学生（浏览/发帖/互动）、协会运营（审核/管理）、平台管理员（配置/封禁）
 - **系统边界**：社区内容 + 用户身份 + 运营中台，不涉及即时通讯、实时协作等企业级功能
@@ -31,29 +31,30 @@ flowchart LR
 
   subgraph services["服务层"]
     US["user-service :8001<br/>Gin + JWT"]
-    FS["forum-service :8002<br/>Gin + Redis"]
     AD["admin-service :8003<br/>Gin"]
   end
 
+  subgraph external["外部社区"]
+    DC["Discourse 实例<br/>:8080（前端入口 :8888）"]
+  end
+
   subgraph data["数据层"]
-    PG["PostgreSQL 16<br/>schema_auth / schema_forum / schema_admin"]
+    PG["PostgreSQL 16<br/>schema_auth / schema_admin"]
     RD["Redis 7"]
+    DPG["Discourse 自带 PG<br/>（独立卷，与 ai_forum 分离）"]
   end
 
   SPA --> NG
   MW -.-> SPA
   NG -->|"/user-api/ /api/v1/auth/* /api/v1/users/*"| US
-  NG -->|"/forum-api/ /api/v1/posts/* /api/v1/boards/* /api/v1/comments/*"| FS
   NG -->|"/admin-api/ /api/v1/admin/*"| AD
   US --> PG
-  FS --> PG
   AD --> PG
   US --> RD
-  FS --> RD
   AD --> RD
-  AD -->|"内部 API"| FS
   AD -->|"内部 API"| US
-  FS -->|"敏感词检测"| AD
+  US -->|"SSO 登录"| DC
+  DC --> DPG
 ```
 
 ### 2.2 技术栈
@@ -81,11 +82,10 @@ flowchart LR
 | 服务 | 内部端口 | Nginx 前缀 | 说明 |
 |------|----------|------------|------|
 | user-service | 8001 | `/user-api/`, `/api/v1/auth/`, `/api/v1/users`, `/api/v1/register`, `/api/v1/login`, `/api/v1/demo-login` | 注册/登录/用户资料/JWT |
-| forum-service | 8002 | `/forum-api/`, `/api/v1/posts`, `/api/v1/boards`, `/api/v1/comments`, `/api/v1/attachments` | 板块/帖子/评论/互动 |
-| admin-service | 8003 | `/admin-api/`, `/api/v1/admin/` | 审核/配置/敏感词/统计 |
+| admin-service | 8003 | `/admin-api/`, `/api/v1/admin/` | 用户治理/配置/敏感词/角色 |
+| Discourse（外部） | 8080（入口 8888） | 不经过本项目 Nginx 网关 | 社区内容独立实例，自带 PG |
 | frontend | 80 | `/` | Vue SPA 静态文件 |
-
-**本地开发时** Vite 开发服务器在 `127.0.0.1:8091`，通过 vite proxy 转发到各后端。
+**本地开发时** Vite 开发服务器在 `127.0.0.1:8091`，通过 vite proxy 转发到 user/admin-api 后端。
 
 ---
 
@@ -101,11 +101,11 @@ New project 6/
 │   │   ├── router.js           Vue Router 路由定义
 │   │   ├── main.js             入口：注册插件、挂载 App
 │   │   ├── stores/session.js   Pinia 用户会话状态
-│   │   ├── composables/        可组合函数（评论树、历史、导航等）
+│   │   ├── composables/        可组合函数（历史、导航等）
 │   │   ├── components/ui/      shadcn-vue 风格 UI 组件
-│   │   ├── views/              页面视图（BoardView, PostDetail, Admin* 等）
+│   │   ├── views/              页面视图（Admin*、Register、DemoLogin、OAuthQQ）
 │   │   └── styles/             Tailwind + gx 主题 CSS
-│   ├── vite.config.js          代理配置（user/forum/admin-api → 后端）
+│   ├── vite.config.js          代理配置（user/admin-api → 后端）
 │   └── package.json
 ├── services/                   Go 微服务
 │   ├── user/                   user-service（用户身份限界上下文）
@@ -118,10 +118,9 @@ New project 6/
 │   │   ├── pkg/database/       PostgreSQL 连接
 │   │   ├── pkg/jwt/            JWT 工具
 │   │   └── pkg/redis/          Redis 连接
-│   ├── forum/                  forum-service（社区内容限界上下文）
-│   │   └── （同上分层结构）
 │   └── admin/                  admin-service（运营治理限界上下文）
 │       └── （同上分层结构）
+├── reference/                 历史参考代码（含已移除的 forum-service，勿当现役）
 ├── shared/                     共享契约
 │   ├── api-contract.md         前后端字段映射表（snake_case ↔ camelCase）
 │   └── mock-data/              JSON 种子数据
@@ -129,7 +128,7 @@ New project 6/
 │   ├── nginx.conf              主配置（路由规则）
 │   └── includes/               模块化配置片段
 ├── migrations/                 数据库迁移脚本
-│   └── init/
+│   └── init/                   容器首启初始化（建 schema_auth/schema_admin）
 
 ~~├── scripts/seed/             种子数据 SQL~~
 ├── infra/                      基础设施配置
@@ -148,8 +147,8 @@ New project 6/
 
 ### 4.1 BC-Identity · user-service
 
-- **聚合**：User（注册/登录/资料/头像）、Session（JWT 签发/刷新/登出）
-- **角色**：student / admin / platform_admin
+- **聚合**：User（注册/登录/资料/头像）、Session（JWT 签发/刷新/登出）、InviteCode（邀请码归本上下文，admin 经内部 API 操作）
+- **角色**：student / admin / platform_admin（角色数据在 schema_admin，登录时经解析写入 JWT——存在跨 schema 直连问题，见架构扫描报告 O-2）
 - **数据主权**：`schema_auth`，其他上下文不得直连此 Schema
 - **关键路由**：
   - `POST /api/v1/register` — 邀请码注册
@@ -158,29 +157,22 @@ New project 6/
   - `GET/PUT /api/v1/users/me` — 当前用户资料
   - `GET /api/v1/users/public/:id` — 他人公开资料
 
-### 4.2 BC-Community · forum-service
+### 4.2 BC-Community · Discourse（外部实例）
 
-- **聚合**：Board（板块）、Post（帖子）、Comment（评论，支持嵌套）、Interaction（点赞/收藏）、Attachment（附件）
-- **数据主权**：`schema_forum`
-- **关键路由**：
-  - `GET /api/v1/boards` — 板块列表
-  - `GET/POST /api/v1/posts` — 帖子列表/发帖
-  - `GET/PUT/DELETE /api/v1/posts/:id` — 帖子详情/编辑/删除
-  - `GET/POST /api/v1/comments` — 评论列表/发表评论
-  - `POST /api/v1/interactions` — 点赞/收藏
-- **与 admin 关系**：发帖/评论时调用 admin 敏感词检测；admin 可通过内部 API 删帖/改板块
+- 社区内容（板块/帖子/评论/互动）已迁移到独立 Discourse 实例：直连 `http://122.51.233.225:8080`，前端入口 `:8888`；其 PostgreSQL 在 Discourse 容器栈自带的卷中，与 `ai_forum` 主库是两套库。
+- forum-service 已从仓库移除；历史代码仅存在于 `reference/ai-forum-gitee/services/forum/`，勿当现役。
+- 本项目仅保留：user-service 的 Discourse SSO 登录对接（`DISCOURSE_CONNECT_SECRET`）。
 
 ### 4.3 BC-Governance · admin-service
 
-- **聚合**：Audit（审核）、Config（系统配置）、SensitiveWord（敏感词）、InviteCode（邀请码）、Stats（统计）
+- **聚合**：Config（系统配置）、SensitiveWord（敏感词）、Role（角色）、OperationLog（治理侧审计日志）
 - **数据主权**：`schema_admin`
 - **关键路由**：
-  - `GET /api/v1/admin/overview` — 管理概览
-  - `GET/POST/PUT /api/v1/admin/users` — 用户管理
-  - `GET /api/v1/admin/audit` — 审核队列
   - `GET/PUT /api/v1/admin/config` — 系统配置
-  - `GET/POST/DELETE /api/v1/admin/sensitive-words` — 敏感词管理
-  - `GET/POST /api/v1/admin/invite-codes` — 邀请码管理
+  - `GET /api/v1/admin/users`、`POST /users/:id/ban|unban`、`PUT /users/:id/level`、`GET /users/:id/logs` — 用户管理（数据经 user-service 内部 API）
+  - `GET/POST/DELETE /api/v1/admin/roles`、`/users/:id/roles` — 角色管理
+  - `GET/POST /api/v1/admin/invite-codes` — 邀请码管理（数据经 user-service 内部 API）
+  - `GET/POST/DELETE /api/v1/admin/sensitive-words` — 敏感词管理（社区内容迁至 Discourse 后当前无消费方，见架构扫描报告 O-6）
 
 ---
 
@@ -196,22 +188,22 @@ npm run dev        # → http://127.0.0.1:8091
 ### 5.2 完整 Docker 环境
 
 ```bash
-# 启动所有服务（PostgreSQL + Redis + 3 Go 服务 + Nginx + 前端）
+# 启动所有服务（PostgreSQL + Redis + 2 Go 服务 + Nginx + 前端）
 docker compose up -d
 
 # 开发环境（带热重载）
 docker compose -f docker-compose.dev.yml up -d
 
 # 查看日志
-docker compose logs -f forum-service
+docker compose logs -f user-service
 ```
 
 ### 5.3 单独运行 Go 服务
 
 ```bash
-cd services/forum
+cd services/user
 cp .env.example .env   # 编辑数据库连接信息
-go run cmd/main.go     # 默认监听 :8002
+go run cmd/main.go     # 默认监听 :8001
 ```
 
 ### 5.4 多 agent 开发编队
@@ -224,6 +216,7 @@ go run cmd/main.go     # 默认监听 :8002
   - **集成契约 agent**：负责对照 `shared/api-contract.md`、`frontend/src/api.js`、Nginx/Vite proxy，检查字段映射和路由错位。
   - **数据/部署 agent**：负责迁移脚本、Docker Compose、Nginx、云服务器部署和环境排查。
   - **测试/审查 agent**：负责回归测试、移动端窄屏检查、接口联调、风险审查。
+
 - **协作原则**：
   - 主控 agent 必须先明确任务边界和改动范围；存在不确定时，先询问用户再继续。
   - 多 agent 并行前，应避免多个 agent 同时修改同一文件或同一业务边界。
@@ -242,7 +235,6 @@ go run cmd/main.go     # 默认监听 :8002
   - 除非用户明确要求只做本地修改，验证通过后默认需要同步 GitHub 并部署到云服务器。
 
 ---
-
 ## 6. 代码约定与模式
 
 ### 6.1 前端（Vue 3）
@@ -264,25 +256,25 @@ go run cmd/main.go     # 默认监听 :8002
 - **Service**：业务逻辑，通过接口依赖 repository
 - **Repository**：纯数据库操作，使用 pgx/v5 参数化查询
 - **中间件**：auth.go（JWT 解析）、ratelimit.go（Redis 限流）
-- **内部服务调用**：通过 `internal/client/` 下的 HTTP client（如 admin_client.go），不走外部 Nginx
+- **内部服务调用**：admin-service 通过 `internal/service/user_client.go`（HTTP client）调 user-service 的 `/internal/v1` 内部 API，不走外部 Nginx
 - **JSON 字段**：使用 snake_case，通过 struct tag `json:"xxx"` 声明
 
 ### 6.3 数据库
 
-- **三 Schema 隔离**：`schema_auth`、`schema_forum`、`schema_admin`
-- **迁移**：使用 golang-migrate，迁移文件在 `migrations/` 目录
-- **不要跨 Schema 直连**：服务间数据访问通过 API 调用，不走数据库
+- **两 Schema 隔离**：`schema_auth`（user-service）、`schema_admin`（admin-service）；golang-migrate 版本表在 `public`（schema_auth_migrations / schema_admin_migrations）
+- **迁移**：每服务迁移位于 `services/*/migrations/`（up/down 成对）；容器首启建 schema 脚本位于 `migrations/init/`
+- **不要跨 Schema 直连**：服务间数据访问通过内部 API（`/internal/v1`），不走数据库；已知违规一处（登录角色解析直读 schema_admin），见架构扫描报告 O-2
 
 ---
 
 ## 7. 当前项目状态
 
-- **阶段**：MVP 基础功能已完成，进入试运行和优化阶段
-- **已实现**：注册/登录/演示登录、板块浏览、发帖/评论、点赞/收藏、管理后台（审核/配置/敏感词/邀请码/统计）
-- **已部署**：支持 Docker Compose 一键部署，Nginx 网关路由已配置
-- **数据库**：已从 JSON 文件迁移到 PostgreSQL 16，三 Schema 隔离
+- **阶段**：MVP 已完成，试运行与优化阶段；社区内容承载于 Discourse，本仓库聚焦身份 + 治理 + 前端门户
+- **已实现**：注册/登录/演示登录、QQ OAuth、关注系统（API 层）、管理后台（用户/配置/敏感词/邀请码/角色）
+- **已部署**：Docker Compose 一键部署（user/admin 两个 Go 服务 + PostgreSQL 16 + Redis 7 + Nginx + 前端）
+- **数据库**：PostgreSQL 16，schema_auth / schema_admin 两 Schema；Discourse 自带独立 PG
 - **安全**：JWT 认证 + 角色权限中间件 + Redis 限流
-- **QQ OAuth**：已对接（OAuthQQ.vue / qq-oauth-handoff.md）
+- **已知问题**：迁移链 dirty（user_follows 表缺失）、无数据库备份、服务共用超级用户，详见 `docs/database-review-2026-08-14.md`；无主共享物清单见 `docs/architecture-ownership-scan-2026-08-14.md`
 
 ### 7.1 交付约定
 
@@ -325,8 +317,13 @@ go run cmd/main.go     # 默认监听 :8002
 | 移动端适配 | `docs/mobile-web-adaptation-plan-chris-coyier.md` | 窄屏适配方案 |
 | Cloudflare Tunnel | `docs/cloudflare-tunnel-setup.md` | 内网穿透配置 |
 | 后端框架分析 | `docs/backend-framework-analysis-report.md` | Gin 框架选型分析 |
+| 数据库审查报告 | `docs/database-review-2026-08-14.md` | 生产库审查 + DB-FIX-01~04 修复计划 |
+| 架构无主共享物扫描 | `docs/architecture-ownership-scan-2026-08-14.md` | 跨模块引用但无所有者的清单与归属建议 |
+| Discourse 主题部署 | `docs/discourse-theme-deploy-runbook.md` | 主题 backup/sync/restore 工具链 |
+| 会话交接 | `docs/handoffs/` | 跨会话任务交接索引 |
 | 全栈集成审计 | `docs/fullstack-integration-audit-plan.md` | 前后端集成检查清单 |
 
 ---
 
 > **维护提醒**：当添加新服务、修改 API 路由、调整目录结构或更新技术栈时，请同步更新本文档相关章节。
+
