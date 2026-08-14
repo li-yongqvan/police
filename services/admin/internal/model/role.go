@@ -2,12 +2,12 @@ package model
 
 import "time"
 
-// Role represents an admin role with permissions
+// Role represents a governance role. Permission is expressed by the role
+// name alone; there is no permission matrix.
 type Role struct {
 	ID          uint      `json:"id" db:"id"`
 	Name        string    `json:"name" db:"name"`
 	Description string    `json:"description" db:"description"`
-	Permissions []string  `json:"permissions" db:"permissions"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
 }
 

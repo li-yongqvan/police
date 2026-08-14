@@ -1,0 +1,1 @@
+ALTER TABLE schema_admin.roles ADD COLUMN IF NOT EXISTS permissions JSONB NOT NULL DEFAULT '[]';

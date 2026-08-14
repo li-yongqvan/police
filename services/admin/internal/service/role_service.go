@@ -24,7 +24,7 @@ func NewRoleService(db *pgxpool.Pool) *RoleService {
 // ListRoles returns all available roles
 func (s *RoleService) ListRoles(ctx context.Context) ([]*model.Role, error) {
 	rows, err := s.DB.Query(ctx,
-		"SELECT id, name, description, permissions, created_at FROM schema_admin.roles ORDER BY id",
+		"SELECT id, name, description, created_at FROM schema_admin.roles ORDER BY id",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query roles: %w", err)
@@ -34,12 +34,8 @@ func (s *RoleService) ListRoles(ctx context.Context) ([]*model.Role, error) {
 	var roles []*model.Role
 	for rows.Next() {
 		r := &model.Role{}
-		var permJSON []byte
-		if err := rows.Scan(&r.ID, &r.Name, &r.Description, &permJSON, &r.CreatedAt); err != nil {
+		if err := rows.Scan(&r.ID, &r.Name, &r.Description, &r.CreatedAt); err != nil {
 			continue
-		}
-		if permJSON != nil {
-			_ = json.Unmarshal(permJSON, &r.Permissions)
 		}
 		roles = append(roles, r)
 	}
