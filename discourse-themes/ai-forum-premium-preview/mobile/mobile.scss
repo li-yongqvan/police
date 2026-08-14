@@ -1081,6 +1081,9 @@ body {
 // desktop-sized fixed width and overflows horizontally on phones.
 // ----------------------------------------------------------------------------
 
+// Follow-up 2026-08-14: selected-name is an h2 at 24px and ellipsizes on phones;
+// 15px fits the full date range on 320/375/390 (16px still truncates by 2px at 320).
+
 // --- 1. /top period chooser containment ----------------------------------------
 
 .top-lists .period-chooser {
@@ -1097,6 +1100,7 @@ body {
 }
 
 .top-lists .period-chooser .selected-name {
+  font-size: 15px;
   display: inline-block;
   vertical-align: middle;
   max-width: calc(100% - 1.8em);
@@ -1105,7 +1109,10 @@ body {
   text-overflow: ellipsis;
 }
 
-.top-lists .period-chooser .angle-icon {
+// core sets .period-chooser-header .d-icon to var(--font-up-3) at 5-class
+// specificity; mirror it so the caret scales with the 15px label.
+.top-lists .period-chooser.dropdown-select-box .period-chooser-header .angle-icon.svg-icon {
+  font-size: 15px;
   display: inline-flex;
   vertical-align: middle;
   margin-left: 0.3em;
