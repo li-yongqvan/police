@@ -1,7 +1,7 @@
 # 服务器减压计划书 · P0 修复（Discourse staff 全站 500）
 
 Date: 2026-08-14
-状态：待用户确认后执行（默认先执行 Phase A，Phase B-D 逐项确认）
+状态：Phase A / B 已于 2026-08-17 执行完毕（含两项追加修复），P0 已关闭；Phase C / D 待观察后决定
 分支：codex/discourse-rebuild
 
 ## 1. 背景与根因（已实测确认）
@@ -72,9 +72,19 @@ cd /home/liyongquan/discourse && ./launcher restart app
   3. 可调 `vm.swappiness`。
 - 回滚：`swapoff /swap2.img` 并删除 fstab 行。
 
+## 6.5 · 2026-08-17 执行记录（追加修复）
+
+- ./launcher restart app 因服务器到 Docker Hub 出网超时在镜像预检失败（launcher 硬编码 discourse/base:2.0.20260803-0122，本地仅 2.0.20260726-0220），改以 docker restart app 等价完成 Phase A。
+- 重启后暴露两个计划外根因并已修复：
+  1. 站点 port 设置被改为 8080，与已含端口的 DISCOURSE_HOSTNAME 叠加成双端口 base_url，导致 client_settings_json 静默返回空串、mold 启动崩溃循环；已清空 SiteSetting.port。
+  2. staff 页面渲染同步调用 DiscourseUpdates.has_unseen_features?，对 Redis 
+ew_features 缓存逐条执行 git merge-base --is-ancestor；partial clone 缺对象时 git 懒拉取 origin 挂起，是 staff 专属 500 与 git 进程堆积的直接根因；已 ersion_checks=false 并清除 
+ew_features / latest_new_feature_created_at 两个 Redis key、杀掉遗留 git 进程。
+- 复测：demo_platform_admin SSO 后 /latest、/admin/users/list/active、/about、/categories 全部 200。细节与证据见 docs/handoffs/handoff-2026-08-14-test-results.md P0-1 修复记录。
+
 ## 7. Phase E · 验证与观察
 
-- [ ] staff SSO 复测通过（P0 关闭）
+- [x] staff SSO 复测通过（P0 关闭，2026-08-17）
 - [ ] 学生/游客基线不回归（/latest、/categories、/about、/top 抽查 200）
 - [ ] 观察 24h：`docker stats app` 内存不再爬升、无 git 挂起进程、无 `worker timed out`
 - [ ] 复测记录写回 `docs/handoffs/handoff-2026-08-14-test-results.md` 并 commit + push

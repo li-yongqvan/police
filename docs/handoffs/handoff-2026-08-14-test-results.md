@@ -53,6 +53,18 @@
   3. 排查内存占用随时间的增长曲线（Discourse 2.1GB 偏高，疑有 worker 泄漏或插件放大）。
 - 截图：`work/testing-2026-08-14/p4-sso-trace2-final.png`（管理员落地 500）、`p4-admin-*.png`。
 
+
+### P0-1 修复记录（2026-08-17 · 已修复）
+
+- 处置动作（全部在生产服务器 122.51.233.225 执行）：
+  1. **Phase A 重启**：./launcher restart app 因服务器到 Docker Hub 出网超时（launcher 硬编码基础镜像 discourse/base:2.0.20260803-0122，本地只有 2.0.20260726-0220）在镜像预检阶段失败且未停容器；改用等价的 docker restart app 完成重启。
+  2. **Phase B**：SiteSetting.version_checks = false（经 docker exec app rails runner 写入）。
+  3. **追加修复 A（启动阻塞）**：重启后 mold 启动崩溃循环（Pitchfork::BootFailure）。定位为测试期间站点 port 设置被改为 8080，与 DISCOURSE_HOSTNAME='122.51.233.225:8080'（hostname 已含端口）叠加导致 Discourse.base_url = http://122.51.233.225:8080:8080，URI.parse 抛 InvalidURIError，client_settings_json 静默返回空串，PrettyText.cook 在 __optInput.siteSettings = ; 处 MiniRacer::ParseError。修复：SiteSetting.port = ""，base_url 恢复 http://122.51.233.225:8080。
+  4. **追加修复 B（staff 500 直接根因）**：worker 超时堆栈显示 staff 页面渲染时 CurrentUserSerializer#has_unseen_features → DiscourseUpdates.new_features 对 Redis 中缓存的更新条目逐条执行 git merge-base --is-ancestor；该仓库为 partial clone（--filter=blob:none），本地缺失对象时 git 会向 origin 懒拉取，而服务器到 GitHub 出网挂起 → 每个 staff 页面请求同步卡死 → 30s worker timed out → 500，且挂起 git 子进程随 staff 访问不断堆积（与 recon 中观察到的 git fetch/git merge-base 进程吻合，学生/游客因不序列化该 staff 属性幸免）。ersion_checks=false 只阻止更新任务写入新数据，不清理存量缓存，故单独关闭无效。修复：Discourse.redis.del("new_features") + del("latest_new_feature_created_at")，并杀掉容器内遗留挂起 git 进程。
+- 复测（Playwright，work/testing-2026-08-14/run-p4-sso-retest-2026-08-17.cjs → p4-sso-retest-2026-08-17.json）：demo_platform_admin 经 :8888 登录 → SSO 落地 :8080 正常；/latest、/admin/users/list/active、/about、/categories 全部 200，管理 UI 正常渲染。（/admin/dashboard 返回 200 但内容为 Discourse 对非规范路由的 404 文案，非回归。）
+- 修复后服务器状态：app 容器 1.62GiB / 3.636GiB；主机 Swap 已用 344MB（修复前 1619MB）；容器内 git 挂起进程 0；ersion_checks=false、Redis 
+ew_features=nil；production.log 无新增 worker 超时。
+- 遗留观察项：内存 1.6GiB 仍偏高（3 worker + sidekiq），计划书 Phase C（UNICORN_WORKERS 3→2）与 Phase D（Swap 扩容）可选，建议观察 24h 内存曲线后再决定；port 设置为何被改成 8080 建议回溯测试操作日志。
 ### P1-1 · admin-service 硬编码 127.0.0.1:8002 调用已下线的 forum-service
 - 现象：Vue 管理端「数据概览」显示 `failed to call forum-service ... dial tcp 127.0.0.1:8002 connection refused`；`/admin-api/api/v1/admin/stats/overview`、`/admin-api/api/v1/admin/boards`、`/admin-api/api/v1/admin/audit/pending` 均 500（浏览器网络面板确认）。
 - 原因：当前架构已切换为「Vue 轻前端 + Discourse」，forum-service 容器已移除，但 admin-service 内部 client 仍指向 127.0.0.1:8002。
