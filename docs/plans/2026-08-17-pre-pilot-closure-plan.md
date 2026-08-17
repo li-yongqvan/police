@@ -51,6 +51,8 @@ Date: 2026-08-17
 
 ### Ticket 1 · DB-FIX-01 迁移链修复 + user_follows 建表
 
+状态：✅ 已完成（2026-08-17）
+
 目标：生产库迁移链恢复干净，013（user_follows）落表，镜像迁移文件与仓库一致。
 
 前置：执行任何 DDL/DML 前必须 pg_dump 全库备份并验证备份文件。
@@ -63,6 +65,14 @@ Date: 2026-08-17
 5. 用仓库当前 services/user/migrations/ 重建 user-service 镜像（自动移除残缺 `009_qq_number_login_accounts.up.sql`），发布。
 
 验证方式：psql 查 user_follows 表结构；user-service 启动日志无 dirty 警告；follow API 200。
+
+执行记录（SSH 122.51.233.225 实测）：
+1. 备份 ~/backups/db/ai_forum_pre_pilot_20260817_154934.dump.gz，gzip -t 通过，pg_restore -l 可列出全表。
+2. 首次 force 12 后重启遇阻：013_user_follows.up/down.sql 与 008 down 均带 UTF-8 BOM，psql 报 syntax error near 0xEFBBBF，迁移失败回滚为 13|t。
+3. 已修复：本地仓库 3 文件去 BOM + LF，scp 同步服务器；删除服务器残缺 009_qq_number_login_accounts.up.sql；重建 ai-forum-user-service 镜像。
+4. 再次 force 12 → up -d user-service → 日志 Database migrations applied successfully，迁移链 13|f。
+5. user_follows 表完整（PK/唯一约束/CHECK 防自关注/FK 级联删除/两索引）；/user-api/api/v1/users/me/following 登录后返回 200 count=0，不再 500。
+6. 遗留提示：镜像内 008/013 相关 BOM 修复已随新镜像生效；本地仓库 3 个迁移文件已同步修复待 commit（随本 Ticket 提交）。
 风险/回滚：生产库变更前已有备份；若迁移失败，恢复备份并保持 dirty 状态不动。
 是否影响发布：user-service 重启约 10～30 秒，登录短暂中断，建议低峰执行。
 

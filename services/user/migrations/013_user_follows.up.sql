@@ -1,4 +1,4 @@
-﻿-- Migration 013: user_follows table for social following feature
+-- Migration 013: user_follows table for social following feature
 -- Adds a unidirectional follow relationship between users.
 
 CREATE TABLE IF NOT EXISTS schema_auth.user_follows (
