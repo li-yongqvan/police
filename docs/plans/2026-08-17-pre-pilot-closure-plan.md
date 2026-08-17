@@ -172,7 +172,7 @@ Ticket 0（部署基线核对，只读）
 - 用户管理页无搜索（P2-6，加用户名/学号搜索）
 - 邀请码作废后统计不刷新 + 状态文案混排（P2-2/P3-2）
 - 论坛字体 CORS（P2-3，主题字体地址改相对路径）
-- #create-topic 图标按钮无 aria-label（P3-1）
+- ~~#create-topic 图标按钮无 aria-label（P3-1）~~ ✅ 已修复（08-17）：Discourse 升级为 combo 结构后旧 `.d-button-label` 规则失效，改用 `#create-topic.no-text::after` 注入「发帖」文字；连带修复话题页脚 `.pinned-options-trigger` 文字被 Discourse 默认 `@media (width < 40rem)` 规则隐藏的问题（恢复 `.d-button-label` 显示）。已同步服务器主题 ID 1 并登录态复测（亮/暗色 390px 均通过，docOverflow=0）。
 - todo-list.md 归档（BUG-001 为 forum-service 时代遗留）
 
 ## 7. 交付约定

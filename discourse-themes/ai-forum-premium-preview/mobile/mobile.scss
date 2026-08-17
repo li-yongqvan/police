@@ -720,9 +720,8 @@ body {
   opacity: 1;
 }
 
-#create-topic.no-text .d-button-label {
-  display: inline;
-  font-size: 0.92rem;
+#create-topic.no-text::after {
+  content: "发帖";
   line-height: 1;
 }
 
@@ -936,6 +935,11 @@ body {
 .topic-footer-buttons .topic-notifications-button .d-icon {
   color: currentColor;
   fill: currentColor;
+}
+
+// Discourse 默认在 <640px 隐藏页脚按钮文字，恢复置顶选项按钮的可见文字
+html:not(.anon) #topic-footer-buttons .topic-footer-main-buttons .pinned-options-trigger .d-button-label {
+  display: inline-flex;
 }
 
 .timeline-container,
