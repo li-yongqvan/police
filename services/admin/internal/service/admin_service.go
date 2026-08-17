@@ -1,4 +1,4 @@
-﻿package service
+package service
 
 import (
 	"context"
@@ -130,11 +130,6 @@ func (s *AdminService) UpdateConfig(key, value string) error {
 	return nil
 }
 
-// ListPendingAudit returns posts pending review
-func (s *AdminService) ListPendingAudit(page, limit int) ([]*model.AuditRecord, int, error) {
-	// TODO: implement pending audit listing
-	return nil, 0, nil
-}
 
 // GenerateInviteCode generates a single invite code via user-service
 func (s *AdminService) GenerateInviteCode(ctx context.Context, userClient *UserClient) (string, error) {

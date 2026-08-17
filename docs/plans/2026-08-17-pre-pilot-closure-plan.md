@@ -99,12 +99,19 @@ Date: 2026-08-17
 
 ### Ticket 3 · P1-2 审核闭环定案（需用户拍板，见第 5 节决策点 1）
 
+状态：✅ 已完成（2026-08-17，决策点 1 选 A：治理下沉 Discourse）
+
 默认方案（与仓库现状一致）：**治理能力正式下沉 Discourse**。
 - Vue 端：维持现有「管理首页」说明与「前往 Discourse 管理」外链，不新增审核页面。
 - admin-service：`ListPendingAudit` 标注废弃并移除其 TODO 路由（当前已无消费方），或保留返回空列表。
 - 清理孤儿数据：确认 demo02 对话题 #19 回复产生的待处理审核记录是否残留 schema_admin；若残留，在备份后由 DBA 手工清理（或随 DB-FIX-04 一并处理）。
 
 验证方式：Vue 管理端无指向 404 的菜单；admin-service 无 pending 相关死路由；sensitive_words 接口仍可用。
+
+执行记录：
+1. 生产 ai_forum 库核查：schema_admin 仅 6 张表（operation_logs/roles/sensitive_words/statistics_daily/system_config/user_roles），schema_auth 无审核表；operation_logs 均为 ban/unban/level 治理操作 → 无孤儿审核记录，无需 DBA 清理。
+2. 本地代码：删除 model/audit_record.go 与 admin_service.go 中 ListPendingAudit（TODO 无消费方），go build ./... 通过（BUILD OK）。
+3. 前端维持现状（侧边栏已仅剩 管理首页/用户管理/邀请码/前往 Discourse 管理，概览页无 stats 调用，无需改动）。
 风险/回滚：删除路由前确认前端无调用（已核实前端仅 moderationMode 配置读写，无 pending 列表调用）。
 是否影响发布：admin-service 重建发布，短暂中断。
 
