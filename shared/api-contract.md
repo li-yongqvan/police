@@ -11,7 +11,7 @@
 | `nickname` / `name` | `name` | 展示名 |
 | `avatar` | `avatar` | |
 | `role` | `role` | student / admin / platform_admin |
-| `level` | `level` | |
+| `level` | `level` | 0-5（纯展示属性，不作为权限依据） |
 | `bio` | `bio` | |
 | `status` | `status` | active / banned |
 | `access_token` / `token` | localStorage `ai-forum-token` | 登录响应 |
@@ -66,3 +66,28 @@
 ## Admin — Invite status
 
 `GET /api/v1/admin/invite-codes/:code/status` → 原样展示 `status` / `message` 字段。
+
+## Session Token Contract（JWT 会话令牌）
+
+> 由 user-service 唯一签发（HS256），admin-service 仅校验消费，任何服务不得自行签发。
+
+| Claim | 类型 | 说明 |
+|-------|------|------|
+| `user_id` | uint | 用户 ID |
+| `username` | string | 用户名 |
+| `role` | string | student / admin / platform_admin（签发时校验域，域外拒绝签发） |
+| `exp` / `iat` | int | 过期 / 签发时间戳 |
+| ~~`level`~~ | — | 已移除：等级是展示属性，不得作为权限依据 |
+
+校验行为：admin 路由要求 role ∈ {admin, platform_admin}，否则 403；user-service 中间件仅设置 user_id / username，不做角色判定。
+
+## 内部端点 — 角色权威（admin-service → user-service）
+
+`GET /internal/v1/users/:id/role` — user-service 登录时读取权威角色名（Redis 60s 缓存读穿），不再直连 schema_admin。
+
+| 状态码 | 语义 |
+|--------|------|
+| `200` | `{"user_id": 42, "role": "admin"}`（无角色分配返回 student，永不 404） |
+| `400` | :id 非法 |
+| `500` | 权威查询失败（user-service 降级为 student 并记日志，降级值不入缓存） |
+

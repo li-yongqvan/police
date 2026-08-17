@@ -57,5 +57,7 @@
 
 ## 7. 状态
 
-- 已提交并推送：CONTEXT.md + ADR-0003（dd7cbcd）；本文档。
+- 已提交并推送：CONTEXT.md + ADR-0003（dd7cbcd）、本文档（c57acf6）。
+- 已完成：ARCH-DEEP-1（dcbdb4e）、ARCH-DEEP-2（c7c7918）、ARCH-DEEP-3（2815139）已提交并推送；ARCH-DEEP-4 随本票提交。
+- 待办：DB-FIX-03 降权需用户确认服务器窗口；生产迁移 008 按"admin 先发、备份在前"顺序部署；跨服务联调冒烟未做。
 - 待执行：Ticket ARCH-DEEP-1~4（待用户批准后逐票执行）；DB-FIX-03 衔接待服务器窗口确认。
