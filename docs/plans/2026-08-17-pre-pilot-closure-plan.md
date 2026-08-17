@@ -117,6 +117,8 @@ Date: 2026-08-17
 
 ### Ticket 4 · 发布与验收准备
 
+状态：✅ 主体已完成（2026-08-17）；剩余种子内容/邀请码/值班人待用户确认（见第 9 节）
+
 动作：
 1. 若 Ticket 0 判定生产为旧镜像，或本计划书产生 admin/user 镜像变更 → 统一重建并发布（docker compose build + up -d，或按 DEPLOY.md 流程），提交后 push。
 2. 内测准备项核对（docs/pilot-acceptance-checklist.md「准备」）：
@@ -128,6 +130,16 @@ Date: 2026-08-17
 3. 更新 docs/todo-list.md（当前停留在 2026-06-04，P0 BUG-001 为 forum-service 时代遗留，应归档），并勾选验收表。
 
 验证方式：按 pilot-acceptance-checklist.md 逐项；手机端窄屏抽查登录→论坛→管理路径。
+
+执行记录（SSH 122.51.233.225 实测）：
+1. **代码整体对齐**：发现服务器项目目录 services/admin、services/user 与仓库严重不一致（服务器部署分支保留 forum 时代代码：forum_client.go/stats_service.go/audit_handler.go 等）。用 git archive HEAD 打包 services/admin+user（96 个 tracked 文件，.env 不受影响）覆盖服务器，备份先行（/tmp/services-backup-*.tgz）。
+2. **重建发布**：user-service + admin-service 镜像重建并部署，双双 healthy。新 admin 二进制 forum-service=0、stats/overview=0（P1-1 关闭）；残留 8002×1 来自依赖库非业务代码。
+3. **接口回归**：demo_platform_admin 登录后 /admin/users total=76、/admin/invite-codes count=2、users/me role=platform_admin 全部 200。
+4. **演示账号改强口令**（决策 3 A）：21 个 demo*/admin0*/plat0* 统一改随机 16 位强口令（bcrypt cost 12，UPDATE 21）；验证新口令登录 OK、旧密码 123456 401；口令已单独交付用户，未入库。
+5. **安全项**：POST /api/v1/demo-login 公网 403（白名单生效）。
+6. **域名**：https://api.shgenren.dpdns.org 服务器 curl 200、本机 30s 内 200（首次握手慢，可达）。
+7. **冒烟**：smoke-test.sh 适配当前架构（原脚本仍调 forum-api 死接口）；cron-smoke.sh 路径修正；网关模式冒烟 PASS（frontend/discourse/login/users-me）；crontab 已配 */15 冒烟 + 每日 02:30 备份。
+8. **遗留**：Discourse 7 板块中 6 个 topic_count=0（仅「常规」3 条），不满足验收清单「种子帖子每板块 ≥3 条」，待用户确认是否补种子内容；邀请码批量生成与值班人待确认。
 风险/回滚：发布按 DEPLOY.md 回滚预案。
 是否影响发布：是，本 Ticket 即发布动作。
 
@@ -168,6 +180,12 @@ Ticket 0（部署基线核对，只读）
 - 每 Ticket 完成后立即 commit（格式 `<type>: <description> (#<ticket>)`）+ push origin codex/discourse-rebuild；不直接动 master。
 - 所有验证通过后默认同步 GitHub 并部署云服务器（除非用户明确只做本地）。
 - 本计划书任何改动生产库的动作，执行前必须先备份并向用户报备。
+
+## 9. 待用户确认（内测放人前）
+1. 种子内容：是否由我批量补充（Discourse 6 个空板块 × ≥3 条）？还是值班管理员手动填充？
+2. 邀请码：内测前是否现在批量生成（建议 50～100 个）？
+3. 值班人与内测启动日期确认。
+4. 演示账号新口令已单独交付，请存至密码管理器。
 
 ## 8. 风险汇总
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Cron-friendly smoke check. Set BASE_URL in /opt/ai-forum/.env.smoke
+# Cron-friendly smoke check. Set BASE_URL/DISCOURSE_URL/SMOKE_USER/SMOKE_PASS in $ROOT/.env.smoke
 set -eu
-ROOT="/opt/ai-forum"
+ROOT="${AI_FORUM_PROJECT_ROOT:-/home/liyongquan/projects/ai-forum}"
 LOG="${ROOT}/logs/smoke-cron.log"
 mkdir -p "${ROOT}/logs"
 ENV_FILE="${ROOT}/.env.smoke"
