@@ -255,9 +255,6 @@ func (h *UserHandler) DemoLogin(c *gin.Context) {
 	}
 
 	role := h.Service.ResolveAppRole(c.Request.Context(), resp.User.ID)
-	if role == "" {
-		role = req.Role
-	}
 	c.JSON(http.StatusOK, loginResponseJSON(resp, role))
 }
 

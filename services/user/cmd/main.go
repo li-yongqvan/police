@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 
 	"ai-forum/user-service/internal/handler"
 	"ai-forum/user-service/internal/middleware"
+	"ai-forum/user-service/internal/role"
 	"ai-forum/user-service/internal/service"
 	"ai-forum/user-service/pkg/database"
 	"ai-forum/user-service/pkg/redis"
@@ -66,7 +68,17 @@ func main() {
 	}
 
 	// Initialize service and handler
-	userService := service.NewUserService(pool, rdb)
+	adminURL := os.Getenv("ADMIN_SERVICE_URL")
+	if adminURL == "" {
+		adminURL = "http://localhost:8003"
+	}
+	roleResolver := role.NewCachedResolver(
+		role.NewHTTPFetcher(adminURL, 2*time.Second),
+		role.NewRedisCache(rdb),
+		60*time.Second,
+		slog.Default(),
+	)
+	userService := service.NewUserService(pool, rdb, roleResolver)
 	userHandler := handler.NewUserHandler(userService)
 	qqOAuthHandler := handler.NewQQOAuthHandler(userService)
 	discourseSSOHandler := handler.NewDiscourseSSOHandler(userService)
@@ -224,10 +236,10 @@ func main() {
 		internal.GET("/invite-codes/:code/status", userAdminHandler.GetInviteCodeStatus)
 		internal.PUT("/invite-codes/:code/void", userAdminHandler.VoidInviteCode)
 
-			// Stats endpoints
-			internal.GET("/stats/overview", userStatsHandler.GetStatsOverview)
-			internal.GET("/stats/daily-users", userStatsHandler.GetDailyUsers)
-			internal.GET("/stats/level-distribution", userStatsHandler.GetLevelDistribution)
+		// Stats endpoints
+		internal.GET("/stats/overview", userStatsHandler.GetStatsOverview)
+		internal.GET("/stats/daily-users", userStatsHandler.GetDailyUsers)
+		internal.GET("/stats/level-distribution", userStatsHandler.GetLevelDistribution)
 	}
 
 	// Start server

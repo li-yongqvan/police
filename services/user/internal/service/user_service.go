@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"ai-forum/user-service/internal/model"
+	"ai-forum/user-service/internal/role"
 	"ai-forum/user-service/pkg/jwt"
 
 	"github.com/jackc/pgx/v5"
@@ -27,8 +28,9 @@ const (
 
 // UserService handles user business logic
 type UserService struct {
-	DB  *pgxpool.Pool
-	RDB *redis.Client
+	DB    *pgxpool.Pool
+	RDB   *redis.Client
+	roles role.Resolver
 }
 
 type OAuthTokens struct {
@@ -37,36 +39,13 @@ type OAuthTokens struct {
 }
 
 // NewUserService creates a new UserService instance
-func NewUserService(db *pgxpool.Pool, rdb *redis.Client) *UserService {
-	return &UserService{DB: db, RDB: rdb}
+func NewUserService(db *pgxpool.Pool, rdb *redis.Client, roles role.Resolver) *UserService {
+	return &UserService{DB: db, RDB: rdb, roles: roles}
 }
 
-// resolveJWTReole returns the highest-priority admin role for JWT claims.
-func (s *UserService) resolveJWTReole(ctx context.Context, userID uint) string {
-	var roleName string
-	err := s.DB.QueryRow(ctx, `
-		SELECT r.name FROM schema_admin.user_roles ur
-		JOIN schema_admin.roles r ON r.id = ur.role_id
-		WHERE ur.user_id = $1
-		ORDER BY CASE r.name
-			WHEN 'platform_admin' THEN 1
-			WHEN 'admin' THEN 2
-			ELSE 3
-		END
-		LIMIT 1
-	`, userID).Scan(&roleName)
-	if err != nil || roleName == "" {
-		return "student"
-	}
-	if roleName == "user" {
-		return "student"
-	}
-	return roleName
-}
-
-// ResolveAppRole returns the frontend-facing role for routing.
+// ResolveAppRole resolves the authoritative role name from the Role Authority.
 func (s *UserService) ResolveAppRole(ctx context.Context, userID uint) string {
-	return s.resolveJWTReole(ctx, userID)
+	return s.roles.Resolve(ctx, userID)
 }
 
 // Register creates a new user account with invite code validation
@@ -146,8 +125,8 @@ func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) 
 
 	// Generate tokens
 	secret := os.Getenv(jwtSecretEnv) // Will be overridden by env
-	role := s.resolveJWTReole(ctx, user.ID)
-	token, err := jwt.GenerateToken(user.ID, user.Username, role, user.Level, secret, accessTokenExpiry)
+	role := s.roles.Resolve(ctx, user.ID)
+	token, err := jwt.GenerateToken(user.ID, user.Username, role, secret, accessTokenExpiry)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -199,8 +178,8 @@ func (s *UserService) Login(ctx context.Context, username, password string) (*mo
 
 	// Generate tokens
 	secret := os.Getenv(jwtSecretEnv)
-	role := s.resolveJWTReole(ctx, user.ID)
-	accessToken, err := jwt.GenerateToken(user.ID, user.Username, role, user.Level, secret, accessTokenExpiry)
+	role := s.roles.Resolve(ctx, user.ID)
+	accessToken, err := jwt.GenerateToken(user.ID, user.Username, role, secret, accessTokenExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -263,8 +242,8 @@ func (s *UserService) LoginOrCreateOAuthUser(ctx context.Context, provider, prov
 		if user.Status == "banned" {
 			return nil, "", nil, fmt.Errorf("账号已被封禁")
 		}
-		role := s.resolveJWTReole(ctx, user.ID)
-		tokens, err := s.issueTokens(ctx, user.ID, user.Username, role, user.Level)
+		role := s.roles.Resolve(ctx, user.ID)
+		tokens, err := s.issueTokens(ctx, user.ID, user.Username, role)
 		if err != nil {
 			return nil, "", nil, err
 		}
@@ -335,17 +314,17 @@ func (s *UserService) LoginOrCreateOAuthUser(ctx context.Context, provider, prov
 		return nil, "", nil, fmt.Errorf("登录失败，请稍后重试")
 	}
 
-	role := s.resolveJWTReole(ctx, user.ID)
-	tokens, err := s.issueTokens(ctx, user.ID, user.Username, role, user.Level)
+	role := s.roles.Resolve(ctx, user.ID)
+	tokens, err := s.issueTokens(ctx, user.ID, user.Username, role)
 	if err != nil {
 		return nil, "", nil, err
 	}
 	return &user, role, tokens, nil
 }
 
-func (s *UserService) issueTokens(ctx context.Context, userID uint, username, role string, level int) (*OAuthTokens, error) {
+func (s *UserService) issueTokens(ctx context.Context, userID uint, username, role string) (*OAuthTokens, error) {
 	secret := os.Getenv(jwtSecretEnv)
-	accessToken, err := jwt.GenerateToken(userID, username, role, level, secret, accessTokenExpiry)
+	accessToken, err := jwt.GenerateToken(userID, username, role, secret, accessTokenExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -383,9 +362,9 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (st
 
 			var user model.User
 			err := s.DB.QueryRow(ctx,
-				"SELECT id, username, level, status FROM schema_auth.users WHERE id = $1",
+				"SELECT id, username, status FROM schema_auth.users WHERE id = $1",
 				userID,
-			).Scan(&user.ID, &user.Username, &user.Level, &user.Status)
+			).Scan(&user.ID, &user.Username, &user.Status)
 			if err != nil {
 				return "", fmt.Errorf("用户不存在")
 			}
@@ -396,8 +375,8 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (st
 			}
 
 			secret := os.Getenv(jwtSecretEnv)
-			role := s.resolveJWTReole(ctx, user.ID)
-			newToken, err := jwt.GenerateToken(user.ID, user.Username, role, user.Level, secret, accessTokenExpiry)
+			role := s.roles.Resolve(ctx, user.ID)
+			newToken, err := jwt.GenerateToken(user.ID, user.Username, role, secret, accessTokenExpiry)
 			if err != nil {
 				return "", fmt.Errorf("failed to generate token: %w", err)
 			}
@@ -508,7 +487,6 @@ func (s *UserService) CreateInviteCodesBatch(ctx context.Context, count int, cre
 	}
 	return codes, nil
 }
-
 
 // Follow creates a follow relationship between two users
 func (s *UserService) Follow(ctx context.Context, followerID, followeeID uint) error {

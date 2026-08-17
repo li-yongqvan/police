@@ -1,13 +1,10 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
-	"ai-forum/user-service/pkg/database"
 	"ai-forum/user-service/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
@@ -48,39 +45,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Set("username", username)
 		}
 
-		// Set level in context (may need to refresh from DB for accuracy)
-		if level, ok := claims["level"].(float64); ok {
-			c.Set("level", int(level))
-		} else if userID, ok := claims["user_id"].(float64); ok {
-			// Try to fetch level from DB
-			userIDUint := uint(userID)
-			var userLevel int
-			db, err := database.GetPool()
-			if err == nil {
-				row := db.QueryRow(context.Background(),
-					"SELECT level FROM schema_auth.users WHERE id = $1", userIDUint)
-				if err := row.Scan(&userLevel); err == nil {
-					c.Set("level", userLevel)
-				}
-			}
-		}
-
-		c.Next()
-	}
-}
-
-// RequireLevel checks if the user has sufficient level
-func RequireLevel(minLevel int) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		level, exists := c.Get("level")
-		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthenticated"})
-			return
-		}
-		if levelInt, ok := level.(int); ok && levelInt < minLevel {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "权限不足，需要等级" + strconv.Itoa(minLevel)})
-			return
-		}
 		c.Next()
 	}
 }

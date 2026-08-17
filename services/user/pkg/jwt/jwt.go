@@ -4,25 +4,33 @@ import (
 	"fmt"
 	"time"
 
+	"ai-forum/user-service/internal/role"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Claims represents the JWT claims structure
+// Claims represents the JWT claims structure. This is the Session Token
+// Contract: user_id, username, role, exp, iat (HS256). Do not add fields
+// without updating shared/api-contract.md.
 type Claims struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
 	Role     string `json:"role"`
-	Level    int    `json:"level"`
 	jwt.RegisteredClaims
 }
 
-// GenerateToken creates a new JWT access token for a user
-func GenerateToken(userID uint, username, role string, level int, secret string, expiry time.Duration) (string, error) {
+// GenerateToken creates a new JWT access token for a user. It refuses to
+// issue tokens with a role outside the authorization domain.
+func GenerateToken(userID uint, username, roleName, secret string, expiry time.Duration) (string, error) {
+	name, ok := role.ValidName(roleName)
+	if !ok {
+		return "", fmt.Errorf("refusing to issue token with out-of-domain role %q", roleName)
+	}
+
 	claims := &Claims{
 		UserID:   userID,
 		Username: username,
-		Role:     role,
-		Level:    level,
+		Role:     string(name),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiry)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
