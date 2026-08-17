@@ -78,6 +78,8 @@ Date: 2026-08-17
 
 ### Ticket 2 · DB-FIX-02 备份机制 + 恢复演练
 
+状态：✅ 已完成（2026-08-17）
+
 目标：建立每日自动备份，并证明可恢复。
 
 动作：
@@ -86,6 +88,12 @@ Date: 2026-08-17
 3. 将备份/恢复命令沉淀为脚本（scripts/ 或 /opt/ai-forum/scripts/），写回 docs（DEPLOY.md 或 pilot-runbook.md）。
 
 验证方式：crontab -l 可见；备份文件存在且 gzip -t 通过；本地 restore 后表行数一致。
+
+执行记录（SSH 122.51.233.225 实测）：
+1. 改进 scripts/backup-postgres.sh：修正项目根为 /home/liyongquan/projects/ai-forum（原 /opt/ai-forum 不存在）、pg_dump 改 -Fc custom 格式、默认 BACKUP_DIR=~/backups/db、RETAIN_DAYS=30、cron PATH 补 docker compose 插件。
+2. 用户级 crontab 已装：每日 02:30 执行并写 backup.log（原 crontab 为空，历史 install-pilot-cron.sh 指向的 /opt/ai-forum 路径失效）。
+3. 手动执行备份：ai_forum_20260817-163638.dump.gz（16K），gzip -t 通过，pg_restore -l 列出 30 表。
+4. 恢复演练：pg_restore 到临时库 ai_forum_restore_test，退出码 0，users=76、roles=2、迁移 13|f 与生产一致，随后清理临时库。
 风险/回滚：纯新增机制，无回滚风险。
 是否影响发布：无在线影响。
 
